@@ -30,6 +30,7 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.ShortBlob;
 import com.google.appengine.api.datastore.Text;
+import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.mail.MailService;
 import com.google.appengine.api.mail.MailService.Message;
 import com.google.appengine.api.mail.MailServiceFactory;
@@ -37,16 +38,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -97,6 +102,11 @@ public class MailHandlerServlet extends HttpServlet
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
+        String removeKey = request.getParameter("remove");
+        if (removeKey != null)
+        {
+            remove(removeKey, response);
+        }
     }
 
     /**
@@ -122,7 +132,7 @@ public class MailHandlerServlet extends HttpServlet
             String removeKey = request.getParameter("remove");
             if (removeKey != null)
             {
-                remove(removeKey);
+                remove(removeKey, response);
             }
             else
             {
@@ -143,7 +153,7 @@ public class MailHandlerServlet extends HttpServlet
                 throw new ServletException(HTML+" property not found in "+blog);
             }
             String html = text.getValue();
-            List<String> blobKeys = new ArrayList<String>();
+            List<BlobKey> blobKeys = new ArrayList<BlobKey>();
             for (Entry<String, List<BlobKey>> entry : blobs.entrySet())
             {
                 String cid = entry.getKey();
@@ -154,10 +164,7 @@ public class MailHandlerServlet extends HttpServlet
                 }
                 String blobKey = entry.getValue().get(0).getKeyString();
                 html = html.replace("cid:"+cid, "/blob?blob-key="+blobKey);
-                for (BlobKey bk : entry.getValue())
-                {
-                    blobKeys.add(bk.getKeyString());
-                }
+                blobKeys.addAll(entry.getValue());
             }
             blog.setUnindexedProperty(HTML, new Text(html));
             blog.setUnindexedProperty(BLOBS, blobKeys);
@@ -175,7 +182,7 @@ public class MailHandlerServlet extends HttpServlet
         try
         {
             MimeMessage message = new MimeMessage(session, request.getInputStream());
-            Entity blog = new Entity("Blob");
+            Entity blog = new Entity("Blog");
             InternetAddress sender = (InternetAddress) message.getSender();
             blog.setProperty("Sender", new Email(sender.getAddress()));
             String subject = message.getSubject();
@@ -207,6 +214,7 @@ public class MailHandlerServlet extends HttpServlet
                     }
                     else
                     {
+                        log("Blob: "+contentType);
                         hasBlobs = true;
                     }
                 }
@@ -277,17 +285,13 @@ public class MailHandlerServlet extends HttpServlet
                 is.close();
                 ps.append(CRLF);
             }
-            else
-            {
-                log("unknown content "+content);
-            }
         }
         ps.append("--"+uid+"--");
         ps.append(CRLF);
         ps.close();
         if (connection.getResponseCode() != HttpURLConnection.HTTP_OK)
         {
-            throw new IOException(connection.getResponseCode()+" "+connection.getResponseMessage());
+            log(connection.getResponseCode()+" "+connection.getResponseMessage());
         }
     }
 
@@ -305,10 +309,36 @@ public class MailHandlerServlet extends HttpServlet
             }
         }
     }
-    private void remove(String encoded)
+    private void remove(String encoded, HttpServletResponse response) throws IOException
     {
         Key key = KeyFactory.stringToKey(encoded);
-        datastore.delete(key);
+        Transaction tr = datastore.beginTransaction();
+        try
+        {
+            Entity blog = datastore.get(key);
+            Collection<BlobKey> blobs = (Collection<BlobKey>) blog.getProperty(BLOBS);
+            if (blobs != null)
+            {
+                blobstore.delete(blobs.toArray(new BlobKey[blobs.size()]));
+            }
+            datastore.delete(key);
+            tr.commit();
+            response.setContentType("text/plain");
+            PrintWriter writer = response.getWriter();
+            writer.println("Deleted blog: "+blog.getProperty("Subject"));
+            writer.close();
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new IOException(ex);
+        }        
+        finally
+        {
+            if (tr.isActive())
+            {
+                tr.rollback();
+            }
+        }
     }
 
     
