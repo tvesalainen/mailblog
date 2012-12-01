@@ -19,8 +19,6 @@ package org.vesalainen.mailblog;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
-import com.google.appengine.api.datastore.Blob;
-import com.google.appengine.api.datastore.DataTypeUtils;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Email;
@@ -28,12 +26,17 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.ShortBlob;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.mail.MailService;
 import com.google.appengine.api.mail.MailService.Message;
 import com.google.appengine.api.mail.MailServiceFactory;
+import com.google.appengine.api.urlfetch.HTTPHeader;
+import com.google.appengine.api.urlfetch.HTTPMethod;
+import com.google.appengine.api.urlfetch.HTTPRequest;
+import com.google.appengine.api.urlfetch.HTTPResponse;
+import com.google.appengine.api.urlfetch.URLFetchService;
+import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +45,6 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -50,6 +52,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.mail.BodyPart;
@@ -77,6 +83,7 @@ public class MailHandlerServlet extends HttpServlet
     private BlobstoreService blobstore;
     private Session session;
     private MailService mailService;
+    private URLFetchService fetchService;
 
     @Override
     public void init(ServletConfig config) throws ServletException
@@ -87,6 +94,7 @@ public class MailHandlerServlet extends HttpServlet
         datastore = DatastoreServiceFactory.getDatastoreService();
         blobstore = BlobstoreServiceFactory.getBlobstoreService();
         mailService = MailServiceFactory.getMailService();
+        fetchService = URLFetchServiceFactory.getURLFetchService();
     }
 
     /**
@@ -242,17 +250,17 @@ public class MailHandlerServlet extends HttpServlet
             throw new IOException(ex);
         }
     }
-
+    
     private void postBlobs(List<BodyPart> list, String key, HttpServletRequest request) throws MessagingException, IOException
     {
+        // This will result in timeout in most cases
         String redir = request.getServletPath();
         URL uploadUrl = new URL(blobstore.createUploadUrl(redir+"?addBlobs="+key));
-        HttpURLConnection connection = (HttpURLConnection) uploadUrl.openConnection();
-        connection.setDoOutput(true);
-        connection.setRequestMethod("POST");
+        HTTPRequest httpRequest = new HTTPRequest(uploadUrl, HTTPMethod.POST);
         String uid = UUID.randomUUID().toString();
-        connection.setRequestProperty("Content-Type", "multipart/form-data; boundary="+uid);
-        PrintStream ps = new PrintStream(connection.getOutputStream());
+        httpRequest.addHeader(new HTTPHeader("Content-Type", "multipart/form-data; boundary="+uid));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
         byte[] buffer = new byte[8192];
         for (BodyPart bodyPart : list)
         {
@@ -289,9 +297,26 @@ public class MailHandlerServlet extends HttpServlet
         ps.append("--"+uid+"--");
         ps.append(CRLF);
         ps.close();
-        if (connection.getResponseCode() != HttpURLConnection.HTTP_OK)
+        log("sending blog size="+baos.size());
+        httpRequest.setPayload(baos.toByteArray());
+        Future<HTTPResponse> future = fetchService.fetchAsync(httpRequest);
+        HTTPResponse response;
+        try
         {
-            log(connection.getResponseCode()+" "+connection.getResponseMessage());
+            response = future.get(10, TimeUnit.SECONDS);
+            log("code="+response.getResponseCode());
+        }
+        catch (TimeoutException ex)
+        {
+            throw new IOException(ex);
+        }
+        catch (InterruptedException ex)
+        {
+            throw new IOException(ex);
+        }
+        catch (ExecutionException ex)
+        {
+            throw new IOException(ex);
         }
     }
 
