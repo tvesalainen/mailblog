@@ -16,42 +16,26 @@
  */
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.blobstore.BlobKey;
-import com.google.appengine.api.blobstore.BlobstoreService;
-import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.Blob;
-import com.google.appengine.api.datastore.DataTypeUtils;
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.ShortBlob;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.mail.MailService;
 import com.google.appengine.api.mail.MailService.Message;
 import com.google.appengine.api.mail.MailServiceFactory;
+import com.google.apphosting.api.ApiProxy;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -68,13 +52,9 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Timo Vesalainen
  */
-public class MailHandlerServlet extends HttpServlet
+public class MailHandlerServlet extends HttpServlet implements BlogConstants
 {
-    private static final String HTML = "Html";
-    private static final String BLOBS = "Blobs";
-    private static final String CRLF = "\r\n";
-    private DatastoreService datastore;
-    private BlobstoreService blobstore;
+    private DB db;
     private Session session;
     private MailService mailService;
 
@@ -82,10 +62,9 @@ public class MailHandlerServlet extends HttpServlet
     public void init(ServletConfig config) throws ServletException
     {
         super.init(config);
+        db = new DB();
         Properties props = new Properties();
         session = Session.getDefaultInstance(props, null);
-        datastore = DatastoreServiceFactory.getDatastoreService();
-        blobstore = BlobstoreServiceFactory.getBlobstoreService();
         mailService = MailServiceFactory.getMailService();
     }
 
@@ -102,7 +81,7 @@ public class MailHandlerServlet extends HttpServlet
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        String removeKey = request.getParameter("remove");
+        String removeKey = request.getParameter(RemoveParameter);
         if (removeKey != null)
         {
             remove(removeKey, response);
@@ -122,108 +101,89 @@ public class MailHandlerServlet extends HttpServlet
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        String key = request.getParameter("addBlobs");
-        if (key != null)
+        String removeKey = request.getParameter(RemoveParameter);
+        if (removeKey != null)
         {
-            addBlobs(request, key);
+            remove(removeKey, response);
         }
         else
         {
-            String removeKey = request.getParameter("remove");
-            if (removeKey != null)
-            {
-                remove(removeKey, response);
-            }
-            else
-            {
-                handleMail(request);
-            }
+            handleMail(request);
         }
     }
-    private void addBlobs(HttpServletRequest request, String encoded) throws ServletException
-    {
-        try
-        {
-            Map<String, List<BlobKey>> blobs = blobstore.getUploads(request);
-            Key key = KeyFactory.stringToKey(encoded);
-            Entity blog = datastore.get(key);
-            Text text = (Text) blog.getProperty(HTML);
-            if (text == null)
-            {
-                throw new ServletException(HTML+" property not found in "+blog);
-            }
-            String html = text.getValue();
-            List<BlobKey> blobKeys = new ArrayList<BlobKey>();
-            for (Entry<String, List<BlobKey>> entry : blobs.entrySet())
-            {
-                String cid = entry.getKey();
-                log(cid);
-                if (cid.startsWith("<") && cid.endsWith(">"))
-                {
-                    cid = cid.substring(1, cid.length()-1);
-                }
-                String blobKey = entry.getValue().get(0).getKeyString();
-                html = html.replace("cid:"+cid, "/blob?blob-key="+blobKey);
-                blobKeys.addAll(entry.getValue());
-            }
-            blog.setUnindexedProperty(HTML, new Text(html));
-            blog.setUnindexedProperty(BLOBS, blobKeys);
-            log(blog.toString());
-            datastore.put(blog);
-        }
-        catch (EntityNotFoundException ex)
-        {
-            throw new ServletException(ex);
-        }
-    }
-
     private void handleMail(HttpServletRequest request) throws IOException
     {
+        Transaction tr = db.beginTransaction();
         try
         {
             MimeMessage message = new MimeMessage(session, request.getInputStream());
-            Entity blog = new Entity("Blog");
+            String messageID = message.getMessageID();
+            Key key = db.createBlogKey(messageID);
+            Entity blog = new Entity(key);
+            
+            blog.setProperty(TimestampProperty, new Date());
             InternetAddress sender = (InternetAddress) message.getSender();
-            blog.setProperty("Sender", new Email(sender.getAddress()));
+            blog.setProperty(SenderProperty, new Email(sender.getAddress()));
             String subject = message.getSubject();
-            blog.setProperty("Subject", subject);
+            blog.setProperty(SubjectProperty, subject);
             Date sentDate = message.getSentDate();
-            blog.setProperty("SentDate", sentDate);
+            blog.setProperty(SentDateProperty, sentDate);
             Multipart multipart = (Multipart) message.getContent();
             List<BodyPart> list = new ArrayList<BodyPart>();
             findParts(list, multipart);
-            boolean hasBlobs = false;
+            String htmlBody = null;
             for (BodyPart bodyPart : list)
             {
                 String contentType = bodyPart.getContentType();
+                String fileName = bodyPart.getFileName();
                 Object content = bodyPart.getContent();
                 if (contentType.startsWith("text/html"))
                 {
-                    String html = (String) content;
-                    blog.setUnindexedProperty(HTML, new Text(html));
+                    htmlBody = (String) content;
                 }
                 else
                 {
                     if (contentType.startsWith("text/plain"))
                     {
-                        if (!blog.hasProperty(HTML))
+                        if (htmlBody == null)
                         {
-                            String plain = (String) content;
-                            blog.setUnindexedProperty(HTML, new Text(plain));
+                            htmlBody = (String) content;
                         }
                     }
                     else
                     {
                         log("Blob: "+contentType);
-                        hasBlobs = true;
+                        if (content instanceof InputStream)
+                        {   // TODO if bigger than 1000000
+                            byte[] buffer = new byte[8192];
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            InputStream is = (InputStream) content;
+                            String filename = bodyPart.getFileName();
+                            String[] cids = bodyPart.getHeader("Content-ID");
+                            if (cids == null)
+                            {
+                                throw new IOException("attachment filename="+filename+" doesn't have a Content-ID");
+                            }
+                            String cid = cids[0];
+                            int rc = is.read(buffer);
+                            while (rc != -1)
+                            {
+                                baos.write(buffer, 0, rc);
+                                rc = is.read(buffer);
+                            }
+                            is.close();
+                            if (cid.startsWith("<") && cid.endsWith(">"))
+                            {
+                                cid = cid.substring(1, cid.length()-1);
+                            }
+                            String blobKey = db.addBlob(blog.getKey(), fileName, contentType, baos.toByteArray());
+                            htmlBody = htmlBody.replace("cid:"+cid, "/blog?blob="+blobKey);
+                        }
                     }
                 }
             }
-            datastore.put(blog);
-            if (hasBlobs)
-            {
-                postBlobs(list, KeyFactory.keyToString(blog.getKey()), request);
-            }
+            blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
+            db.put(blog);
             Message reply = new Message();
             String uri = request.getRequestURI();
             int idx = uri.lastIndexOf('/');
@@ -236,62 +196,20 @@ public class MailHandlerServlet extends HttpServlet
             requestURL.append("?remove="+keyString);
             reply.setHtmlBody("<a href=\""+requestURL+"\">Delete Blog</a>");
             mailService.send(reply);
+            long remainingMillis = ApiProxy.getCurrentEnvironment().getRemainingMillis();
+            log("remainingMillis="+remainingMillis);
+            tr.commit();
         }
         catch (MessagingException ex)
         {
             throw new IOException(ex);
         }
-    }
-
-    private void postBlobs(List<BodyPart> list, String key, HttpServletRequest request) throws MessagingException, IOException
-    {
-        String redir = request.getServletPath();
-        URL uploadUrl = new URL(blobstore.createUploadUrl(redir+"?addBlobs="+key));
-        HttpURLConnection connection = (HttpURLConnection) uploadUrl.openConnection();
-        connection.setDoOutput(true);
-        connection.setRequestMethod("POST");
-        String uid = UUID.randomUUID().toString();
-        connection.setRequestProperty("Content-Type", "multipart/form-data; boundary="+uid);
-        PrintStream ps = new PrintStream(connection.getOutputStream());
-        byte[] buffer = new byte[8192];
-        for (BodyPart bodyPart : list)
+        finally
         {
-            Object content = bodyPart.getContent();
-            if (content instanceof InputStream)
+            if (tr.isActive())
             {
-                InputStream is = (InputStream) content;
-                String filename = bodyPart.getFileName();
-                String[] cids = bodyPart.getHeader("Content-ID");
-                if (cids == null)
-                {
-                    throw new IOException("attachment filename="+filename+" doesn't have a Content-ID");
-                }
-                String cid = cids[0];
-                ps.append("--"+uid);
-                ps.append(CRLF);
-                ps.append("Content-Disposition: form-data; name=\""+cid+"\"; filename=\""+filename+"\"");
-                ps.append(CRLF);
-                ps.append("Content-Type: "+bodyPart.getContentType());
-                ps.append(CRLF);
-                ps.append("Content-Transfer-Encoding: binary");
-                ps.append(CRLF);
-                ps.append(CRLF);
-                int rc = is.read(buffer);
-                while (rc != -1)
-                {
-                    ps.write(buffer, 0, rc);
-                    rc = is.read(buffer);
-                }
-                is.close();
-                ps.append(CRLF);
+                tr.rollback();
             }
-        }
-        ps.append("--"+uid+"--");
-        ps.append(CRLF);
-        ps.close();
-        if (connection.getResponseCode() != HttpURLConnection.HTTP_OK)
-        {
-            log(connection.getResponseCode()+" "+connection.getResponseMessage());
         }
     }
 
@@ -312,17 +230,10 @@ public class MailHandlerServlet extends HttpServlet
     private void remove(String encoded, HttpServletResponse response) throws IOException
     {
         Key key = KeyFactory.stringToKey(encoded);
-        Transaction tr = datastore.beginTransaction();
         try
         {
-            Entity blog = datastore.get(key);
-            Collection<BlobKey> blobs = (Collection<BlobKey>) blog.getProperty(BLOBS);
-            if (blobs != null)
-            {
-                blobstore.delete(blobs.toArray(new BlobKey[blobs.size()]));
-            }
-            datastore.delete(key);
-            tr.commit();
+            Entity blog = db.get(key);
+            db.delete(key);
             response.setContentType("text/plain");
             PrintWriter writer = response.getWriter();
             writer.println("Deleted blog: "+blog.getProperty("Subject"));
@@ -332,13 +243,6 @@ public class MailHandlerServlet extends HttpServlet
         {
             throw new IOException(ex);
         }        
-        finally
-        {
-            if (tr.isActive())
-            {
-                tr.rollback();
-            }
-        }
     }
 
     
