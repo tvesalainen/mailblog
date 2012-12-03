@@ -31,12 +31,14 @@ import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.mail.MailService;
 import com.google.appengine.api.mail.MailService.Message;
 import com.google.appengine.api.mail.MailServiceFactory;
+import com.google.appengine.api.urlfetch.FetchOptions;
 import com.google.appengine.api.urlfetch.HTTPHeader;
 import com.google.appengine.api.urlfetch.HTTPMethod;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
+import com.google.apphosting.api.ApiProxy;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -256,7 +258,7 @@ public class MailHandlerServlet extends HttpServlet
         // This will result in timeout in most cases
         String redir = request.getServletPath();
         URL uploadUrl = new URL(blobstore.createUploadUrl(redir+"?addBlobs="+key));
-        HTTPRequest httpRequest = new HTTPRequest(uploadUrl, HTTPMethod.POST);
+        HTTPRequest httpRequest = new HTTPRequest(uploadUrl, HTTPMethod.POST, FetchOptions.Builder.withDeadline(60));
         String uid = UUID.randomUUID().toString();
         httpRequest.addHeader(new HTTPHeader("Content-Type", "multipart/form-data; boundary="+uid));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -303,7 +305,8 @@ public class MailHandlerServlet extends HttpServlet
         HTTPResponse response;
         try
         {
-            response = future.get(10, TimeUnit.SECONDS);
+            log("remaining="+ApiProxy.getCurrentEnvironment().getRemainingMillis());
+            response = future.get(50, TimeUnit.SECONDS);
             log("code="+response.getResponseCode());
         }
         catch (TimeoutException ex)
