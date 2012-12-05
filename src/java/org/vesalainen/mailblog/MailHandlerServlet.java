@@ -16,7 +16,9 @@
  */
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.datastore.Blob;
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
@@ -24,18 +26,36 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Transaction;
+import com.google.appengine.api.images.ImagesService;
+import com.google.appengine.api.images.ImagesServiceFactory;
 import com.google.appengine.api.mail.MailService;
 import com.google.appengine.api.mail.MailService.Message;
 import com.google.appengine.api.mail.MailServiceFactory;
+import com.google.appengine.api.urlfetch.FetchOptions;
+import com.google.appengine.api.urlfetch.HTTPHeader;
+import com.google.appengine.api.urlfetch.HTTPMethod;
+import com.google.appengine.api.urlfetch.HTTPRequest;
+import com.google.appengine.api.urlfetch.HTTPResponse;
+import com.google.appengine.api.urlfetch.URLFetchService;
+import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 import com.google.apphosting.api.ApiProxy;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -54,9 +74,13 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class MailHandlerServlet extends HttpServlet implements BlogConstants
 {
+    private static final String CRLF = "\r\n";
     private DB db;
+    private BlobstoreService blobstore;
+    private URLFetchService fetchService;
     private Session session;
     private MailService mailService;
+    private ImagesService imagesService;
 
     @Override
     public void init(ServletConfig config) throws ServletException
@@ -66,6 +90,9 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         Properties props = new Properties();
         session = Session.getDefaultInstance(props, null);
         mailService = MailServiceFactory.getMailService();
+        blobstore = BlobstoreServiceFactory.getBlobstoreService();
+        fetchService = URLFetchServiceFactory.getURLFetchService();
+        imagesService = ImagesServiceFactory.getImagesService();
     }
 
     /**
@@ -101,104 +128,133 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        String removeKey = request.getParameter(RemoveParameter);
-        if (removeKey != null)
+        String key = request.getParameter("addBlobs");
+        if (key != null)
         {
-            remove(removeKey, response);
+            addBlobs(request, key);
         }
         else
         {
-            handleMail(request);
+            String removeKey = request.getParameter(RemoveParameter);
+            if (removeKey != null)
+            {
+                remove(removeKey, response);
+            }
+            else
+            {
+                handleMail(request);
+            }
         }
     }
-    private void handleMail(HttpServletRequest request) throws IOException
+    private void handleMail(HttpServletRequest request) throws IOException, ServletException
     {
         Transaction tr = db.beginTransaction();
         try
         {
             MimeMessage message = new MimeMessage(session, request.getInputStream());
             String messageID = message.getMessageID();
-            Key key = db.createBlogKey(messageID);
-            Entity blog = new Entity(key);
-            
-            blog.setProperty(TimestampProperty, new Date());
-            InternetAddress sender = (InternetAddress) message.getSender();
-            blog.setProperty(SenderProperty, new Email(sender.getAddress()));
-            String subject = message.getSubject();
-            blog.setProperty(SubjectProperty, subject);
-            Date sentDate = message.getSentDate();
-            blog.setProperty(SentDateProperty, sentDate);
-            Multipart multipart = (Multipart) message.getContent();
             List<BodyPart> list = new ArrayList<BodyPart>();
-            findParts(list, multipart);
-            String htmlBody = null;
-            for (BodyPart bodyPart : list)
+            Entity blog = db.getBlogFromMessageId(messageID);
+            String blogKeyString = KeyFactory.keyToString(blog.getKey());
+            if (!blog.hasProperty(TimestampProperty))
             {
-                String contentType = bodyPart.getContentType();
-                String fileName = bodyPart.getFileName();
-                Object content = bodyPart.getContent();
-                if (contentType.startsWith("text/html"))
+                blog.setProperty(TimestampProperty, new Date());
+                InternetAddress sender = (InternetAddress) message.getSender();
+                blog.setProperty(SenderProperty, new Email(sender.getAddress()));
+                String subject = message.getSubject();
+                blog.setProperty(SubjectProperty, subject);
+                Date sentDate = message.getSentDate();
+                blog.setProperty(SentDateProperty, sentDate);
+                Multipart multipart = (Multipart) message.getContent();
+                findParts(list, multipart);
+                String htmlBody = null;
+                for (BodyPart bodyPart : list)
                 {
-                    htmlBody = (String) content;
-                }
-                else
-                {
-                    if (contentType.startsWith("text/plain"))
+                    String contentType = bodyPart.getContentType();
+                    String fileName = bodyPart.getFileName();
+                    Object content = bodyPart.getContent();
+                    if (contentType.startsWith("text/html"))
                     {
-                        if (htmlBody == null)
-                        {
-                            htmlBody = (String) content;
-                        }
+                        htmlBody = (String) content;
                     }
                     else
                     {
-                        log("Blob: "+contentType);
-                        if (content instanceof InputStream)
-                        {   // TODO if bigger than 1000000
-                            byte[] buffer = new byte[8192];
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            InputStream is = (InputStream) content;
-                            String filename = bodyPart.getFileName();
-                            String[] cids = bodyPart.getHeader("Content-ID");
-                            if (cids == null)
+                        if (contentType.startsWith("text/plain"))
+                        {
+                            if (htmlBody == null)
                             {
-                                throw new IOException("attachment filename="+filename+" doesn't have a Content-ID");
+                                htmlBody = (String) content;
                             }
-                            String cid = cids[0];
-                            int rc = is.read(buffer);
-                            while (rc != -1)
-                            {
-                                baos.write(buffer, 0, rc);
-                                rc = is.read(buffer);
-                            }
-                            is.close();
-                            if (cid.startsWith("<") && cid.endsWith(">"))
-                            {
-                                cid = cid.substring(1, cid.length()-1);
-                            }
-                            String blobKey = db.addBlob(blog.getKey(), fileName, contentType, baos.toByteArray());
-                            htmlBody = htmlBody.replace("cid:"+cid, "/blog?blob="+blobKey);
+                        }
+                    }
+                }
+                blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
+                db.put(blog);
+                tr.commit();
+                Message reply = new Message();
+                String uri = request.getRequestURI();
+                int idx = uri.lastIndexOf('/');
+                uri = uri.substring(idx+1);
+                reply.setSender(uri);
+                reply.setTo(sender.getAddress());
+                reply.setSubject("Blog: "+subject+" received");
+                StringBuffer requestURL = request.getRequestURL();
+                requestURL.append("?remove="+blogKeyString);
+                reply.setHtmlBody("<a href=\""+requestURL+"\">Delete Blog</a>");
+                mailService.send(reply);
+            }
+            Collection<String> cidSet = (Collection<String>) blog.getProperty(CidsProperty);
+            List<Future<HTTPResponse>> futureList = new ArrayList<Future<HTTPResponse>>();
+            for (BodyPart bodyPart : list)
+            {
+                String contentType = bodyPart.getContentType();
+                Object content = bodyPart.getContent();
+                if (!contentType.startsWith("text/html"))
+                {
+                    if (content instanceof InputStream)
+                    {
+                        String filename = bodyPart.getFileName();
+                        String[] cids = bodyPart.getHeader("Content-ID");
+                        if (cids == null || cids.length == 0)
+                        {
+                            throw new IOException("attachment filename="+filename+" doesn't have a Content-ID");
+                        }
+                        byte[] bytes = getBytes(bodyPart);
+                        if (cidSet == null || !cidSet.contains(cids[0]))
+                        {
+                            log("upload "+cids[0]);
+                            Future<HTTPResponse> res = postBlobs(filename, contentType, cids[0], bytes, blogKeyString, request);
+                            futureList.add(res);
+                        }
+                        else
+                        {
+                            log("was uploaded "+cids[0]);
                         }
                     }
                 }
             }
-            blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
-            db.put(blog);
-            Message reply = new Message();
-            String uri = request.getRequestURI();
-            int idx = uri.lastIndexOf('/');
-            uri = uri.substring(idx+1);
-            reply.setSender(uri);
-            reply.setTo(sender.getAddress());
-            reply.setSubject("Blog: "+subject+" received");
-            String keyString = KeyFactory.keyToString(blog.getKey());
-            StringBuffer requestURL = request.getRequestURL();
-            requestURL.append("?remove="+keyString);
-            reply.setHtmlBody("<a href=\""+requestURL+"\">Delete Blog</a>");
-            mailService.send(reply);
             long remainingMillis = ApiProxy.getCurrentEnvironment().getRemainingMillis();
             log("remainingMillis="+remainingMillis);
-            tr.commit();
+            for (Future<HTTPResponse> res : futureList)
+            {
+                try
+                {
+                    HTTPResponse hr = res.get();
+                    log("code="+hr.getResponseCode());
+                    if (hr.getResponseCode() != HttpServletResponse.SC_OK)
+                    {
+                        throw new ServletException("blob upload failed code="+hr.getResponseCode());
+                    }
+                }
+                catch (InterruptedException ex)
+                {
+                    throw new IOException(ex);
+                }
+                catch (ExecutionException ex)
+                {
+                    throw new IOException(ex);
+                }
+            }
         }
         catch (MessagingException ex)
         {
@@ -230,19 +286,156 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
     private void remove(String encoded, HttpServletResponse response) throws IOException
     {
         Key key = KeyFactory.stringToKey(encoded);
+        Transaction tr = db.beginTransaction();
         try
         {
             Entity blog = db.get(key);
+            Collection<BlobKey> blobKeys = (Collection<BlobKey>) blog.getProperty(BlobsProperty);
+            int blobCount = 0;
+            if (blobKeys != null)
+            {
+                blobCount = blobKeys.size();
+                for (BlobKey bk : blobKeys)
+                {
+                    blobstore.delete(bk);
+                }
+            }
             db.delete(key);
             response.setContentType("text/plain");
             PrintWriter writer = response.getWriter();
-            writer.println("Deleted blog: "+blog.getProperty("Subject"));
+            writer.println("Deleted blog: "+blog.getProperty("Subject")+" and "+blobCount+" blobs");
             writer.close();
+            tr.commit();
         }
         catch (EntityNotFoundException ex)
         {
             throw new IOException(ex);
-        }        
+        }
+        finally
+        {
+            if (tr.isActive())
+            {
+                tr.rollback();
+            }
+        }
+    }
+
+        
+    private void addBlobs(HttpServletRequest request, String encoded) throws ServletException
+    {
+        while (ApiProxy.getCurrentEnvironment().getRemainingMillis() > 1000)
+        {
+            try
+            {
+                tryAddBlobs(request, encoded);
+                return;
+            }
+            catch (ConcurrentModificationException ex)
+            {
+                log("retry add blob "+encoded);
+            }
+        }
+        log("giving up "+encoded);
+    }
+    private void tryAddBlobs(HttpServletRequest request, String encoded) throws ServletException
+    {
+        Transaction tr = db.beginTransaction();
+        try
+        {
+            Map<String, List<BlobKey>> blobs = blobstore.getUploads(request);
+            Key key = KeyFactory.stringToKey(encoded);
+            Entity blog = db.get(key);
+            Text text = (Text) blog.getProperty(HtmlProperty);
+            if (text == null)
+            {
+                throw new ServletException(HtmlProperty+" property not found in "+blog);
+            }
+            String html = text.getValue();
+            Collection<String> cidSet = (Collection<String>) blog.getProperty(CidsProperty);
+            if (cidSet == null)
+            {
+                cidSet = new HashSet<String>();
+            }
+            Collection<BlobKey> blobKeys = (Collection<BlobKey>) blog.getProperty(BlobsProperty);
+            if (blobKeys == null)
+            {
+                blobKeys = new ArrayList<BlobKey>();
+            }
+            for (Map.Entry<String, List<BlobKey>> entry : blobs.entrySet())
+            {
+                String cid = entry.getKey();
+                log(cid);
+                if (cid.startsWith("<") && cid.endsWith(">"))
+                {
+                    cid = cid.substring(1, cid.length()-1);
+                }
+                String blobKey = entry.getValue().get(0).getKeyString();
+                html = html.replace("cid:"+cid, "/blog?blob-key="+blobKey);
+                cidSet.add(cid);
+                blobKeys.addAll(entry.getValue());
+            }
+            blog.setUnindexedProperty(HtmlProperty, new Text(html));
+            blog.setUnindexedProperty(CidsProperty, cidSet);
+            blog.setUnindexedProperty(BlobsProperty, blobKeys);
+            log(blog.toString());
+            db.put(blog);
+            tr.commit();
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new ServletException(ex);
+        }
+        finally
+        {
+            if (tr.isActive())
+            {
+                tr.rollback();
+            }
+        }
+    }
+
+    private byte[] getBytes(BodyPart bodyPart) throws IOException, MessagingException
+    {
+        Object content = bodyPart.getContent();
+        InputStream is = (InputStream) content;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        int rc = is.read(buffer);
+        while (rc != -1)
+        {
+            baos.write(buffer, 0, rc);
+            rc = is.read(buffer);
+        }
+        return baos.toByteArray();
+    }
+    private Future<HTTPResponse> postBlobs(String filename, String contentType, String contentId, byte[] data, String key, HttpServletRequest request) throws MessagingException, IOException
+    {
+        // This will result in timeout in most cases
+        String redir = request.getServletPath();
+        URL uploadUrl = new URL(blobstore.createUploadUrl(redir+"?addBlobs="+key));
+        HTTPRequest httpRequest = new HTTPRequest(uploadUrl, HTTPMethod.POST, FetchOptions.Builder.withDeadline(60));
+        String uid = UUID.randomUUID().toString();
+        httpRequest.addHeader(new HTTPHeader("Content-Type", "multipart/form-data; boundary="+uid));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        byte[] buffer = new byte[8192];
+        ps.append("--"+uid);
+        ps.append(CRLF);
+        ps.append("Content-Disposition: form-data; name=\""+contentId+"\"; filename=\""+filename+"\"");
+        ps.append(CRLF);
+        ps.append("Content-Type: "+contentType);
+        ps.append(CRLF);
+        ps.append("Content-Transfer-Encoding: binary");
+        ps.append(CRLF);
+        ps.append(CRLF);
+        ps.write(data);
+        ps.append(CRLF);
+        ps.append("--"+uid+"--");
+        ps.append(CRLF);
+        ps.close();
+        log("sending blog size="+baos.size());
+        httpRequest.setPayload(baos.toByteArray());
+        return fetchService.fetchAsync(httpRequest);
     }
 
     

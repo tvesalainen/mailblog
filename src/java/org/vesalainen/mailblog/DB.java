@@ -17,7 +17,6 @@
 
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Email;
@@ -28,12 +27,20 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
+import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
-import java.text.DateFormat;
+import com.google.appengine.repackaged.com.google.common.base.Objects;
+import java.text.DateFormatSymbols;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * @author Timo Vesalainen
@@ -52,14 +59,22 @@ public class DB implements BlogConstants
     {
         return datastore.beginTransaction();
     }
-    public Key createBlogKey(String messageId)
+    public Entity getBlogFromMessageId(String messageId)
     {
-        return KeyFactory.createKey(root, BlogKind, messageId);
+        Key key =  KeyFactory.createKey(root, BlogKind, messageId);
+        try
+        {
+            return datastore.get(key);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return new Entity(key);
+        }
     }
     public void put(Entity entity)
     {
         cache.put(entity.getKey(), entity);
-        cache.delete(CacheListKey);
+        cache.delete(LatestKey);
         datastore.put(entity);
     }
 
@@ -76,7 +91,7 @@ public class DB implements BlogConstants
     public void delete(Key key)
     {
         cache.delete(key);
-        cache.delete(CacheListKey);
+        cache.delete(LatestKey);
         datastore.delete(key);
     }
 
@@ -85,53 +100,149 @@ public class DB implements BlogConstants
         return get(KeyFactory.stringToKey(keyString));
     }
 
-    public String getBlogList(Locale locale)
+    public String getBlogList() throws EntityNotFoundException
     {
-        String list = (String) cache.get(CacheListKey);
-        if (list == null)
+        String str = (String) cache.get(LatestKey);
+        if (str == null)
         {
-            DateFormat dateParser = DateFormat.getDateInstance(DateFormat.MEDIUM, locale);
             StringBuilder sb = new StringBuilder();
             Query query = new Query(BlogKind);
             query.addSort(SentDateProperty, Query.SortDirection.DESCENDING);
             PreparedQuery prepared = datastore.prepare(query);
-            sb.append("<table>");
-            for (Entity entity : prepared.asIterable(FetchOptions.Builder.withChunkSize(CHUNKSIZE)))
+            for (Entity entity : prepared.asIterable(FetchOptions.Builder.withLimit(5)))
             {
-                String subject = (String) entity.getProperty(SubjectProperty);
-                Date date = (Date) entity.getProperty(SentDateProperty);
-                Email sender = (Email) entity.getProperty(SenderProperty);
-                sb.append("<tr>");
-                sb.append("<td>");
-                sb.append("<a class=\"blog-link\" href=\"/?blog="+KeyFactory.keyToString(entity.getKey()) +"\">");
-                sb.append(subject);
-                sb.append("</a>");
-                sb.append("</td>");
-                sb.append("<td>");
-                sb.append(dateParser.format(date));
-                sb.append("</td>");
-                sb.append("<td>");
-                sb.append(sender.getEmail());
-                sb.append("</td>");
-                sb.append("</tr>");
+                String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
+                Date date = (Date) Objects.nonNull(entity.getProperty(SentDateProperty));
+                Email sender = (Email) Objects.nonNull(entity.getProperty(SenderProperty));
+                Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
+                Settings settings = Objects.nonNull(getSettingsFor(sender));
+                sb.append(String.format(settings.getTemplate().getValue(), subject, date, settings.getNickname(), body.getValue()));
             }
-            sb.append("</table>");
-            list = sb.toString();
-            cache.put(CacheListKey, list);
+            str = sb.toString();
+            cache.put(LatestKey, str);
         }
-        return list;
+        return str;
     }
 
-    public String addBlob(Key blogKey, String filename, String contentType, byte[] toByteArray)
+    public String getCalendar() throws EntityNotFoundException
     {
-        Entity blob = new Entity(BlobKind, blogKey);
-        blob.setProperty(TimestampProperty, new Date());
-        blob.setProperty(FilenameProperty, filename);
-        blob.setProperty(ContentTypeProperty, contentType);
-        blob.setProperty(BlobProperty, new Blob(toByteArray));
-        Key key = datastore.put(blob);
-        cache.put(key, blob);
-        return KeyFactory.keyToString(key);
+        String str = (String) cache.get(CalendarKey);
+        if (str == null)
+        {
+            Settings settings = getSettings();
+            Locale locale = settings.getLocale();
+            DateFormatSymbols dfs = new DateFormatSymbols(locale);
+            String[] months = dfs.getMonths();
+            Calendar calendar = Calendar.getInstance(locale);
+            Map<Integer,Map<Integer,List<String>>> yearMap = new TreeMap<Integer,Map<Integer,List<String>>>();
+            Query query = new Query(BlogKind);
+            query.addSort(SentDateProperty, Query.SortDirection.DESCENDING);
+            PreparedQuery prepared = datastore.prepare(query);
+            for (Entity entity : prepared.asIterable(FetchOptions.Builder.withLimit(5)))
+            {
+                String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
+                Date date = (Date) Objects.nonNull(entity.getProperty(SentDateProperty));
+                Email sender = (Email) Objects.nonNull(entity.getProperty(SenderProperty));
+                Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
+                calendar.setTime(date);
+                int year = calendar.get(Calendar.YEAR);
+                int month = calendar.get(Calendar.MONTH);
+                Map<Integer,List<String>> monthMap = yearMap.get(year);
+                if (monthMap == null)
+                {
+                    monthMap = new TreeMap<Integer,List<String>>();
+                    yearMap.put(year, monthMap);
+                }
+                List<String> list = monthMap.get(month);
+                if (list == null)
+                {
+                    list = new ArrayList<String>();
+                    monthMap.put(month, list);
+                }
+                list.add("<a href=\"/blog?blog="+KeyFactory.keyToString(entity.getKey())+"\">"+subject+"</a>");
+            }
+            StringBuilder sb = new StringBuilder();
+            int yearCount = 0;
+            int monthCount = 0;
+            int yearPtr = 0;
+            int monthPtr = 0;
+            sb.append("<ul>");
+            for (int year : yearMap.keySet())
+            {
+                sb.append("<li>"+year+" (");
+                yearPtr = sb.length();
+                sb.append(")</li>");
+                sb.append("<ul hidden=\"true\">");
+                Map<Integer,List<String>> monthMap = yearMap.get(year);
+                for (int month : monthMap.keySet())
+                {
+                    sb.append("<li>"+prettify(months[month])+" (");
+                    monthPtr = sb.length();
+                    sb.append(")</li>");
+                    sb.append("<ul hidden=\"true\">");
+                    List<String> blogList = monthMap.get(month);
+                    for (String a : blogList)
+                    {
+                        sb.append("<li class=\"blog\">"+a+"</li>");
+                        yearCount++;
+                        monthCount++;
+                    }
+                    sb.append("</ul>");
+                    sb.insert(monthPtr, monthCount);
+                    monthCount = 0;
+                }
+                sb.append("</ul>");
+                sb.insert(yearPtr, yearCount);
+                yearCount = 0;
+            }
+            sb.append("</ul>");
+            str = sb.toString();
+            cache.put(CalendarKey, str);
+        }
+        return str;
     }
-
+    private String prettify(String str)
+    {
+        return str.substring(0,1).toUpperCase()+str.substring(1);
+    }
+    public Settings getSettings() throws EntityNotFoundException
+    {
+        Settings settings = (Settings) cache.get(RootKey);
+        if (settings == null)
+        {
+            Key key = KeyFactory.createKey(SettingsKind, RootKey);
+            Entity entity = datastore.get(key);
+            if (entity != null)
+            {
+                settings = new Settings(this, entity);
+                cache.put(RootKey, settings);
+            }
+            else
+            {
+                throw new IllegalArgumentException("Root Settings not found");
+            }
+        }
+        return settings;
+    }
+    public Settings getSettingsFor(Email email) throws EntityNotFoundException
+    {
+        Settings settings = (Settings) cache.get(email);
+        if (settings == null)
+        {
+            Query query = new Query(SettingsKind);
+            query.setFilter(new FilterPredicate(EmailProperty, Query.FilterOperator.EQUAL, email));
+            PreparedQuery prepared = datastore.prepare(query);
+            Entity entity = prepared.asSingleEntity();
+            if (entity != null)
+            {
+                settings = new Settings(this, entity);
+                cache.put(email, settings);
+            }
+            else
+            {
+                throw new IllegalArgumentException(email.getEmail());
+            }
+        }
+        return settings;
+    }
 }

@@ -16,14 +16,32 @@
  */
 
 $(function() {
-  var contentservice = $("meta[name='populate']").attr("content");
+  var blogservice = $("meta[name='blog']").attr("content");
 
-    $.getJSON(contentservice , function(data) {
+    $.getJSON(blogservice , function(data) {
         if (data) {
-            var content = document.getElementById("content");
-            content.innerHTML = data.content;
-        }
+            var content = document.getElementById("blog");
+            content.innerHTML = data.blog;
+                }
+        $("img").click(function(){
+            $(this).load($(this).attr("src")+"&original=true");
+        });
+    
     });
+    
+  var calendarservice = $("meta[name='calendar']").attr("content");
+
+    $.getJSON(calendarservice , function(data) {
+        if (data) {
+            var content = document.getElementById("calendar");
+            content.innerHTML = data.calendar;
+                }
+        $("li").click(function(){
+            var x = $(this).get();
+        });
+    
+    });
+    
 });
 
 

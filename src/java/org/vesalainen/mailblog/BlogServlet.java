@@ -4,21 +4,13 @@
  */
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.datastore.Blob;
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Text;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Date;
-import java.util.Locale;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,12 +24,14 @@ import org.json.JSONObject;
 public class BlogServlet extends HttpServlet implements BlogConstants
 {
     private DB db;
+    private BlobstoreService blobstore;
 
     @Override
     public void init(ServletConfig config) throws ServletException
     {
         super.init(config);
         db = new DB();
+        blobstore = BlobstoreServiceFactory.getBlobstoreService();
     }
 
 
@@ -61,47 +55,33 @@ public class BlogServlet extends HttpServlet implements BlogConstants
             if (blobKey != null)
             {
                 log("blob="+blobKey);
-                Entity blobEntity = db.get(blobKey);
-                String contentType = (String) blobEntity.getProperty(ContentTypeProperty);
-                log(contentType);
-                Blob blob = (Blob) blobEntity.getProperty(BlobProperty);
-                Date timestamp = (Date) blobEntity.getProperty(TimestampProperty);
-                response.setDateHeader("Last-Modified", timestamp.getTime());
-                response.setContentType(contentType);
-                byte[] bytes = blob.getBytes();
-                ServletOutputStream outputStream = response.getOutputStream();
-                outputStream.write(bytes);
+                BlobKey bk = new BlobKey(blobKey);
+                blobstore.serve(bk, response);
             }
             else
             {
-                String blogKey = Util.getRefererParameter(request, BlogParameter);
-                if (blogKey != null)
+                String calendar = request.getParameter(CalendarParameter);
+                if (calendar != null)
                 {
-                    log("blog="+blogKey);
-                    Entity blog = db.get(blogKey);
+                    log("calendar");
                     response.setContentType("application/json");
                     JSONObject json = new JSONObject();
-                    Text body = (Text) blog.getProperty(HtmlProperty);
-                    Date timestamp = (Date) blog.getProperty(TimestampProperty);
-                    response.setDateHeader("Last-Modified", timestamp.getTime());
-                    json.put("content", body.getValue());
+                    json.put("calendar", db.getCalendar());
                     json.write(response.getWriter());
                 }
                 else
                 {
-                    log("list");
+                    log("latest");
                     response.setContentType("application/json");
                     JSONObject json = new JSONObject();
-                    Locale locale = Util.getLocale(request);
-                    log(locale.toString());
-                    String list = db.getBlogList(locale);
-                    json.put("content", list);
+                    json.put("blog", db.getBlogList());
                     json.write(response.getWriter());
                 }
             }
         }
         catch (EntityNotFoundException ex)
         {
+            log("", ex);
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
         catch (JSONException ex)

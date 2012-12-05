@@ -26,18 +26,31 @@ public interface BlogConstants
     static final String RootKind = "Root";
     static final String BlogKind = "Blog";
     static final String BlobKind = "Blob";
+    static final String SettingsKind = "Settings";
+    
     static final String TimestampProperty = "Timestamp";
     static final String HtmlProperty = "Html";
     static final String SubjectProperty = "Subject";
     static final String SenderProperty = "Sender";
     static final String SentDateProperty = "SentDate";
-    static final String BlobProperty = "Blob";
+    static final String CidsProperty = "Cids";
+    static final String BlobsProperty = "Blobs";
     static final String CityProperty = "City";
     static final String CoordinateProperty = "Coordinate";
     static final String FilenameProperty = "Filename";
     static final String ContentTypeProperty = "ContentType";
+    static final String EmailProperty = "Email";
+    static final String NicknameProperty = "Nickname";
+    static final String TemplateProperty = "Template";
+    static final String ConfirmEmailProperty = "ConfirmEmail";
+    static final String LanguageProperty = "Language";
+    
     static final String RemoveParameter = "remove";
     static final String BlogParameter = "blog";
-    static final String BlobParameter = "blob";
-    static final String CacheListKey = "list";
+    static final String BlobParameter = "blob-key";
+    static final String CalendarParameter = "calendar";
+    
+    static final String RootKey = "base";
+    static final String LatestKey = "latest";
+    static final String CalendarKey = "calendar";
 }
