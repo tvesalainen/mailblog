@@ -1,6 +1,6 @@
 body
 {
-background-image: url('/images/tausta.jpg') no-repeat top;
+background-image: url('/images/tausta.jpg');
 }
 
 #page
