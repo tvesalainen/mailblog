@@ -26,8 +26,10 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Transaction;
+import com.google.appengine.api.images.Image;
 import com.google.appengine.api.images.ImagesService;
 import com.google.appengine.api.images.ImagesServiceFactory;
+import com.google.appengine.api.images.Transform;
 import com.google.appengine.api.mail.MailService;
 import com.google.appengine.api.mail.MailService.Message;
 import com.google.appengine.api.mail.MailServiceFactory;
@@ -56,6 +58,8 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -142,11 +146,18 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             }
             else
             {
-                handleMail(request);
+                try
+                {
+                    handleMail(request);
+                }
+                catch (EntityNotFoundException ex)
+                {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                }
             }
         }
     }
-    private void handleMail(HttpServletRequest request) throws IOException, ServletException
+    private void handleMail(HttpServletRequest request) throws IOException, ServletException, EntityNotFoundException
     {
         Transaction tr = db.beginTransaction();
         try
@@ -155,12 +166,14 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             String messageID = message.getMessageID();
             List<BodyPart> list = new ArrayList<BodyPart>();
             Entity blog = db.getBlogFromMessageId(messageID);
+            InternetAddress sender = (InternetAddress) message.getSender();
+            Email senderEmail = new Email(sender.getAddress());
+            Settings settings = db.getSettingsFor(senderEmail);
             String blogKeyString = KeyFactory.keyToString(blog.getKey());
             if (!blog.hasProperty(TimestampProperty))
             {
                 blog.setProperty(TimestampProperty, new Date());
-                InternetAddress sender = (InternetAddress) message.getSender();
-                blog.setProperty(SenderProperty, new Email(sender.getAddress()));
+                blog.setProperty(SenderProperty, senderEmail);
                 String subject = message.getSubject();
                 blog.setProperty(SubjectProperty, subject);
                 Date sentDate = message.getSentDate();
@@ -222,8 +235,28 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                         byte[] bytes = getBytes(bodyPart);
                         if (cidSet == null || !cidSet.contains(cids[0]))
                         {
-                            log("upload "+cids[0]);
-                            Future<HTTPResponse> res = postBlobs(filename, contentType, cids[0], bytes, blogKeyString, request);
+                            String cid = cids[0];
+                            Image image = ImagesServiceFactory.makeImage(bytes);
+                            if (settings.isFixPic())
+                            {
+                                Transform makeImFeelingLucky = ImagesServiceFactory.makeImFeelingLucky();
+                                image = imagesService.applyTransform(makeImFeelingLucky, image);
+                            }
+                            if (
+                                    image.getHeight() > settings.getPicMaxHeight() ||
+                                    image.getWidth() > settings.getPicMaxWidth()
+                                    )
+                            {
+                                log("shrinking");
+                                Transform makeResize = ImagesServiceFactory.makeResize(settings.getPicMaxHeight(), settings.getPicMaxWidth());
+                                Image shrinken = imagesService.applyTransform(makeResize, image);
+                                log("upload "+cid);
+                                Future<HTTPResponse> res = postBlobs(filename, contentType, cid, shrinken.getImageData(), blogKeyString, request);
+                                futureList.add(res);
+                                cid = cid+"-original";
+                            }
+                            log("upload "+cid);
+                            Future<HTTPResponse> res = postBlobs(filename, contentType, cid, bytes, blogKeyString, request);
                             futureList.add(res);
                         }
                         else
@@ -418,7 +451,6 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         httpRequest.addHeader(new HTTPHeader("Content-Type", "multipart/form-data; boundary="+uid));
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(baos);
-        byte[] buffer = new byte[8192];
         ps.append("--"+uid);
         ps.append(CRLF);
         ps.append("Content-Disposition: form-data; name=\""+contentId+"\"; filename=\""+filename+"\"");

@@ -75,4 +75,23 @@ public class Settings implements BlogConstants, Serializable
     {
         return (Boolean) Objects.nonNull(map.get(ConfirmEmailProperty));
     }
+    public boolean isFixPic()
+    {
+        return (Boolean) Objects.nonNull(map.get(FixPicProperty));
+    }
+    public int getPicMaxHeight()
+    {
+        Long l = (Long) Objects.nonNull(map.get(PicMaxHeightProperty));
+        return l.intValue();
+    }
+    public int getPicMaxWidth()
+    {
+        Long l = (Long) Objects.nonNull(map.get(PicMaxWidthProperty));
+        return l.intValue();
+    }
+    public int getShowCount()
+    {
+        Long l = (Long) Objects.nonNull(map.get(ShowCountProperty));
+        return l.intValue();
+    }
 }

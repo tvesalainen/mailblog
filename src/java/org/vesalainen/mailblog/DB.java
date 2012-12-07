@@ -30,6 +30,7 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Transaction;
+import com.google.appengine.api.datastore.TransactionOptions;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
@@ -57,7 +58,7 @@ public class DB implements BlogConstants
 
     public Transaction beginTransaction()
     {
-        return datastore.beginTransaction();
+        return datastore.beginTransaction(TransactionOptions.Builder.withXG(true));
     }
     public Entity getBlogFromMessageId(String messageId)
     {
@@ -105,18 +106,14 @@ public class DB implements BlogConstants
         String str = (String) cache.get(LatestKey);
         if (str == null)
         {
+            Settings settings = getSettings();
             StringBuilder sb = new StringBuilder();
             Query query = new Query(BlogKind);
             query.addSort(SentDateProperty, Query.SortDirection.DESCENDING);
             PreparedQuery prepared = datastore.prepare(query);
-            for (Entity entity : prepared.asIterable(FetchOptions.Builder.withLimit(5)))
+            for (Entity entity : prepared.asIterable(FetchOptions.Builder.withLimit(settings.getShowCount())))
             {
-                String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
-                Date date = (Date) Objects.nonNull(entity.getProperty(SentDateProperty));
-                Email sender = (Email) Objects.nonNull(entity.getProperty(SenderProperty));
-                Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
-                Settings settings = Objects.nonNull(getSettingsFor(sender));
-                sb.append(String.format(settings.getTemplate().getValue(), subject, date, settings.getNickname(), body.getValue()));
+                sb.append(getBlog(entity));
             }
             str = sb.toString();
             cache.put(LatestKey, str);
@@ -124,6 +121,22 @@ public class DB implements BlogConstants
         return str;
     }
 
+    public String getBlog(String keyString) throws EntityNotFoundException
+    {
+        Entity entity = get(keyString);
+        return getBlog(entity);
+        
+    }
+    public String getBlog(Entity entity) throws EntityNotFoundException
+    {
+        String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
+        Date date = (Date) Objects.nonNull(entity.getProperty(SentDateProperty));
+        Email sender = (Email) Objects.nonNull(entity.getProperty(SenderProperty));
+        Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
+        Settings senderSettings = Objects.nonNull(getSettingsFor(sender));
+        return String.format(senderSettings.getTemplate().getValue(), subject, date, senderSettings.getNickname(), body.getValue());
+    }
+    
     public String getCalendar() throws EntityNotFoundException
     {
         String str = (String) cache.get(CalendarKey);
@@ -159,43 +172,41 @@ public class DB implements BlogConstants
                     list = new ArrayList<String>();
                     monthMap.put(month, list);
                 }
-                list.add("<a href=\"/blog?blog="+KeyFactory.keyToString(entity.getKey())+"\">"+subject+"</a>");
+                list.add("<div class=\"blog-entry\" id=\""+KeyFactory.keyToString(entity.getKey())+"\">"+subject+"</div>");
             }
             StringBuilder sb = new StringBuilder();
             int yearCount = 0;
             int monthCount = 0;
             int yearPtr = 0;
             int monthPtr = 0;
-            sb.append("<ul>");
             for (int year : yearMap.keySet())
             {
-                sb.append("<li>"+year+" (");
+                sb.append("<div id=\"year"+year+"\" class=\"calendar-menu\">"+year+" (");
                 yearPtr = sb.length();
-                sb.append(")</li>");
-                sb.append("<ul hidden=\"true\">");
+                sb.append(")</div>\n");
+                sb.append("<div class=\"year"+year+" calendar-indent\">\n");
                 Map<Integer,List<String>> monthMap = yearMap.get(year);
                 for (int month : monthMap.keySet())
                 {
-                    sb.append("<li>"+prettify(months[month])+" (");
+                    sb.append("<div id=\"month"+year+month+"\" class=\"calendar-menu\">"+prettify(months[month])+" (");
                     monthPtr = sb.length();
-                    sb.append(")</li>");
-                    sb.append("<ul hidden=\"true\">");
+                    sb.append(")</div>\n");
+                    sb.append("<div class=\"month"+year+month+" calendar-indent\">\n");
                     List<String> blogList = monthMap.get(month);
                     for (String a : blogList)
                     {
-                        sb.append("<li class=\"blog\">"+a+"</li>");
+                        sb.append(a);
                         yearCount++;
                         monthCount++;
                     }
-                    sb.append("</ul>");
                     sb.insert(monthPtr, monthCount);
                     monthCount = 0;
+                    sb.append("</div>\n");
                 }
-                sb.append("</ul>");
+                sb.append("</div>\n");
                 sb.insert(yearPtr, yearCount);
                 yearCount = 0;
             }
-            sb.append("</ul>");
             str = sb.toString();
             cache.put(CalendarKey, str);
         }

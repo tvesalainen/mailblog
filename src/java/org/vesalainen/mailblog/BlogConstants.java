@@ -44,11 +44,16 @@ public interface BlogConstants
     static final String TemplateProperty = "Template";
     static final String ConfirmEmailProperty = "ConfirmEmail";
     static final String LanguageProperty = "Language";
+    static final String PicMaxHeightProperty = "PicMaxHeight";
+    static final String PicMaxWidthProperty = "PicMaxWidth";
+    static final String FixPicProperty = "FixPic";
+    static final String ShowCountProperty = "ShowCount";
     
     static final String RemoveParameter = "remove";
     static final String BlogParameter = "blog";
     static final String BlobParameter = "blob-key";
     static final String CalendarParameter = "calendar";
+    static final String OriginalParameter = "original";
     
     static final String RootKey = "base";
     static final String LatestKey = "latest";

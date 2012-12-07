@@ -4,11 +4,14 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.blobstore.BlobInfo;
+import com.google.appengine.api.blobstore.BlobInfoFactory;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import java.io.IOException;
+import java.util.Iterator;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -56,6 +59,23 @@ public class BlogServlet extends HttpServlet implements BlogConstants
             {
                 log("blob="+blobKey);
                 BlobKey bk = new BlobKey(blobKey);
+                String original = request.getParameter(OriginalParameter);
+                if (original != null)
+                {
+                    BlobInfoFactory bif = new BlobInfoFactory();
+                    BlobInfo loadBlobInfo = bif.loadBlobInfo(bk);
+                    Iterator<BlobInfo> iterator = bif.queryBlobInfos();
+                    while (iterator.hasNext())
+                    {
+                        BlobInfo bi = iterator.next();
+                        if (    bi.getFilename().equals(loadBlobInfo.getFilename()) && 
+                                bi.getSize() > loadBlobInfo.getSize()
+                                )
+                        {
+                            bk = bi.getBlobKey();
+                        }
+                    }
+                }
                 blobstore.serve(bk, response);
             }
             else
@@ -66,16 +86,28 @@ public class BlogServlet extends HttpServlet implements BlogConstants
                     log("calendar");
                     response.setContentType("application/json");
                     JSONObject json = new JSONObject();
-                    json.put("calendar", db.getCalendar());
+                    String calendarString = db.getCalendar();
+                    log(calendarString);
+                    json.put("calendar", calendarString);
                     json.write(response.getWriter());
                 }
                 else
                 {
-                    log("latest");
-                    response.setContentType("application/json");
-                    JSONObject json = new JSONObject();
-                    json.put("blog", db.getBlogList());
-                    json.write(response.getWriter());
+                    String blogKey = request.getParameter(BlogParameter);
+                    if (blogKey != null)
+                    {
+                        log("selected");
+                        response.setContentType("text/html");
+                        response.getWriter().write(db.getBlog(blogKey));
+                    }
+                    else
+                    {
+                        log("latest");
+                        response.setContentType("application/json");
+                        JSONObject json = new JSONObject();
+                        json.put("blog", db.getBlogList());
+                        json.write(response.getWriter());
+                    }
                 }
             }
         }
