@@ -24,7 +24,7 @@ $(function() {
             content.innerHTML = data.blog;
                 }
         $("img").click(function(){
-            $(this).load($(this).attr("src")+"&original=true");
+            window.open($(this).attr("src")+"&original=true");
         });
     
     });
@@ -36,8 +36,14 @@ $(function() {
             var content = document.getElementById("calendar");
             content.innerHTML = data.calendar;
                 }
-        $("li").click(function(){
-            var x = $(this).get();
+        $(".calendar-menu").click(function(){
+            var x = $(this).get(0);
+            $("."+x.id).toggle();
+        });
+    
+        $(".blog-entry").click(function(){
+            var x = $(this).get(0);
+            $("#blog").load("/blog?blog="+x.id);
         });
     
     });
