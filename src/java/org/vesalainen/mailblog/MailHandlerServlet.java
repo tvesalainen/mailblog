@@ -16,6 +16,7 @@
  */
 package org.vesalainen.mailblog;
 
+import com.adobe.xmp.XMPException;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
@@ -71,6 +72,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.vesalainen.mailblog.exif.ExifException;
+import org.vesalainen.mailblog.exif.ExifParser;
 
 /**
  *
@@ -132,10 +135,10 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        String key = request.getParameter("addBlobs");
-        if (key != null)
+        String blobKeyString = request.getParameter("addBlobs");
+        if (blobKeyString != null)
         {
-            addBlobs(request, key);
+            addBlobs(request, blobKeyString, request.getParameter("metadata"));
         }
         else
         {
@@ -202,7 +205,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     }
                 }
                 blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
-                db.put(blog);
+                Key put = db.put(blog);
                 tr.commit();
                 Message reply = new Message();
                 String uri = request.getRequestURI();
@@ -233,9 +236,25 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                             throw new IOException("attachment filename="+filename+" doesn't have a Content-ID");
                         }
                         byte[] bytes = getBytes(bodyPart);
+                        String metadataKeyString = null;
                         if (cidSet == null || !cidSet.contains(cids[0]))
                         {
                             String cid = cids[0];
+                            try
+                            {
+                                ExifParser exif = new ExifParser(bytes);
+                                Date timestamp = exif.getTimestamp();
+                                if (timestamp != null)
+                                {
+                                    Entity metadata = db.getMetadataFromDate(timestamp);
+                                    exif.populate(metadata);
+                                    Key key = db.put(metadata);
+                                    metadataKeyString = KeyFactory.keyToString(key);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                            }
                             Image image = ImagesServiceFactory.makeImage(bytes);
                             if (settings.isFixPic())
                             {
@@ -251,12 +270,12 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                                 Transform makeResize = ImagesServiceFactory.makeResize(settings.getPicMaxHeight(), settings.getPicMaxWidth());
                                 Image shrinken = imagesService.applyTransform(makeResize, image);
                                 log("upload "+cid);
-                                Future<HTTPResponse> res = postBlobs(filename, contentType, cid, shrinken.getImageData(), blogKeyString, request);
+                                Future<HTTPResponse> res = postBlobs(filename, contentType, cid, shrinken.getImageData(), blogKeyString, metadataKeyString, request);
                                 futureList.add(res);
                                 cid = cid+"-original";
                             }
                             log("upload "+cid);
-                            Future<HTTPResponse> res = postBlobs(filename, contentType, cid, bytes, blogKeyString, request);
+                            Future<HTTPResponse> res = postBlobs(filename, contentType, cid, bytes, blogKeyString, metadataKeyString, request);
                             futureList.add(res);
                         }
                         else
@@ -333,7 +352,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     blobstore.delete(bk);
                 }
             }
-            db.delete(key);
+            db.deleteBlog(key);
             response.setContentType("text/plain");
             PrintWriter writer = response.getWriter();
             writer.println("Deleted blog: "+blog.getProperty("Subject")+" and "+blobCount+" blobs");
@@ -354,29 +373,29 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
     }
 
         
-    private void addBlobs(HttpServletRequest request, String encoded) throws ServletException
+    private void addBlobs(HttpServletRequest request, String blogKeyString, String metadataKeyString) throws ServletException
     {
         while (ApiProxy.getCurrentEnvironment().getRemainingMillis() > 1000)
         {
             try
             {
-                tryAddBlobs(request, encoded);
+                tryAddBlobs(request, blogKeyString, metadataKeyString);
                 return;
             }
             catch (ConcurrentModificationException ex)
             {
-                log("retry add blob "+encoded);
+                log("retry add blob "+blogKeyString);
             }
         }
-        log("giving up "+encoded);
+        log("giving up "+blogKeyString);
     }
-    private void tryAddBlobs(HttpServletRequest request, String encoded) throws ServletException
+    private void tryAddBlobs(HttpServletRequest request, String blogKeyString, String metadataKeyString) throws ServletException
     {
         Transaction tr = db.beginTransaction();
         try
         {
             Map<String, List<BlobKey>> blobs = blobstore.getUploads(request);
-            Key key = KeyFactory.stringToKey(encoded);
+            Key key = KeyFactory.stringToKey(blogKeyString);
             Entity blog = db.get(key);
             Text text = (Text) blog.getProperty(HtmlProperty);
             if (text == null)
@@ -412,6 +431,18 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             blog.setUnindexedProperty(BlobsProperty, blobKeys);
             log(blog.toString());
             db.put(blog);
+            Key metadataKey = KeyFactory.stringToKey(metadataKeyString);
+            Entity metadata = db.get(metadataKey);
+            blobKeys = (Collection<BlobKey>) metadata.getProperty(BlobsProperty);
+            if (blobKeys == null)
+            {
+                blobKeys = new ArrayList<BlobKey>();
+            }
+            for (Map.Entry<String, List<BlobKey>> entry : blobs.entrySet())
+            {
+                blobKeys.addAll(entry.getValue());
+            }
+            metadata.setUnindexedProperty(BlobsProperty, blobKeys);
             tr.commit();
         }
         catch (EntityNotFoundException ex)
@@ -441,11 +472,15 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         }
         return baos.toByteArray();
     }
-    private Future<HTTPResponse> postBlobs(String filename, String contentType, String contentId, byte[] data, String key, HttpServletRequest request) throws MessagingException, IOException
+    private Future<HTTPResponse> postBlobs(String filename, String contentType, String contentId, byte[] data, String blogKeyString, String metadataKeyString, HttpServletRequest request) throws MessagingException, IOException
     {
-        // This will result in timeout in most cases
         String redir = request.getServletPath();
-        URL uploadUrl = new URL(blobstore.createUploadUrl(redir+"?addBlobs="+key));
+        String metadataOpt = "";
+        if (metadataKeyString != null)
+        {
+            metadataOpt = "&metadata="+metadataKeyString;
+        }
+        URL uploadUrl = new URL(blobstore.createUploadUrl(redir+"?addBlobs="+blogKeyString+metadataOpt));
         HTTPRequest httpRequest = new HTTPRequest(uploadUrl, HTTPMethod.POST, FetchOptions.Builder.withDeadline(60));
         String uid = UUID.randomUUID().toString();
         httpRequest.addHeader(new HTTPHeader("Content-Type", "multipart/form-data; boundary="+uid));

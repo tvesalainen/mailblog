@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +23,8 @@ public class ExifAPP1
     private ByteBuffer thumbnail;
     private Object make;
     private Map<Integer,IFD> ifdMap = new HashMap<Integer,IFD>();
+    private Map<String,String> metadata = new HashMap<String,String>();
+    private Date timestamp;
 
 
     public ExifAPP1(ByteBuffer app1Segment) throws ExifException, IOException, UnknownAPP1Exception
@@ -69,12 +72,23 @@ public class ExifAPP1
             }
             for (int ifdTag : ifdMap.keySet())
             {
-                System.err.println(TagHelper.getName(ifdTag));
-                System.err.println("-------------------------");
+                //System.err.println(TagHelper.getName(ifdTag));
+                //System.err.println("-------------------------");
                 IFD ifd = ifdMap.get(ifdTag);
                 for (Interoperability ioa : ifd.getAll())
                 {
-                    System.err.println(ioa+ioa.getValue().toString());
+                    int tag = ioa.tag();
+                    switch (tag)
+                    {
+                        case 306:
+                        case 36867:
+                        case 36868:
+                            Object date = ioa.getValue();
+                            if (date instanceof Date)
+                            {
+                                timestamp = (Date) date;
+                            }
+                    }
                 }
             }
         }
@@ -171,5 +185,10 @@ public class ExifAPP1
     public ByteBuffer getThumbnail()
     {
         return thumbnail;
+    }
+
+    public Date getTimestamp()
+    {
+        return timestamp;
     }
 }

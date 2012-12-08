@@ -17,44 +17,35 @@
 
 package org.vesalainen.mailblog.exif;
 
-import com.adobe.xmp.XMPConst;
-import com.adobe.xmp.XMPException;
-import com.google.appengine.api.datastore.GeoPt;
+import com.google.appengine.api.datastore.Entity;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * @author Timo Vesalainen
  */
 public class ExifParser
 {
-    private byte[] bytes;
     private ExifAPP1 exifApp1;
-    private XMPAPP1 xmpApp1;
 
-    public ExifParser(byte[] bytes) throws IOException, ExifException, XMPException
+    public ExifParser(byte[] bytes) throws IOException, ExifException
     {
-        this.bytes = bytes;
         ByteBuffer buffer = ByteBuffer.wrap(bytes);
         parse(buffer);
-        if (xmpApp1 == null)
-        {
-            xmpApp1 = new XMPAPP1();
-        }
+    }
+
+    public void populate(Entity entity) throws IOException
+    {
         if (exifApp1 != null)
         {
-            Exif2XMP.populate(exifApp1, xmpApp1);
+            Exif2Entity.populate(exifApp1, entity);
         }
     }
-    
     private List<ByteBuffer> parse(ByteBuffer buffer) throws IOException, ExifException
     {
         List<ByteBuffer> list = new ArrayList<ByteBuffer>();
@@ -78,7 +69,7 @@ public class ExifParser
                         {
                             if (ExifConstants.XMP.equals(identifier))
                             {
-                                xmpApp1 = new XMPAPP1(segment);
+                                //xmpApp1 = new XMPAPP1(segment);
                             }
                             else
                             {
@@ -117,139 +108,14 @@ public class ExifParser
         return ByteBufferHelper.readASCII(app1Segment);
     }
 
-    public String getDescription(Locale locale) throws XMPException
-    {
-        return xmpApp1.getProperty(locale, XMPConst.NS_DC, "description");
-    }
-    public void setDescription(Locale locale, String description) throws UnsupportedEncodingException, XMPException
+    public Date getTimestamp()
     {
         if (exifApp1 != null)
         {
-            Interoperability ioa = exifApp1.get(ExifConstants.IFD_oTH, ExifConstants.IMAGEDESCRIPTION);
-            if (ioa != null)
-            {
-                ioa.updateValue(description);
-            }
+            return exifApp1.getTimestamp();
         }
-        xmpApp1.setProperty(locale, XMPConst.NS_DC, "description", description);
+        return null;
     }
-
-    public String getUserComment(Locale locale) throws XMPException
-    {
-        return xmpApp1.getProperty(locale, XMPConst.NS_EXIF, "UserComment");
-    }
-    public void setUserComment(Locale locale, String description) throws UnsupportedEncodingException, XMPException
-    {
-        Interoperability ioa = exifApp1.get(ExifConstants.EXIFIFDPOINTER, ExifConstants.USERCOMMENT);
-        if (ioa != null)
-        {
-            ioa.updateValue(description);
-        }
-        xmpApp1.setProperty(locale, XMPConst.NS_EXIF, "UserComment", description);
-    }
-
-    public String getTitle(Locale locale) throws XMPException
-    {
-        return xmpApp1.getProperty(locale, XMPConst.NS_DC, "title");
-    }
-    public void setTitle(Locale locale, String title) throws UnsupportedEncodingException, XMPException
-    {
-        xmpApp1.setProperty(locale, XMPConst.NS_DC, "title", title);
-    }
-
-    public String getCopyright(Locale locale) throws XMPException
-    {
-        return xmpApp1.getProperty(locale, XMPConst.NS_DC, "rights");
-    }
-    public void setCopyright(Locale locale, String copyright) throws UnsupportedEncodingException, XMPException
-    {
-        if (exifApp1 != null)
-        {
-            Interoperability ioa = exifApp1.get(ExifConstants.IFD_oTH, ExifConstants.COPYRIGHT);
-            if (ioa != null)
-            {
-                ioa.updateValue(copyright);
-            }
-        }
-        xmpApp1.setProperty(locale, XMPConst.NS_DC, "rights", copyright);
-    }
-
-    public String getLabel() throws XMPException
-    {
-        return xmpApp1.getProperty(XMPConst.NS_XMP, "Label");
-    }
-    public void setLabel(String label) throws UnsupportedEncodingException, XMPException
-    {
-        xmpApp1.setProperty(XMPConst.NS_XMP, "Label", label);
-    }
-
-    public Date getMetadataDate() throws XMPException
-    {
-        return xmpApp1.getDateProperty(XMPConst.NS_XMP, "MetadataDate");
-    }
-    public void setMetadataDate(Date date) throws UnsupportedEncodingException, XMPException
-    {
-        xmpApp1.setProperty(XMPConst.NS_XMP, "MetadataDate", date);
-    }
-
-    public Date getModifyDate() throws XMPException
-    {
-        return xmpApp1.getDateProperty(XMPConst.NS_XMP, "ModifyDate");
-    }
-    public void setModifyDate(Date date) throws UnsupportedEncodingException, XMPException
-    {
-        xmpApp1.setProperty(XMPConst.NS_XMP, "ModifyDate", date);
-    }
-
-    public GeoPt getLocation() throws XMPException, ParseException
-    {
-        return xmpApp1.getLocation();
-    }
-    public void setLocation(GeoPt location) throws XMPException
-    {
-        xmpApp1.setLocation(location);
-    }
-    public void setLatitude(double latitude) throws XMPException
-    {
-        xmpApp1.setLatitude(latitude);
-    }
-    public void setLongitude(double longitude) throws XMPException
-    {
-        xmpApp1.setLongitude(longitude);
-    }
-    public String[] getCreators() throws XMPException
-    {
-        return xmpApp1.getArray(XMPConst.NS_DC, "creator");
-    }
-    public void addCreator(String creator) throws UnsupportedEncodingException, XMPException
-    {
-        if (exifApp1 != null)
-        {
-            Interoperability ioa = exifApp1.get(ExifConstants.IFD_oTH, ExifConstants.ARTIST);
-            if (ioa != null)
-            {
-                ioa.updateValue(creator);
-            }
-        }
-        xmpApp1.addSeq(XMPConst.NS_DC, "creator", creator);
-    }
-    public String[] getSubjects() throws XMPException
-    {
-        return xmpApp1.getArray(XMPConst.NS_DC, "subject");
-    }
-    public void addSubject(String subject) throws UnsupportedEncodingException, XMPException
-    {
-        xmpApp1.addBag(XMPConst.NS_DC, "subject", subject);
-    }
-    public String[] getOwners() throws XMPException
-    {
-        return xmpApp1.getArray(XMPConst.NS_XMP_RIGHTS, "Owner");
-    }
-    public void addOwner(String subject) throws UnsupportedEncodingException, XMPException
-    {
-        xmpApp1.addBag(XMPConst.NS_XMP_RIGHTS, "Owner", subject);
-    }
-
     /**
      * @param args the command line arguments
      */
@@ -264,7 +130,6 @@ public class ExifParser
             fis.read(buf);
             fis.close();
             ExifParser parser = new ExifParser(buf);
-            System.err.println(parser.getModifyDate());
         }
         catch (Exception ex)
         {

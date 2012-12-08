@@ -69,14 +69,23 @@ public class DB implements BlogConstants
         }
         catch (EntityNotFoundException ex)
         {
+            cache.delete(LatestKey);
+            cache.delete(CalendarKey);
             return new Entity(key);
         }
     }
-    public void put(Entity entity)
+    public Entity getMetadataFromDate(Date date)
+    {
+        Key timelineKey =  KeyFactory.createKey(root, TimelineKind, date.getTime());
+        Entity timeline = new Entity(timelineKey);
+        datastore.put(timeline);
+        return new Entity(MetadataKind, timelineKey);
+    }
+    
+    public Key put(Entity entity)
     {
         cache.put(entity.getKey(), entity);
-        cache.delete(LatestKey);
-        datastore.put(entity);
+        return datastore.put(entity);
     }
 
     public Entity get(Key key) throws EntityNotFoundException
@@ -89,10 +98,12 @@ public class DB implements BlogConstants
         return datastore.get(key);
     }
 
-    public void delete(Key key)
+    public void deleteBlog(Key key)
     {
+        assert BlogKind.equals(key.getKind());
         cache.delete(key);
         cache.delete(LatestKey);
+        cache.delete(CalendarKey);
         datastore.delete(key);
     }
 
@@ -151,7 +162,7 @@ public class DB implements BlogConstants
             Query query = new Query(BlogKind);
             query.addSort(SentDateProperty, Query.SortDirection.DESCENDING);
             PreparedQuery prepared = datastore.prepare(query);
-            for (Entity entity : prepared.asIterable(FetchOptions.Builder.withLimit(5)))
+            for (Entity entity : prepared.asIterable(FetchOptions.Builder.withDefaults()))
             {
                 String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
                 Date date = (Date) Objects.nonNull(entity.getProperty(SentDateProperty));

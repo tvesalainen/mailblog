@@ -26,6 +26,8 @@ public interface BlogConstants
     static final String RootKind = "Root";
     static final String BlogKind = "Blog";
     static final String BlobKind = "Blob";
+    static final String TimelineKind = "Timeline";
+    static final String MetadataKind = "Metadata";
     static final String SettingsKind = "Settings";
     
     static final String TimestampProperty = "Timestamp";
