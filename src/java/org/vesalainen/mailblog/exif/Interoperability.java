@@ -35,7 +35,6 @@ public class Interoperability implements Comparable<Interoperability>
         array = ByteBufferHelper.sliceLength(app1Body, 12);
         if (isIFD(app1))
         {
-            MemoryEntry.add(app1Body.position(), name()+" -> "+Integer.toHexString(offset()));
             ByteBuffer app1BodyCopy = app1Body.duplicate();
             app1BodyCopy.order(app1Body.order());
             app1BodyCopy.position(offset());
@@ -52,11 +51,9 @@ public class Interoperability implements Comparable<Interoperability>
         }
         else
         {
-            MemoryEntry.add(app1Body.position(), name());
             length = count()*valueLength();
             if (isLongValue())
             {
-                MemoryEntry.add(offset(), name().toUpperCase());
                 value = ByteBufferHelper.sliceLength(app1Body, offset(), length);
             }
             else

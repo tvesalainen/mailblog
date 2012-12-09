@@ -49,7 +49,6 @@ public class ExifAPP1
             ByteBufferHelper.consumeShort(app1Body, 42);
             int pos = app1Body.position();
             int offset = app1Body.getInt();
-            MemoryEntry.add(pos, "Next IFD Offset="+Integer.toHexString(offset));
             int ifdNum = ExifConstants.IFD_oTH;
             while (offset != 0)
             {
@@ -59,7 +58,6 @@ public class ExifAPP1
                 pos = app1Body.position();
                 offset = app1Body.getInt();
                 ifdNum++;
-                MemoryEntry.add(pos, "Next IFD Offset="+Integer.toHexString(offset));
             }
 
             Interoperability thumbnailOffset = get(ExifConstants.IFD_1ST, ExifConstants.JPEGINTERCHANGEFORMAT);
@@ -67,7 +65,6 @@ public class ExifAPP1
             if (thumbnailOffset != null && thumbnailLength != null)
             {
                 app1Body.position(thumbnailOffset.getIntValue());
-                MemoryEntry.add(app1Body.position(), "Thumbnail");
                 thumbnail = app1Body.slice();
             }
             for (int ifdTag : ifdMap.keySet())

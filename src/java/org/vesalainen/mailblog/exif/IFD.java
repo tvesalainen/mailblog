@@ -32,7 +32,6 @@ public class IFD
         app1.addIFD(this.ifdNum, this);
         int pos = app1Body.position();
         int numberOfInteroperability = app1Body.getShort();
-        MemoryEntry.add(pos, "numberOfInteroperability="+numberOfInteroperability);
         interoperabilities = new HashMap<Integer,Interoperability>();
         for (int ii=0;ii<numberOfInteroperability;ii++)
         {

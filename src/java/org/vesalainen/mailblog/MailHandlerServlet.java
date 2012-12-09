@@ -16,7 +16,7 @@
  */
 package org.vesalainen.mailblog;
 
-import com.adobe.xmp.XMPException;
+import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
@@ -59,8 +59,6 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -72,7 +70,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.vesalainen.mailblog.exif.ExifException;
 import org.vesalainen.mailblog.exif.ExifParser;
 
 /**
@@ -115,6 +112,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
+        log("namespace="+NamespaceManager.get());
         String removeKey = request.getParameter(RemoveParameter);
         if (removeKey != null)
         {
@@ -151,14 +149,39 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             {
                 try
                 {
+                    if (!setNamespace(request, response))
+                    {
+                        return;
+                    }
                     handleMail(request);
                 }
                 catch (EntityNotFoundException ex)
                 {
+                    log(ex.getMessage(), ex);
                     response.sendError(HttpServletResponse.SC_FORBIDDEN);
                 }
             }
         }
+    }
+    private boolean setNamespace(HttpServletRequest request, HttpServletResponse response) throws IOException
+    {
+        String pathInfo = request.getPathInfo();
+        log("pathInfo="+pathInfo);
+        if (pathInfo == null)
+        {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return false;
+        }
+        int idx = pathInfo.indexOf('@');
+        if (idx == -1)
+        {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return false;
+        }
+        String namespace = pathInfo.substring(1, idx);
+        NamespaceManager.set(namespace);
+        log("namespace set to "+namespace);
+        return true;
     }
     private void handleMail(HttpServletRequest request) throws IOException, ServletException, EntityNotFoundException
     {
