@@ -34,8 +34,9 @@ color: white;
 #blogname h1
 {
     
-    font-size: 50px;
+    font-size: 80px;
     font-family:"Comic Sans MS", cursive, sans-serif;
+    display: inline;
 }
 
 
@@ -121,7 +122,6 @@ color: white;
 
 #rightside
 {
-	background: #ccc;
 	float: right;
 	width: 130px;
 	padding: 20px 0;
@@ -154,8 +154,9 @@ margin: 0px; border: 1px solid red;
 #footer
 {
 	clear: left;
-	background: #ccc;
+	background: #333;
 	text-align: right;
-	padding: 20px;
-	height: 1%;
+	padding: 0px;
+	height: 20px;
+        color: #fff;
 }
