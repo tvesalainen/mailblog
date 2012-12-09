@@ -242,6 +242,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                             String cid = cids[0];
                             try
                             {
+                                // TODO check contentType
                                 ExifParser exif = new ExifParser(bytes);
                                 Date timestamp = exif.getTimestamp();
                                 if (timestamp != null)
