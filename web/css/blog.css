@@ -14,11 +14,30 @@ background-attachment:fixed;
 
 #header
 {
-	background: green;
-	padding: 20px;
+ 
 }
 
-#header h1 { margin: 0; }
+#headermainos
+{
+ 
+}
+
+#blogname
+{
+    width: 1000px;
+    height: 142px;
+background-image: url('../images/headertausta.png');
+color: white;
+
+}
+
+#blogname h1
+{
+    
+    font-size: 50px;
+    font-family:"Comic Sans MS", cursive, sans-serif;
+}
+
 
 #navigation
 {
@@ -61,7 +80,7 @@ background-attachment:fixed;
 #leftside
 {
 	float: left;
-	width: 130px;
+	width: 230px;
 	padding: 20px 0;
 	margin: 0 20px;
 	display: inline;
@@ -104,7 +123,7 @@ background-attachment:fixed;
 {
 	background: #ccc;
 	float: right;
-	width: 230px;
+	width: 130px;
 	padding: 20px 0;
 	margin: 0 0px 0 0;
 	display: inline;
