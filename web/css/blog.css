@@ -1,6 +1,6 @@
 body
 {
-background-image: url('/images/tausta.jpg');
+background-image: url('../images/tausta.jpg');
 background-repeat:no-repeat;
 background-attachment:fixed;
 }
@@ -61,7 +61,7 @@ background-attachment:fixed;
 #leftside
 {
 	float: left;
-	width: 160px;
+	width: 130px;
 	padding: 20px 0;
 	margin: 0 20px;
 	display: inline;
@@ -76,13 +76,35 @@ background-attachment:fixed;
 	margin: 0 0 0 30px;
 }
 
+.subject
+{
+    font-family:"Comic Sans MS", cursive, sans-serif;
+    font-size:20px;
+}
 
+.date
+{
+    font-family:Arial, Helvetica, sans-serif;
+    font-size:10px;
+}
+
+.sender
+{
+    font-family:Arial, Helvetica, sans-serif;
+    font-size:10px;
+}
+
+.body
+{
+    font-family:Arial, Helvetica, sans-serif;
+    font-size:14px;
+}
 
 #rightside
 {
 	background: #ccc;
 	float: right;
-	width: 200px;
+	width: 230px;
 	padding: 20px 0;
 	margin: 0 0px 0 0;
 	display: inline;
