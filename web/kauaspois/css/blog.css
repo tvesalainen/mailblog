@@ -1,0 +1,162 @@
+body
+{
+background-image: url('../images/tausta.jpg');
+background-repeat:no-repeat;
+background-attachment:fixed;
+}
+
+#page
+{
+	margin: 0 auto;
+	width: 1000px;
+	background: #fff;
+}
+
+#header
+{
+ 
+}
+
+#headermainos
+{
+ 
+}
+
+#blogname
+{
+    width: 1000px;
+    height: 142px;
+background-image: url('../images/headertausta.png');
+color: white;
+
+}
+
+#blogname h1
+{
+    
+    font-size: 80px;
+    font-family:"Comic Sans MS", cursive, sans-serif;
+    display: inline;
+}
+
+
+#navigation
+{
+	float: left;
+	width: 1000px;
+	background: #333;
+}
+
+#navigation ul
+{
+	margin: 0;
+	padding: 0;
+}
+
+#navigation ul li
+{
+	list-style-type: none;
+	display: inline;
+}
+
+#navigation li a
+{
+	display: block;
+	float: left;
+	padding: 5px 10px;
+	color: #fff;
+	text-decoration: none;
+	border-right: 1px solid #fff;
+}
+
+#navigation li a:hover { background: #383; }
+
+#content
+{
+	float: left;
+	width: 1000px;
+	background: #fff;
+}
+
+#leftside
+{
+	float: left;
+	width: 230px;
+	padding: 20px 0;
+	margin: 0 20px;
+	display: inline;
+}
+
+
+#blog
+{
+	float: left;
+	width: 500px;
+	padding: 20px 0;
+	margin: 0 0 0 30px;
+}
+
+.subject
+{
+    font-family:"Comic Sans MS", cursive, sans-serif;
+    font-size:20px;
+}
+
+.date
+{
+    font-family:Arial, Helvetica, sans-serif;
+    font-size:10px;
+}
+
+.sender
+{
+    font-family:Arial, Helvetica, sans-serif;
+    font-size:10px;
+}
+
+.body
+{
+    font-family:Arial, Helvetica, sans-serif;
+    font-size:14px;
+}
+
+#rightside
+{
+	float: right;
+	width: 130px;
+	padding: 20px 0;
+	margin: 0 0px 0 0;
+	display: inline;
+}
+
+
+.calendar-indent
+{
+    margin: 0 10px;
+}
+
+.blog-entry
+{
+    cursor: hand; 
+    cursor: pointer;
+}
+
+#calendar h2
+{
+margin: 0px; border: 1px solid red;
+}
+
+#topics h2
+{
+margin: 0px; border: 1px solid red;
+}
+
+#footer
+{
+	clear: left;
+	background: #333;
+	text-align: right;
+	padding: 0px;
+	height: 20px;
+        color: #fff;
+}
