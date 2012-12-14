@@ -26,6 +26,8 @@ public interface BlogConstants
     static final String RootKind = "Root";
     static final String BlogKind = "Blog";
     static final String BlobKind = "Blob";
+    static final String PageKind = "Page";
+    static final String PageBackupKind = "PageBackup";
     static final String TimelineKind = "Timeline";
     static final String MetadataKind = "Metadata";
     static final String SettingsKind = "Settings";
@@ -50,12 +52,16 @@ public interface BlogConstants
     static final String PicMaxWidthProperty = "PicMaxWidth";
     static final String FixPicProperty = "FixPic";
     static final String ShowCountProperty = "ShowCount";
+    static final String PageProperty = "Page";
     
     static final String RemoveParameter = "remove";
     static final String BlogParameter = "blog";
     static final String BlobParameter = "blob-key";
     static final String CalendarParameter = "calendar";
     static final String OriginalParameter = "original";
+    static final String PathParameter = "path";
+    static final String PageParameter = "page";
+    static final String AddParameter = "add";
     
     static final String RootKey = "base";
     static final String LatestKey = "latest";

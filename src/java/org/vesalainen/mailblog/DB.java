@@ -17,6 +17,7 @@
 
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Email;
@@ -48,20 +49,94 @@ import java.util.TreeMap;
  */
 public class DB implements BlogConstants
 {
-    private DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-    private MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
-    private Key root = KeyFactory.createKey(RootKind, 1);
+    public static DB DB = new DB();
+    //private DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+    //private MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
+    //private Key root = KeyFactory.createKey(RootKind, 1);
 
-    public DB()
+    private DB()
     {
     }
 
     public Transaction beginTransaction()
     {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         return datastore.beginTransaction(TransactionOptions.Builder.withXG(true));
+    }
+    public String getPage(String path)
+    {
+        Entity page = getPageEntity(path);
+        Text text = (Text) page.getProperty(PageProperty);
+        return text.getValue();
+    }
+    public Entity getPageEntity(String path)
+    {
+        Key key = KeyFactory.createKey(PageKind, path);
+        try
+        {
+            return get(key);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            String namespace = NamespaceManager.get();
+            if (namespace != null && !namespace.isEmpty())
+            {
+                try
+                {
+                    NamespaceManager.set(null);
+                    try
+                    {
+                        key = KeyFactory.createKey(PageKind, path);
+                        return get(key);
+                    }
+                    catch (EntityNotFoundException ex1)
+                    {
+                    }
+                }
+                finally
+                {
+                    NamespaceManager.set(namespace);
+                }
+            }
+        }
+        return null;
+    }
+    public void setPage(String path, String text)
+    {
+        Transaction tr = beginTransaction();
+        try
+        {
+            Key key = KeyFactory.createKey(PageKind, path);
+            Entity page = null;
+            try
+            {
+                page = get(key);
+                Entity backup = new Entity(PageBackupKind, key);
+                backup.setPropertiesFrom(page);
+                put(backup);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                page = new Entity(key);
+            }
+            page.setUnindexedProperty(PageProperty, new Text(text));
+            page.setUnindexedProperty(TimestampProperty, new Date());
+            putAndCache(page);
+            tr.commit();
+        }
+        finally
+        {
+            if (tr.isActive())
+            {
+                tr.rollback();
+            }
+        }
     }
     public Entity getBlogFromMessageId(String messageId)
     {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
+        Key root = KeyFactory.createKey(RootKind, 1);
         Key key =  KeyFactory.createKey(root, BlogKind, messageId);
         try
         {
@@ -76,6 +151,8 @@ public class DB implements BlogConstants
     }
     public Entity getMetadataFromDate(Date date)
     {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        Key root = KeyFactory.createKey(RootKind, 1);
         Key timelineKey =  KeyFactory.createKey(root, TimelineKind, date.getTime());
         Entity timeline = new Entity(timelineKey);
         datastore.put(timeline);
@@ -84,12 +161,22 @@ public class DB implements BlogConstants
     
     public Key put(Entity entity)
     {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        return datastore.put(entity);
+    }
+
+    public Key putAndCache(Entity entity)
+    {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
         cache.put(entity.getKey(), entity);
         return datastore.put(entity);
     }
 
     public Entity get(Key key) throws EntityNotFoundException
     {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
         Entity entity = (Entity) cache.get(key);
         if (entity != null)
         {
@@ -100,6 +187,8 @@ public class DB implements BlogConstants
 
     public void deleteBlog(Key key)
     {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
         assert BlogKind.equals(key.getKind());
         cache.delete(key);
         cache.delete(LatestKey);
@@ -114,6 +203,8 @@ public class DB implements BlogConstants
 
     public String getBlogList() throws EntityNotFoundException
     {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
         String str = (String) cache.get(LatestKey);
         if (str == null)
         {
@@ -141,15 +232,22 @@ public class DB implements BlogConstants
     public String getBlog(Entity entity) throws EntityNotFoundException
     {
         String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
+        System.err.println(subject);
         Date date = (Date) Objects.nonNull(entity.getProperty(SentDateProperty));
+        System.err.println(date);
         Email sender = (Email) Objects.nonNull(entity.getProperty(SenderProperty));
+        System.err.println(sender);
         Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
+        System.err.println(body);
         Settings senderSettings = Objects.nonNull(getSettingsFor(sender));
+        System.err.println(senderSettings.getTemplate().getValue());
         return String.format(senderSettings.getTemplate().getValue(), subject, date, senderSettings.getNickname(), body.getValue());
     }
     
     public String getCalendar() throws EntityNotFoundException
     {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
         String str = (String) cache.get(CalendarKey);
         if (str == null)
         {
@@ -229,6 +327,8 @@ public class DB implements BlogConstants
     }
     public Settings getSettings() throws EntityNotFoundException
     {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
         Settings settings = (Settings) cache.get(RootKey);
         if (settings == null)
         {
@@ -248,6 +348,8 @@ public class DB implements BlogConstants
     }
     public Settings getSettingsFor(Email email) throws EntityNotFoundException
     {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
         Settings settings = (Settings) cache.get(email);
         if (settings == null)
         {

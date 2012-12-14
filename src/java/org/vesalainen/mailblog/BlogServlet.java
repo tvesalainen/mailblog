@@ -26,6 +26,7 @@ import org.json.JSONObject;
  */
 public class BlogServlet extends HttpServlet implements BlogConstants
 {
+    /*
     private DB db;
     private BlobstoreService blobstore;
 
@@ -36,6 +37,7 @@ public class BlogServlet extends HttpServlet implements BlogConstants
         db = new DB();
         blobstore = BlobstoreServiceFactory.getBlobstoreService();
     }
+    */
 
 
     /**
@@ -51,6 +53,8 @@ public class BlogServlet extends HttpServlet implements BlogConstants
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
+        BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
+        DB db = DB.DB;
         try
         {
             
