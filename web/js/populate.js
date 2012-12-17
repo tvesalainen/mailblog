@@ -15,27 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-$(function() {
-  var blogservice = $("meta[name='blog']").attr("content");
+function blogevents() {
 
-    $.getJSON(blogservice , function(data) {
-        if (data) {
-            var content = document.getElementById("blog");
-            content.innerHTML = data.blog;
-                }
         $("img").click(function(){
             window.open($(this).attr("src")+"&original=true");
         });
     
-    });
-    
-  var calendarservice = $("meta[name='calendar']").attr("content");
-
-    $.getJSON(calendarservice , function(data) {
-        if (data) {
-            var content = document.getElementById("calendar");
-            content.innerHTML = data.calendar;
-                }
         $(".calendar-menu").click(function(){
             var x = $(this).get(0);
             $("."+x.id).toggle();
@@ -43,11 +28,20 @@ $(function() {
     
         $(".blog-entry").click(function(){
             var x = $(this).get(0);
-            $("#blog").load("/blog?blog="+x.id);
+            $("#blog").load("/blog?blog="+x.id, function() {
+                  blogevents();
+             });
         });
     
+};
+$(document).ready(function(){
+
+    $("#blog").load("/blog", function() {
+        blogevents();
+    });
+    
+    $("#calendar").load("/blog?calendar=true", function() {
+        blogevents();
     });
     
 });
-
-
