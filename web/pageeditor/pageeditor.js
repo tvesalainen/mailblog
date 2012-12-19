@@ -18,13 +18,13 @@
 
 $(document).ready(function(){
   $("#get").click(function(){
-    $.get("page?path="+$("#path").val() ,function(data, status){
+    $.get("/pageeditor/page?path="+$("#path").val() ,function(data, status){
       $("#page").val(data);
     })
   })
   
   $("#put").click(function(){
-    $.post("page", 
+    $.post("/pageeditor/page", 
     {
         path:$("#path").val(), 
         page:$("#page").val()

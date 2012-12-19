@@ -38,6 +38,7 @@ import com.google.appengine.repackaged.com.google.common.base.Objects;
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -66,8 +67,12 @@ public class DB implements BlogConstants
     public String getPage(String path)
     {
         Entity page = getPageEntity(path);
-        Text text = (Text) page.getProperty(PageProperty);
-        return text.getValue();
+        if (page != null)
+        {
+            Text text = (Text) page.getProperty(PageProperty);
+            return text.getValue();
+        }
+        return "";
     }
     public Entity getPageEntity(String path)
     {
@@ -135,7 +140,6 @@ public class DB implements BlogConstants
     public Entity getBlogFromMessageId(String messageId)
     {
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
         Key root = KeyFactory.createKey(RootKind, 1);
         Key key =  KeyFactory.createKey(root, BlogKind, messageId);
         try
@@ -144,19 +148,39 @@ public class DB implements BlogConstants
         }
         catch (EntityNotFoundException ex)
         {
-            cache.delete(LatestKey);
-            cache.delete(CalendarKey);
+            blogsChanged();
             return new Entity(key);
         }
     }
-    public Entity getMetadataFromDate(Date date)
+    public void blogsChanged()
+    {
+        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
+        cache.delete(LatestKey);
+        cache.delete(CalendarKey);
+    }
+    public Key getMetadataKey(String sha1)
+    {
+        Key root = KeyFactory.createKey(RootKind, 1);
+        return KeyFactory.createKey(root, MetadataKind, sha1);
+    }
+    public Entity getMetadata(String sha1)
     {
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-        Key root = KeyFactory.createKey(RootKind, 1);
-        Key timelineKey =  KeyFactory.createKey(root, TimelineKind, date.getTime());
-        Entity timeline = new Entity(timelineKey);
-        datastore.put(timeline);
-        return new Entity(MetadataKind, timelineKey);
+        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
+        Key metadataKey = getMetadataKey(sha1);
+        Entity metadata = (Entity) cache.get(metadataKey);
+        if (metadata != null)
+        {
+            return metadata;
+        }
+        try
+        {
+            return datastore.get(metadataKey);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return new Entity(metadataKey);
+        }
     }
     
     public Key put(Entity entity)
@@ -191,8 +215,7 @@ public class DB implements BlogConstants
         MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
         assert BlogKind.equals(key.getKind());
         cache.delete(key);
-        cache.delete(LatestKey);
-        cache.delete(CalendarKey);
+        blogsChanged();
         datastore.delete(key);
     }
 
@@ -256,7 +279,7 @@ public class DB implements BlogConstants
             DateFormatSymbols dfs = new DateFormatSymbols(locale);
             String[] months = dfs.getMonths();
             Calendar calendar = Calendar.getInstance(locale);
-            Map<Integer,Map<Integer,List<String>>> yearMap = new TreeMap<Integer,Map<Integer,List<String>>>();
+            Map<Integer,Map<Integer,List<String>>> yearMap = new TreeMap<Integer,Map<Integer,List<String>>>(Collections.reverseOrder());
             Query query = new Query(BlogKind);
             query.addSort(SentDateProperty, Query.SortDirection.DESCENDING);
             PreparedQuery prepared = datastore.prepare(query);
@@ -272,7 +295,7 @@ public class DB implements BlogConstants
                 Map<Integer,List<String>> monthMap = yearMap.get(year);
                 if (monthMap == null)
                 {
-                    monthMap = new TreeMap<Integer,List<String>>();
+                    monthMap = new TreeMap<Integer,List<String>>(Collections.reverseOrder());
                     yearMap.put(year, monthMap);
                 }
                 List<String> list = monthMap.get(month);
@@ -293,14 +316,14 @@ public class DB implements BlogConstants
                 sb.append("<div id=\"year"+year+"\" class=\"calendar-menu\">"+year+" (");
                 yearPtr = sb.length();
                 sb.append(")</div>\n");
-                sb.append("<div class=\"year"+year+" calendar-indent\">\n");
+                sb.append("<div hidden=\"true\" class=\"year"+year+" calendar-indent\">\n");
                 Map<Integer,List<String>> monthMap = yearMap.get(year);
                 for (int month : monthMap.keySet())
                 {
                     sb.append("<div id=\"month"+year+month+"\" class=\"calendar-menu\">"+prettify(months[month])+" (");
                     monthPtr = sb.length();
                     sb.append(")</div>\n");
-                    sb.append("<div class=\"month"+year+month+" calendar-indent\">\n");
+                    sb.append("<div hidden=\"true\" class=\"month"+year+month+" calendar-indent\">\n");
                     List<String> blogList = monthMap.get(month);
                     for (String a : blogList)
                     {

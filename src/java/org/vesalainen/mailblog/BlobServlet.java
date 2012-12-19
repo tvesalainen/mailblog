@@ -16,22 +16,15 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.apphosting.api.ApiProxy;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.ConcurrentModificationException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -59,6 +52,33 @@ public class BlobServlet extends HttpServlet implements BlogConstants
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
+        String sha1 = request.getParameter(Sha1Parameter);
+        if (sha1 != null)
+        {
+            DB db = DB.DB;
+            Entity metadata = db.getMetadata(sha1);
+            if (metadata != null)
+            {
+                BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
+                String original = request.getParameter(OriginalParameter);
+                if (original != null)
+                {
+                    BlobKey originalBlobKey = (BlobKey) metadata.getProperty(OriginalSizeProperty);
+                    if (originalBlobKey != null)
+                    {
+                        blobstore.serve(originalBlobKey, response);
+                        return;
+                    }
+                }
+                BlobKey webBlobKey = (BlobKey) metadata.getProperty(WebSizeProperty);
+                if (webBlobKey != null)
+                {
+                    blobstore.serve(webBlobKey, response);
+                    return;
+                }
+            }
+        }
+        response.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
 
     /**
@@ -74,10 +94,13 @@ public class BlobServlet extends HttpServlet implements BlogConstants
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        String blobKeyString = request.getParameter(AddParameter);
-        if (blobKeyString != null)
+        String namespace = request.getParameter(NamespaceParameter);
+        NamespaceManager.set(namespace);
+        log("namespace = "+namespace);
+        String sizeString = request.getParameter(SizeParameter);
+        if (sizeString != null)
         {
-            addBlobs(request, blobKeyString, request.getParameter("metadata"));
+            addBlobs(request, sizeString);
         }
         else
         {
@@ -85,23 +108,23 @@ public class BlobServlet extends HttpServlet implements BlogConstants
         }
     }
 
-    private void addBlobs(HttpServletRequest request, String blogKeyString, String metadataKeyString) throws ServletException
+    private void addBlobs(HttpServletRequest request, String sizeString) throws ServletException
     {
         while (ApiProxy.getCurrentEnvironment().getRemainingMillis() > 1000)
         {
             try
             {
-                tryAddBlobs(request, blogKeyString, metadataKeyString);
+                tryAddBlobs(request, sizeString);
                 return;
             }
             catch (ConcurrentModificationException ex)
             {
-                log("retry add blob "+blogKeyString);
+                log("retry add blob "+sizeString);
             }
         }
-        log("giving up "+blogKeyString);
+        log("giving up "+sizeString);
     }
-    private void tryAddBlobs(HttpServletRequest request, String blogKeyString, String metadataKeyString) throws ServletException
+    private void tryAddBlobs(HttpServletRequest request, String sizeString) throws ServletException
     {
         BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
         DB db = DB.DB;
@@ -109,59 +132,16 @@ public class BlobServlet extends HttpServlet implements BlogConstants
         try
         {
             Map<String, List<BlobKey>> blobs = blobstore.getUploads(request);
-            Key key = KeyFactory.stringToKey(blogKeyString);
-            Entity blog = db.get(key);
-            Text text = (Text) blog.getProperty(HtmlProperty);
-            if (text == null)
-            {
-                throw new ServletException(HtmlProperty+" property not found in "+blog);
-            }
-            String html = text.getValue();
-            Collection<String> cidSet = (Collection<String>) blog.getProperty(CidsProperty);
-            if (cidSet == null)
-            {
-                cidSet = new HashSet<String>();
-            }
-            Collection<BlobKey> blobKeys = (Collection<BlobKey>) blog.getProperty(BlobsProperty);
-            if (blobKeys == null)
-            {
-                blobKeys = new ArrayList<BlobKey>();
-            }
             for (Map.Entry<String, List<BlobKey>> entry : blobs.entrySet())
             {
-                String cid = entry.getKey();
-                log(cid);
-                if (cid.startsWith("<") && cid.endsWith(">"))
-                {
-                    cid = cid.substring(1, cid.length()-1);
-                }
-                String blobKey = entry.getValue().get(0).getKeyString();
-                html = html.replace("cid:"+cid, "/blog?blob-key="+blobKey);
-                cidSet.add(cid);
-                blobKeys.addAll(entry.getValue());
+                String sha1 = entry.getKey();
+                log("sha1="+sha1);
+                Entity metadata = db.getMetadata(sha1);
+                BlobKey blobKey = entry.getValue().get(0);
+                metadata.setUnindexedProperty(sizeString, blobKey);
+                db.putAndCache(metadata);
             }
-            blog.setUnindexedProperty(HtmlProperty, new Text(html));
-            blog.setUnindexedProperty(CidsProperty, cidSet);
-            blog.setUnindexedProperty(BlobsProperty, blobKeys);
-            log(blog.toString());
-            db.putAndCache(blog);
-            Key metadataKey = KeyFactory.stringToKey(metadataKeyString);
-            Entity metadata = db.get(metadataKey);
-            blobKeys = (Collection<BlobKey>) metadata.getProperty(BlobsProperty);
-            if (blobKeys == null)
-            {
-                blobKeys = new ArrayList<BlobKey>();
-            }
-            for (Map.Entry<String, List<BlobKey>> entry : blobs.entrySet())
-            {
-                blobKeys.addAll(entry.getValue());
-            }
-            metadata.setUnindexedProperty(BlobsProperty, blobKeys);
             tr.commit();
-        }
-        catch (EntityNotFoundException ex)
-        {
-            throw new ServletException(ex);
         }
         finally
         {

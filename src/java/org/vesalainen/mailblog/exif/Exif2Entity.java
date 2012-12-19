@@ -192,27 +192,27 @@ public class Exif2Entity
                     Object date = ioa.getValue();
                     if (date instanceof Date)
                     {
-                        entity.setProperty(rule.property, date);
+                        entity.setUnindexedProperty(rule.property, date);
                     }
                     break;
                 case 270:
                 case 33432:
                 case 37510:
-                    entity.setProperty(rule.property, strValue);
+                    entity.setUnindexedProperty(rule.property, strValue);
                     break;
                 case 0:
                     if (rule.ifd == ExifConstants.GPSINFOIFDPOINTER)
                     {
                         Byte[] bb = (Byte[]) value;
                         String id = String.format("%d.%d.%d.%d", bb[0], bb[1], bb[2], bb[3]);
-                        entity.setProperty(rule.property, id);
+                        entity.setUnindexedProperty(rule.property, id);
                     }
                     break;
                 case 315:
                 case ExifConstants.CANONOWNERNAME:
                     if (rule.ifd == ExifConstants.MAKERNOTE)
                     {
-                        entity.setProperty(rule.property, strValue);
+                        entity.setUnindexedProperty(rule.property, strValue);
                     }
                     break;
                 case ExifConstants.FLASH:
@@ -221,32 +221,32 @@ public class Exif2Entity
                     switch (pp & 0x1)
                     {
                         case 1 :
-                            entity.setProperty(rule.property+"Fired", true);
+                            entity.setUnindexedProperty(rule.property+"Fired", true);
                             break;
                         case 0 :
-                            entity.setProperty(rule.property+"Fired", false);
+                            entity.setUnindexedProperty(rule.property+"Fired", false);
                             break;
                     }
                     switch ((pp>>4) & 0x1)
                     {
                         case 0 :
-                            entity.setProperty(rule.property+"Function", true);
+                            entity.setUnindexedProperty(rule.property+"Function", true);
                             break;
                         default:
-                            entity.setProperty(rule.property+"Function", false);
+                            entity.setUnindexedProperty(rule.property+"Function", false);
                             break;
                     }
-                    entity.setProperty(rule.property+"Mode", String.valueOf((pp>>3) & 0x3));
+                    entity.setUnindexedProperty(rule.property+"Mode", String.valueOf((pp>>3) & 0x3));
                     switch ((pp>>5) & 0x1)
                     {
                         case 0 :
-                            entity.setProperty(rule.property+"RedEyeMode", false);
+                            entity.setUnindexedProperty(rule.property+"RedEyeMode", false);
                             break;
                         case 1 :
-                            entity.setProperty(rule.property+"RedEyeMode", true);
+                            entity.setUnindexedProperty(rule.property+"RedEyeMode", true);
                             break;
                     }
-                    entity.setProperty(rule.property+"Return", String.valueOf((pp>>1) & 0x3));
+                    entity.setUnindexedProperty(rule.property+"Return", String.valueOf((pp>>1) & 0x3));
                 }
                     break;
                 default:
@@ -263,7 +263,7 @@ public class Exif2Entity
                         {
                             if (ioa.count() == 1 || ioa.getValue() instanceof String)
                             {
-                                entity.setProperty(rule.property, strValue);
+                                entity.setUnindexedProperty(rule.property, strValue);
                             }
                         }
                             break;

@@ -23,12 +23,15 @@ package org.vesalainen.mailblog;
 public interface BlogConstants 
 {
     static final int CHUNKSIZE = 500;
+    
+    static final String BlogRipper = "X-BlogRipper-";
+    static final String RFC1123Format = "EEE, dd MMM yyyy HH:mm:ss z";
+    
     static final String RootKind = "Root";
     static final String BlogKind = "Blog";
     static final String BlobKind = "Blob";
     static final String PageKind = "Page";
     static final String PageBackupKind = "PageBackup";
-    static final String TimelineKind = "Timeline";
     static final String MetadataKind = "Metadata";
     static final String SettingsKind = "Settings";
     
@@ -36,9 +39,7 @@ public interface BlogConstants
     static final String HtmlProperty = "Html";
     static final String SubjectProperty = "Subject";
     static final String SenderProperty = "Sender";
-    static final String SentDateProperty = "SentDate";
-    static final String CidsProperty = "Cids";
-    static final String BlobsProperty = "Blobs";
+    static final String SentDateProperty = "Date";
     static final String CityProperty = "City";
     static final String CoordinateProperty = "Coordinate";
     static final String FilenameProperty = "Filename";
@@ -53,6 +54,9 @@ public interface BlogConstants
     static final String FixPicProperty = "FixPic";
     static final String ShowCountProperty = "ShowCount";
     static final String PageProperty = "Page";
+    static final String WebSizeProperty = "WebSize";
+    static final String OriginalSizeProperty = "OriginalSize";
+    static final String AttachmentsProperty = "Attachments";
     
     static final String RemoveParameter = "remove";
     static final String BlogParameter = "blog";
@@ -62,6 +66,10 @@ public interface BlogConstants
     static final String PathParameter = "path";
     static final String PageParameter = "page";
     static final String AddParameter = "add";
+    static final String Sha1Parameter = "sha1";
+    static final String MetadataParameter = "metadata";
+    static final String SizeParameter = "size";
+    static final String NamespaceParameter = "namespace";
     
     static final String RootKey = "base";
     static final String LatestKey = "latest";

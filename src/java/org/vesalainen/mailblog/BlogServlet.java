@@ -4,21 +4,15 @@
  */
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.blobstore.BlobInfo;
-import com.google.appengine.api.blobstore.BlobInfoFactory;
-import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import java.io.IOException;
-import java.util.Iterator;
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 /**
  *
@@ -53,65 +47,32 @@ public class BlogServlet extends HttpServlet implements BlogConstants
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
         DB db = DB.DB;
         try
         {
             
-            String blobKey = request.getParameter(BlobParameter);
-            if (blobKey != null)
+            String calendar = request.getParameter(CalendarParameter);
+            if (calendar != null)
             {
-                log("blob="+blobKey);
-                BlobKey bk = new BlobKey(blobKey);
-                String original = request.getParameter(OriginalParameter);
-                if (original != null)
-                {
-                    BlobInfoFactory bif = new BlobInfoFactory();
-                    BlobInfo loadBlobInfo = bif.loadBlobInfo(bk);
-                    Iterator<BlobInfo> iterator = bif.queryBlobInfos();
-                    while (iterator.hasNext())
-                    {
-                        BlobInfo bi = iterator.next();
-                        if (    bi.getFilename().equals(loadBlobInfo.getFilename()) && 
-                                bi.getSize() > loadBlobInfo.getSize()
-                                )
-                        {
-                            bk = bi.getBlobKey();
-                        }
-                    }
-                }
-                blobstore.serve(bk, response);
+                log("calendar");
+                String calendarString = db.getCalendar();
+                response.setContentType("text/html; charset=UTF-8");
+                response.getWriter().write(calendarString);
             }
             else
             {
-                String calendar = request.getParameter(CalendarParameter);
-                if (calendar != null)
+                String blogKey = request.getParameter(BlogParameter);
+                if (blogKey != null)
                 {
-                    log("calendar");
-                    response.setContentType("application/json");
-                    JSONObject json = new JSONObject();
-                    String calendarString = db.getCalendar();
-                    log(calendarString);
-                    json.put("calendar", calendarString);
-                    json.write(response.getWriter());
+                    log("selected");
+                    response.setContentType("text/html; charset=UTF-8");
+                    response.getWriter().write(db.getBlog(blogKey));
                 }
                 else
                 {
-                    String blogKey = request.getParameter(BlogParameter);
-                    if (blogKey != null)
-                    {
-                        log("selected");
-                        response.setContentType("text/html");
-                        response.getWriter().write(db.getBlog(blogKey));
-                    }
-                    else
-                    {
-                        log("latest");
-                        response.setContentType("application/json");
-                        JSONObject json = new JSONObject();
-                        json.put("blog", db.getBlogList());
-                        json.write(response.getWriter());
-                    }
+                    log("latest");
+                    response.setContentType("text/html; charset=UTF-8");
+                    response.getWriter().write(db.getBlogList());
                 }
             }
         }
@@ -119,10 +80,6 @@ public class BlogServlet extends HttpServlet implements BlogConstants
         {
             log("", ex);
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
-        }
-        catch (JSONException ex)
-        {
-            throw new ServletException(ex);
         }
     }
 

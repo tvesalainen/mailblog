@@ -7,6 +7,7 @@
 
     <static-files>
         <include path="/pageeditor/*.html" expiration="0s" />
+        <include path="/pageeditor/*.js" expiration="0s" />
         <include path="/images/*.png" expiration="0s" />
         <include path="/images/*.jpg" expiration="0s" />
     </static-files>
