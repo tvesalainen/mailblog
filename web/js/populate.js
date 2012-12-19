@@ -1,4 +1,4 @@
-/* 
+                /* 
  * Copyright (C) 2012 Timo Vesalainen
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,7 +23,8 @@ function blogevents() {
     
         $(".calendar-menu").click(function(){
             var x = $(this).get(0);
-            $("."+x.id).toggle();
+            var cls = "."+x.id;
+            $(cls).toggle();
         });
     
         $(".blog-entry").click(function(){
