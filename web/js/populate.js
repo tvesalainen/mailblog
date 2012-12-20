@@ -15,34 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-function blogevents() {
-
-        $("img").click(function(){
-            window.open($(this).attr("src")+"&original=true");
-        });
-    
-        $(".calendar-menu").click(function(){
-            var x = $(this).get(0);
-            var cls = "."+x.id;
-            $(cls).toggle();
-        });
-    
-        $(".blog-entry").click(function(){
-            var x = $(this).get(0);
-            $("#blog").load("/blog?blog="+x.id, function() {
-                  blogevents();
-             });
-        });
-    
-};
 $(document).ready(function(){
 
-    $("#blog").load("/blog", function() {
-        blogevents();
-    });
+        $("#blog").load("/blog");
     
-    $("#calendar").load("/blog?calendar=true", function() {
-        blogevents();
-    });
+        $("#calendar").load("/blog?calendar=true");
+    
+        $("body").click(function(event){
+            if ($(event.target).is("img")) {
+              window.open($(event.target).attr("src")+"&original=true");
+            }
+            if ($(event.target).is('.calendar-menu')) {
+              var x = $(event.target).get(0);
+              var cls = "."+x.id;
+              $(cls).toggle();
+            }
+            if ($(event.target).is('.blog-entry')) {
+              var x = $(event.target).get(0);
+              $("#blog").load("/blog?blog="+x.id);
+            }
+            if ($(event.target).is('#forward')) {
+              var cursor = $("#nextPage").text();
+              $("#blog").load("/blog?cursor="+cursor);
+            }
+        });
     
 });
