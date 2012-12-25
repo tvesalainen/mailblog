@@ -108,48 +108,29 @@ public class BlobServlet extends HttpServlet implements BlogConstants
         }
     }
 
-    private void addBlobs(HttpServletRequest request, String sizeString) throws ServletException
+    private void addBlobs(final HttpServletRequest request, final String sizeString) throws ServletException, IOException
     {
-        while (ApiProxy.getCurrentEnvironment().getRemainingMillis() > 1000)
+        Updater<Object> updater = new Updater<Object>() 
         {
-            try
+            @Override
+            public Object update() throws IOException
             {
-                tryAddBlobs(request, sizeString);
-                return;
+                BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
+                DB db = DB.DB;
+                Map<String, List<BlobKey>> blobs = blobstore.getUploads(request);
+                for (Map.Entry<String, List<BlobKey>> entry : blobs.entrySet())
+                {
+                    String sha1 = entry.getKey();
+                    log("sha1="+sha1);
+                    Entity metadata = db.getMetadata(sha1);
+                    BlobKey blobKey = entry.getValue().get(0);
+                    metadata.setUnindexedProperty(sizeString, blobKey);
+                    db.putAndCache(metadata);
+                }
+                return null;
             }
-            catch (ConcurrentModificationException ex)
-            {
-                log("retry add blob "+sizeString);
-            }
-        }
-        log("giving up "+sizeString);
-    }
-    private void tryAddBlobs(HttpServletRequest request, String sizeString) throws ServletException
-    {
-        BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
-        DB db = DB.DB;
-        Transaction tr = db.beginTransaction();
-        try
-        {
-            Map<String, List<BlobKey>> blobs = blobstore.getUploads(request);
-            for (Map.Entry<String, List<BlobKey>> entry : blobs.entrySet())
-            {
-                String sha1 = entry.getKey();
-                log("sha1="+sha1);
-                Entity metadata = db.getMetadata(sha1);
-                BlobKey blobKey = entry.getValue().get(0);
-                metadata.setUnindexedProperty(sizeString, blobKey);
-                db.putAndCache(metadata);
-            }
-            tr.commit();
-        }
-        finally
-        {
-            if (tr.isActive())
-            {
-                tr.rollback();
-            }
-        }
+        };
+        updater.start();
     }
 
 }

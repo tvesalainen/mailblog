@@ -44,6 +44,7 @@ public class PageServlet extends HttpServlet implements BlogConstants
             throws ServletException, IOException
     {
         String path = request.getParameter(PathParameter);
+        log("path="+path);
         if (path != null)
         {
             DB db = DB.DB;
@@ -52,7 +53,6 @@ public class PageServlet extends HttpServlet implements BlogConstants
         }
         else
         {
-            log("path="+path);
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
@@ -70,6 +70,7 @@ public class PageServlet extends HttpServlet implements BlogConstants
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
+        log("here");
         String path = request.getParameter(PathParameter);
         String page = request.getParameter(PageParameter);
         if (path != null && page != null)

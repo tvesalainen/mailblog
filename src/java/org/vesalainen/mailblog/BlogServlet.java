@@ -47,6 +47,7 @@ public class BlogServlet extends HttpServlet implements BlogConstants
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
+        response.setHeader("Cache-Control", "private, max-age=0, no-cache");
         DB db = DB.DB;
         try
         {
@@ -70,9 +71,10 @@ public class BlogServlet extends HttpServlet implements BlogConstants
                 }
                 else
                 {
+                    String cursor = request.getParameter(CursorParameter);
                     log("latest");
                     response.setContentType("text/html; charset=UTF-8");
-                    response.getWriter().write(db.getBlogList());
+                    response.getWriter().write(db.getBlogList(cursor));
                 }
             }
         }

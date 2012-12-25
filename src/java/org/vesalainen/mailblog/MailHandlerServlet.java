@@ -24,6 +24,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PropertyContainer;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.images.Image;
@@ -56,7 +57,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -64,6 +64,8 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -151,6 +153,11 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                 }
                 handleMail(request, response, blogAuthor);
             }
+            catch (MessagingException ex)
+            {
+                log(ex.getMessage(), ex);
+                response.sendError(HttpServletResponse.SC_CONFLICT);
+            }
             catch (EntityNotFoundException ex)
             {
                 log(ex.getMessage(), ex);
@@ -181,67 +188,54 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         String address = pathInfo.substring(idx+1);
         return new BlogAuthor(namespace, address);
     }
-    private void handleMail(HttpServletRequest request, HttpServletResponse response, BlogAuthor blogAuthor) throws IOException, ServletException, EntityNotFoundException
+    private void handleMail(HttpServletRequest request, HttpServletResponse response, BlogAuthor blogAuthor) throws IOException, ServletException, EntityNotFoundException, MessagingException
     {
         DB db = DB.DB;
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
-        Transaction tr = db.beginTransaction();
+        MimeMessage message = new MimeMessage(session, request.getInputStream());
+        String messageID = (String) getHeader(message, "Message-ID");
+        
+        if ("<1431806998.39.1356256382339.JavaMail.tkv@tkv-PC>".equals(messageID))
+        {
+            log("<1431806998.39.1356256382339.JavaMail.tkv@tkv-PC>");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        if (messageID == null)
+        {
+            log("messageID missing");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        log("Message-ID="+messageID);
+        InternetAddress sender = (InternetAddress) message.getSender();
+        log("sender="+sender);
+        if (sender == null)
+        {
+            log("Sender missing");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+        Email senderEmail = new Email(sender.getAddress());
+        Settings settings = db.getSettingsFor(senderEmail);
+        if (settings == null)
+        {
+            log(senderEmail.getEmail()+" not allowed to send blogs");
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        String[] ripperDate = message.getHeader(BlogRipper+"Date");
+        boolean ripping = ripperDate != null && ripperDate.length > 0;
+        Multipart multipart = (Multipart) message.getContent();
+        List<BodyPart> bodyPartList = findParts(multipart);
         try
         {
-            log("namespace is "+NamespaceManager.get());
-            MimeMessage message = new MimeMessage(session, request.getInputStream());
-            String messageID = message.getMessageID();
-            if (messageID == null)
+            Key blogKey = db.getBlogKey(messageID);
+            String htmlBody = getHtmlBody(bodyPartList);
+            if (htmlBody != null)
             {
-                log("messageID missing");
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-                return;
-            }
-            InternetAddress sender = (InternetAddress) message.getSender();
-            log("sender="+sender);
-            if (sender == null)
-            {
-                log("Sender missing");
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-                return;
-            }
-            Email senderEmail = new Email(sender.getAddress());
-            Settings settings = db.getSettingsFor(senderEmail);
-            if (settings == null)
-            {
-                log(senderEmail.getEmail()+" not allowed to send blogs");
-                response.sendError(HttpServletResponse.SC_FORBIDDEN);
-                return;
-            }
-            String[] ripperDate = message.getHeader(BlogRipper+"Date");
-            boolean ripping = ripperDate != null && ripperDate.length > 0;
-            Multipart multipart = (Multipart) message.getContent();
-            List<BodyPart> bodyPartList = findParts(multipart);
-            Entity blog = getBlog(message);
-            if (!blog.hasProperty(HtmlProperty))
-            {
-                String htmlBody = null;
-                for (BodyPart bodyPart : bodyPartList)
-                {
-                    String contentType = bodyPart.getContentType();
-                    Object content = bodyPart.getContent();
-                    if (contentType.startsWith("text/html"))
-                    {
-                        htmlBody = (String) content;
-                    }
-                    else
-                    {
-                        if (contentType.startsWith("text/plain"))
-                        {
-                            if (htmlBody == null)
-                            {
-                                htmlBody = (String) content;
-                            }
-                        }
-                    }
-                }
-                blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
+                Entity blog = createBlog(blogKey, message, htmlBody);
                 if (!ripping)
                 {
                     sendMail(request, blogAuthor, blog);
@@ -250,14 +244,13 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             List<Future<HTTPResponse>> futureList = new ArrayList<Future<HTTPResponse>>();
             for (BodyPart bodyPart : bodyPartList)
             {
-                Collection<Future<HTTPResponse>> futures = handleBodyPart(request, blog, bodyPart, settings);
+                Collection<Future<HTTPResponse>> futures = handleBodyPart(request, blogKey, bodyPart, settings);
                 if (futures != null)
                 {
                     futureList.addAll(futures);
                 }
             }
-            db.putAndCache(blog);
-            tr.commit();
+            db.blogsChanged();
             long remainingMillis = ApiProxy.getCurrentEnvironment().getRemainingMillis();
             log("remainingMillis="+remainingMillis);
             for (Future<HTTPResponse> res : futureList)
@@ -285,34 +278,8 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         {
             throw new IOException(ex);
         }
-        finally
-        {
-            if (tr.isActive())
-            {
-                log("transaction rolled back");
-                tr.rollback();
-                response.sendError(HttpServletResponse.SC_CONFLICT);
-            }
-        }
     }
 
-    private Entity getBlog(MimeMessage message) throws MessagingException, IOException
-    {
-        DB db = DB.DB;
-        Enumeration allHeaderLines = message.getAllHeaderLines();
-        while (allHeaderLines.hasMoreElements())
-        {
-            log(allHeaderLines.nextElement().toString());
-        }
-        String messageID = (String) getHeader(message, "Message-ID");
-        log("messageID="+messageID);
-        Entity blog = db.getBlogFromMessageId(messageID);
-        setProperty(message, SubjectProperty, blog, false);
-        setProperty(message, SenderProperty, blog, false);
-        setProperty(message, SentDateProperty, blog, true);
-        blog.setProperty(TimestampProperty, new Date());
-        return blog;
-    }
     private void setProperty(MimeMessage message, String name, Entity blog, boolean indexed) throws MessagingException, IOException
     {
         Object header = getHeader(message, name);
@@ -320,12 +287,10 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         {
             if (indexed)
             {
-                log("indexed="+name);
                 blog.setProperty(name, header);
             }
             else
             {
-                log("unindexed="+name);
                 blog.setUnindexedProperty(name, header);
             }
         }
@@ -336,6 +301,10 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         if (header == null || header.length == 0)
         {
             header = message.getHeader(name);
+        }
+        else
+        {
+            log("using "+BlogRipper+name);
         }
         if (header == null || header.length == 0)
         {
@@ -366,7 +335,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         }
         return MimeUtility.decodeText(header[0]);
     }
-    private Collection<Future<HTTPResponse>> handleBodyPart(HttpServletRequest request, Entity blog, BodyPart bodyPart, Settings settings) throws MessagingException, IOException
+    private Collection<Future<HTTPResponse>> handleBodyPart(HttpServletRequest request, Key blogKey, BodyPart bodyPart, Settings settings) throws MessagingException, IOException
     {
         ImagesService imagesService = ImagesServiceFactory.getImagesService();
         DB db = DB.DB;
@@ -388,32 +357,8 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             byte[] digest = sha1.digest(bytes);
             String digestString = Hex.convert(digest);
             log(digestString);
-            Entity metadata = db.getMetadata(digestString);
-            log(metadata.toString());
-            if (metadata.getProperties().isEmpty())
-            {
-                metadata.setUnindexedProperty(FilenameProperty, filename);
-                metadata.setUnindexedProperty(ContentTypeProperty, contentType);
-                metadata.setUnindexedProperty(TimestampProperty, new Date());
-                try
-                {
-                    if (contentType.startsWith("image/jpeg"))
-                    {
-                        ExifParser exif = new ExifParser(bytes);
-                        Date timestamp = exif.getTimestamp();
-                        if (timestamp != null)
-                        {
-                            exif.populate(metadata);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                }
-                db.putAndCache(metadata);
-            }
-            replaceBlogRef(blog, cid, digestString);
-            db.blogsChanged();
+            Entity metadata = createMetadata(digestString, filename, contentType, bytes);
+            replaceBlogRef(blogKey, cid, digestString);
             if (contentType.startsWith("image/"))
             {
                 Image image = ImagesServiceFactory.makeImage(bytes);
@@ -427,15 +372,13 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                         image.getWidth() > settings.getPicMaxWidth()
                         )
                 {
-                    log("shrinking");
+                    log("shrinking ["+image.getHeight()+", "+image.getWidth()+"] > ["+settings.getPicMaxHeight()+", "+settings.getPicMaxWidth()+"]");
                     Transform makeResize = ImagesServiceFactory.makeResize(settings.getPicMaxHeight(), settings.getPicMaxWidth());
                     Image shrinken = imagesService.applyTransform(makeResize, image);
-                    log("upload "+cid);
                     Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, shrinken.getImageData(), WebSizeProperty, request);
                     futures.add(res);
                 }
             }
-            log("upload "+cid);
             Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, OriginalSizeProperty, request);
             futures.add(res);
         }
@@ -475,7 +418,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             ps.append("--"+uid+"--");
             ps.append(CRLF);
             ps.close();
-            log("sending blog size="+baos.size());
+            log("sending blob size="+baos.size());
             httpRequest.setPayload(baos.toByteArray());
             return fetchService.fetchAsync(httpRequest);
         }
@@ -586,24 +529,143 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         }
     }
 
-    private void replaceBlogRef(Entity blog, String cid, String sha1)
+    private void replaceBlogRef(final Key blogKey, final String cidStr, final String sha1) throws IOException
     {
-        DB db = DB.DB;
-        Collection<Key> attachments = (Collection<Key>) blog.getProperty(AttachmentsProperty);
-        if (attachments == null)
+        Updater<Object> updater = new Updater<Object>()
         {
-            attachments = new HashSet<Key>();
-            blog.setUnindexedProperty(AttachmentsProperty, attachments);
-        }
-        attachments.add(db.getMetadataKey(sha1));
-        if (cid.startsWith("<") && cid.endsWith(">"))
+            @Override
+            protected Object update() throws IOException
+            {
+                DB db = DB.DB;
+                Entity blog;
+                try
+                {
+                    blog = db.get(blogKey);
+                }
+                catch (EntityNotFoundException ex)
+                {
+                    throw new IOException(ex);
+                }
+                Collection<Key> attachments = (Collection<Key>) blog.getProperty(AttachmentsProperty);
+                if (attachments == null)
+                {
+                    attachments = new HashSet<Key>();
+                    blog.setUnindexedProperty(AttachmentsProperty, attachments);
+                }
+                attachments.add(db.getMetadataKey(sha1));
+                String cid = cidStr;
+                if (cid.startsWith("<") && cid.endsWith(">"))
+                {
+                    cid = cid.substring(1, cid.length()-1);
+                }
+                Text text = (Text) blog.getProperty(HtmlProperty);
+                String body = text.getValue();
+                body = body.replace("cid:"+cid, "/blob?"+Sha1Parameter+"="+sha1);
+                blog.setUnindexedProperty(HtmlProperty, new Text(body));
+                db.putAndCache(blog);
+                return null;
+            }
+        };
+        updater.start();
+    }
+
+    private String getHtmlBody(List<BodyPart> bodyPartList) throws MessagingException, IOException
+    {
+        String htmlBody = null;
+        for (BodyPart bodyPart : bodyPartList)
         {
-            cid = cid.substring(1, cid.length()-1);
+            String contentType = bodyPart.getContentType();
+            Object content = bodyPart.getContent();
+            if (contentType.startsWith("text/html"))
+            {
+                htmlBody = (String) content;
+            }
+            else
+            {
+                if (contentType.startsWith("text/plain"))
+                {
+                    if (htmlBody == null)
+                    {
+                        htmlBody = (String) content;
+                    }
+                }
+            }
         }
-        Text text = (Text) blog.getProperty(HtmlProperty);
-        String body = text.getValue();
-        body = body.replace("cid:"+cid, "/blob?"+Sha1Parameter+"="+sha1);
-        blog.setUnindexedProperty(HtmlProperty, new Text(body));
+        return htmlBody;
+    }
+
+    private Entity createBlog(final Key blogKey, final MimeMessage message, final String htmlBody) throws IOException
+    {
+        Updater<Entity> updater = new Updater<Entity>()
+        {
+            @Override
+            protected Entity update() throws IOException
+            {
+                try
+                {
+                    DB db = DB.DB;
+                    Entity blog;
+                    try
+                    {
+                        blog = db.get(blogKey);
+                    }
+                    catch (EntityNotFoundException ex)
+                    {
+                        blog = new Entity(blogKey);
+                    }
+                    setProperty(message, SubjectProperty, blog, false);
+                    setProperty(message, SenderProperty, blog, false);
+                    setProperty(message, SentDateProperty, blog, true);
+                    blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
+                    blog.setProperty(TimestampProperty, new Date());
+                    db.putAndCache(blog);
+                    return blog;
+                }
+                catch (MessagingException ex)
+                {
+                    throw new IOException(ex);
+                }
+            }
+        };
+        return updater.start();
+    }
+
+    private Entity createMetadata(final String digestString, final String filename, final String contentType, final byte[] bytes) throws IOException
+    {
+        Updater<Entity> updater = new Updater<Entity>()
+        {
+            @Override
+            protected Entity update() throws IOException
+            {
+                DB db = DB.DB;
+                Entity metadata = db.getMetadata(digestString);
+                log(metadata.toString());
+                if (metadata.getProperties().isEmpty())
+                {
+                    metadata.setUnindexedProperty(FilenameProperty, filename);
+                    metadata.setUnindexedProperty(ContentTypeProperty, contentType);
+                    metadata.setUnindexedProperty(TimestampProperty, new Date());
+                    try
+                    {
+                        if (contentType.startsWith("image/jpeg"))
+                        {
+                            ExifParser exif = new ExifParser(bytes);
+                            Date timestamp = exif.getTimestamp();
+                            if (timestamp != null)
+                            {
+                                exif.populate(metadata);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+                    db.putAndCache(metadata);
+                }
+                return metadata;
+            }
+        };
+        return updater.start();
     }
 
     private class BlogAuthor

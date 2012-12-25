@@ -70,8 +70,10 @@ public interface BlogConstants
     static final String MetadataParameter = "metadata";
     static final String SizeParameter = "size";
     static final String NamespaceParameter = "namespace";
+    static final String CursorParameter = "cursor";
     
-    static final String RootKey = "base";
-    static final String LatestKey = "latest";
+    static final String BaseKey = "base";
+    static final String FirstPageKey = "startCursor";
     static final String CalendarKey = "calendar";
+    static final String CursorsKey = "cursors";
 }

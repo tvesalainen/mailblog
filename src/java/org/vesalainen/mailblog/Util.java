@@ -29,11 +29,7 @@ public class Util
     public static Locale getLocale(HttpServletRequest request)
     {
         String language = request.getHeader("Accept-Language");
-        int idx = language.indexOf(',');
-        if (idx != -1)
-        {
-            language = language.substring(0, idx);
-        }
+        language = language.substring(0, 2);
         String country = request.getHeader("X-AppEngine-Country");
         String region = request.getHeader("X-AppEngine-Region");
         return new Locale(language, country);

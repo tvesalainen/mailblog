@@ -15,27 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+var context = $("meta[name='context']").attr("content");
 
 $(document).ready(function(){
-  $("#path").change(function(){
-    $.get("/pageeditor/page?path="+$("#path").val() ,function(data, status){
-      $("#page").val(data);
-    })
-  })
-  
-  $("#get").click(function(){
-    $.get("/pageeditor/page?path="+$("#path").val() ,function(data, status){
-      $("#page").val(data);
-    })
-  })
-  
-  $("#put").click(function(){
-    $.post("/pageeditor/page", 
+    
+    $("#fields").load(context);
+    
+    $("form").submit(function() 
     {
-        path:$("#path").val(), 
-        page:$("#page").val()
-    }
-    ) ;
-  })
-  
+       $.post(context, $("form").serialize());
+       return false; 
+    });
+
 });

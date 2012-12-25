@@ -51,6 +51,12 @@ public class Settings implements BlogConstants, Serializable
         }
         map.putAll(entity.getProperties());
     }
+
+    public Map<String, Object> getMap()
+    {
+        return map;
+    }
+    
     public Email getEmail()
     {
         return (Email) Objects.nonNull(map.get(EmailProperty));

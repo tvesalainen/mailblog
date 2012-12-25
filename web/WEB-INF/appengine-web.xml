@@ -6,6 +6,8 @@
     <threadsafe>true</threadsafe>
 
     <static-files>
+        <include path="/admin/*.html" expiration="0s" />
+        <include path="/admin/*.js" expiration="0s" />
         <include path="/pageeditor/*.html" expiration="0s" />
         <include path="/pageeditor/*.js" expiration="0s" />
         <include path="/images/*.png" expiration="0s" />

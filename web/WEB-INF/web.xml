@@ -34,6 +34,14 @@
         <servlet-name>BlobServlet</servlet-name>
         <servlet-class>org.vesalainen.mailblog.BlobServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>BaseSettingsServlet</servlet-name>
+        <servlet-class>org.vesalainen.mailblog.BaseSettingsServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>BloggerSettingsServlet</servlet-name>
+        <servlet-class>org.vesalainen.mailblog.BloggerSettingsServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>RemoteApiServlet</servlet-name>
         <url-pattern>/remote_api</url-pattern>
@@ -58,6 +66,14 @@
         <servlet-name>BlobServlet</servlet-name>
         <url-pattern>/blob/*</url-pattern>
     </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BaseSettingsServlet</servlet-name>
+        <url-pattern>/admin/settings/base/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BloggerSettingsServlet</servlet-name>
+        <url-pattern>/admin/settings/blogger/*</url-pattern>
+    </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>
@@ -79,6 +95,18 @@
             <web-resource-name>PageEditor</web-resource-name>
             <description/>
             <url-pattern>/pageeditor/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <description/>
+            <role-name>admin</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <display-name>Admin</display-name>
+        <web-resource-collection>
+            <web-resource-name>Admin</web-resource-name>
+            <description/>
+            <url-pattern>/admin/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>
             <description/>

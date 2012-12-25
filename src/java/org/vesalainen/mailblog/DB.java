@@ -18,6 +18,7 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.NamespaceManager;
+import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Email;
@@ -29,6 +30,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
+import com.google.appengine.api.datastore.QueryResultList;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
@@ -63,6 +65,11 @@ public class DB implements BlogConstants
     {
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         return datastore.beginTransaction(TransactionOptions.Builder.withXG(true));
+    }
+    public void delete(Key key)
+    {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        datastore.delete(key);
     }
     public String getPage(String path)
     {
@@ -125,7 +132,7 @@ public class DB implements BlogConstants
                 page = new Entity(key);
             }
             page.setUnindexedProperty(PageProperty, new Text(text));
-            page.setUnindexedProperty(TimestampProperty, new Date());
+            page.setProperty(TimestampProperty, new Date());
             putAndCache(page);
             tr.commit();
         }
@@ -137,11 +144,15 @@ public class DB implements BlogConstants
             }
         }
     }
+    public Key getBlogKey(String messageId)
+    {
+        Key root = KeyFactory.createKey(RootKind, 1);
+        return KeyFactory.createKey(root, BlogKind, messageId);
+    }
     public Entity getBlogFromMessageId(String messageId)
     {
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
-        Key root = KeyFactory.createKey(RootKind, 1);
-        Key key =  KeyFactory.createKey(root, BlogKind, messageId);
+        Key key =  getBlogKey(messageId);
         try
         {
             return datastore.get(key);
@@ -155,7 +166,7 @@ public class DB implements BlogConstants
     public void blogsChanged()
     {
         MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
-        cache.delete(LatestKey);
+        cache.delete(FirstPageKey);
         cache.delete(CalendarKey);
     }
     public Key getMetadataKey(String sha1)
@@ -193,8 +204,9 @@ public class DB implements BlogConstants
     {
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
-        cache.put(entity.getKey(), entity);
-        return datastore.put(entity);
+        Key key = datastore.put(entity);
+        cache.put(key, entity);
+        return key;
     }
 
     public Entity get(Key key) throws EntityNotFoundException
@@ -224,24 +236,50 @@ public class DB implements BlogConstants
         return get(KeyFactory.stringToKey(keyString));
     }
 
-    public String getBlogList() throws EntityNotFoundException
+    public String getBlogList(String start) throws EntityNotFoundException
     {
-        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
-        String str = (String) cache.get(LatestKey);
+        String str = null;
+        if (start == null)
+        {
+            str = (String) cache.get(FirstPageKey);
+        }
+        else
+        {
+            str = (String) cache.get(start);
+        }
         if (str == null)
         {
+            DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
             Settings settings = getSettings();
+            FetchOptions options = FetchOptions.Builder.withLimit(settings.getShowCount());
+            if (start != null)
+            {
+                options = options.startCursor(Cursor.fromWebSafeString(start));
+            }
             StringBuilder sb = new StringBuilder();
             Query query = new Query(BlogKind);
             query.addSort(SentDateProperty, Query.SortDirection.DESCENDING);
             PreparedQuery prepared = datastore.prepare(query);
-            for (Entity entity : prepared.asIterable(FetchOptions.Builder.withLimit(settings.getShowCount())))
+            QueryResultList<Entity> list = prepared.asQueryResultList(options);
+            Cursor cursor = list.getCursor();
+            for (Entity entity : list)
             {
                 sb.append(getBlog(entity));
             }
+            if (list.size() == settings.getShowCount())
+            {
+                sb.append("<span id=\"nextPage\" class=\"hidden\">"+cursor.toWebSafeString()+"</span>");
+            }
             str = sb.toString();
-            cache.put(LatestKey, str);
+            if (start == null)
+            {
+                cache.put(FirstPageKey, str);
+            }
+            else
+            {
+                cache.put(start, str);
+            }
         }
         return str;
     }
@@ -255,15 +293,10 @@ public class DB implements BlogConstants
     public String getBlog(Entity entity) throws EntityNotFoundException
     {
         String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
-        System.err.println(subject);
         Date date = (Date) Objects.nonNull(entity.getProperty(SentDateProperty));
-        System.err.println(date);
         Email sender = (Email) Objects.nonNull(entity.getProperty(SenderProperty));
-        System.err.println(sender);
         Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
-        System.err.println(body);
         Settings senderSettings = Objects.nonNull(getSettingsFor(sender));
-        System.err.println(senderSettings.getTemplate().getValue());
         return String.format(senderSettings.getTemplate().getValue(), subject, date, senderSettings.getNickname(), body.getValue());
     }
     
@@ -316,14 +349,14 @@ public class DB implements BlogConstants
                 sb.append("<div id=\"year"+year+"\" class=\"calendar-menu\">"+year+" (");
                 yearPtr = sb.length();
                 sb.append(")</div>\n");
-                sb.append("<div hidden=\"true\" class=\"year"+year+" calendar-indent\">\n");
+                sb.append("<div class=\"hidden year"+year+" calendar-indent\">\n");
                 Map<Integer,List<String>> monthMap = yearMap.get(year);
                 for (int month : monthMap.keySet())
                 {
                     sb.append("<div id=\"month"+year+month+"\" class=\"calendar-menu\">"+prettify(months[month])+" (");
                     monthPtr = sb.length();
                     sb.append(")</div>\n");
-                    sb.append("<div hidden=\"true\" class=\"month"+year+month+" calendar-indent\">\n");
+                    sb.append("<div class=\"hidden month"+year+month+" calendar-indent\">\n");
                     List<String> blogList = monthMap.get(month);
                     for (String a : blogList)
                     {
@@ -352,15 +385,15 @@ public class DB implements BlogConstants
     {
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
-        Settings settings = (Settings) cache.get(RootKey);
+        Settings settings = (Settings) cache.get(BaseKey);
         if (settings == null)
         {
-            Key key = KeyFactory.createKey(SettingsKind, RootKey);
+            Key key = KeyFactory.createKey(SettingsKind, BaseKey);
             Entity entity = datastore.get(key);
             if (entity != null)
             {
                 settings = new Settings(this, entity);
-                cache.put(RootKey, settings);
+                cache.put(BaseKey, settings);
             }
             else
             {
@@ -392,4 +425,5 @@ public class DB implements BlogConstants
         }
         return settings;
     }
+
 }
