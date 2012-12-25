@@ -23,6 +23,14 @@ $(document).ready(function(){
     
     $("form").submit(function() 
     {
+       $(".mandatory").each(function()
+       {
+          var val = $(this).val();
+          if (val == "")
+          {
+              $(this).focus();
+          }
+       });
        $.post(context, $("form").serialize());
        return false; 
     });

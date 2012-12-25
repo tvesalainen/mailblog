@@ -64,34 +64,33 @@ public abstract class EntityServlet extends HttpServlet
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
-        String content = null;
-        String list = req.getParameter(Select);
-        if (list != null)
+        try
         {
-            content = createSelect();
-        }
-        else
-        {
-            Key key = getKey(req);
-            if (key != null)
+            String content = null;
+            String list = req.getParameter(Select);
+            if (list != null)
             {
-                DB db = DB.DB;
-                try
-                {
-                    Entity entity = db.get(key);
-                    content = getInputTable(entity);
-                }
-                catch (EntityNotFoundException ex)
-                {
-                    resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-                }
+                content = createSelect();
             }
             else
             {
-                content = getInputTable(null);
+                Key key = getKey(req);
+                if (key != null)
+                {
+                    Entity entity = getEntity(key);
+                    content = getInputTable(entity);
+                }
+                else
+                {
+                    content = getInputTable(null);
+                }
             }
+            resp.getWriter().write(content);
         }
-        resp.getWriter().write(content);
+        catch (HttpException ex)
+        {
+            ex.sendError(resp);
+        }
     }
 
     @Override
@@ -171,9 +170,25 @@ public abstract class EntityServlet extends HttpServlet
         sb.append("</table>");
         return sb.toString();
     }
+    protected void addProperty(String name)
+    {
+        properties.add(new Property(name));
+    }
+    protected void addProperty(String name, Class<?> type)
+    {
+        properties.add(new Property(name, type));
+    }
     protected void addProperty(String name, Class<?> type, boolean indexed)
     {
         properties.add(new Property(name, type, indexed));
+    }
+    protected void addProperty(String name, Class<?> type, boolean indexed, boolean mandatory)
+    {
+        properties.add(new Property(name, type, indexed, mandatory));
+    }
+    protected void addProperty(String name, Class<?> type, boolean indexed, boolean mandatory, String inputType)
+    {
+        properties.add(new Property(name, type, indexed, mandatory, inputType));
     }
     protected Key getKey(HttpServletRequest req)
     {
@@ -188,6 +203,19 @@ public abstract class EntityServlet extends HttpServlet
         }
     }
 
+    protected Entity getEntity(Key key) throws HttpException
+    {
+        DB db = DB.DB;
+        try
+        {
+            return db.get(key);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new HttpException(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+    
     protected abstract Key createKey(HttpServletRequest req);
     protected abstract String getTitle(Entity entity);
 
@@ -205,18 +233,69 @@ public abstract class EntityServlet extends HttpServlet
         sb.append("</select>");
         return sb.toString();
     }
-    
+
     protected class Property
     {
         private String name;
         private Class<?> type;
+        private String inputType;
         private boolean indexed;
+        private boolean mandatory;
         private Constructor constructor;
 
+        protected Property(String name)
+        {
+            this(name, String.class);
+        }
+        protected Property(String name, Class<?> type)
+        {
+            this(name, type, false);
+        }
         protected Property(String name, Class<?> type, boolean indexed)
+        {
+            this(name, type, indexed, false);
+        }
+        protected Property(String name, Class<?> type, boolean indexed, boolean mandatory)
+        {
+            this(name, type, indexed, mandatory, null);
+        }
+        protected Property(String name, Class<?> type, boolean indexed, boolean mandatory, String inputType)
         {
             this.name = name;
             this.type = type;
+            this.mandatory = mandatory;
+            if (inputType != null)
+            {
+                this.inputType = inputType;
+            }
+            else
+            {
+                this.inputType = "text";
+                if (
+                        type.equals(Long.class) ||
+                        type.equals(Rating.class)
+                        )
+                {
+                    this.inputType = "number";
+                }
+                if (type.equals(Email.class))
+                {
+                    this.inputType = "email";
+                }
+                if (type.equals(Link.class))
+                {
+                    this.inputType = "url";
+                }
+                if (type.equals(PhoneNumber.class))
+                {
+                    this.inputType = "tel";
+                }
+                if (type.equals(Date.class))
+                {
+                    this.inputType = "date";
+                }
+            }
+            
             this.indexed = indexed;
             try
             {
@@ -287,54 +366,59 @@ public abstract class EntityServlet extends HttpServlet
         
         protected String getInputElement(Entity entity)
         {
+            String classAttr = "";
+            if (mandatory)
+            {
+                classAttr = "class=\"mandatory\"";
+            }
             Object value = entity.getProperty(name);
             if (type.equals(String.class))
             {
                 String val = (String) value;
                 String str = value != null ? val : "";
-                return "<input type=\"text\" name=\""+name+"\" value=\""+str+"\" size=\"40\"/>";
+                return "<input "+classAttr+" type=\""+inputType+"\" name=\""+name+"\" value=\""+str+"\" size=\"40\"/>";
             }
             if (type.equals(Text.class))
             {
                 Text val = (Text) value;
                 String str = value != null ? val.getValue() : "";
-                return "<textarea name=\""+name+"\" rows=\"20\" cols=\"80\">"+str+"</textarea>";
+                return "<textarea "+classAttr+" name=\""+name+"\" rows=\"20\" cols=\"80\">"+str+"</textarea>";
             }
             if (type.equals(Long.class))
             {
                 Long val = (Long) value;
                 String str = value != null ? val.toString() : "";
-                return "<input type=\"number\" min=\"1\" max=\"10\" name=\""+name+"\" value=\""+str+"\"/>";
+                return "<input "+classAttr+" type=\""+inputType+"\" name=\""+name+"\" value=\""+str+"\"/>";
             }
             if (type.equals(Rating.class))
             {
                 Rating val = (Rating) value;
                 String str = value != null ? String.valueOf(val.getRating()) : "";
-                return "<input type=\"number\" min=\""+Rating.MIN_VALUE+"\" max=\""+Rating.MAX_VALUE+"\" name=\""+name+"\" value=\""+str+"\"/>";
+                return "<input "+classAttr+" type=\"number\" min=\""+Rating.MIN_VALUE+"\" max=\""+Rating.MAX_VALUE+"\" name=\""+name+"\" value=\""+str+"\"/>";
             }
             if (type.equals(Email.class))
             {
                 Email val = (Email) value;
                 String str = value != null ? val.getEmail() : "";
-                return "<input type=\"email\" name=\""+name+"\" value=\""+str+"\" size=\"40\"/>";
+                return "<input "+classAttr+" type=\""+inputType+"\" name=\""+name+"\" value=\""+str+"\" size=\"40\"/>";
             }
             if (type.equals(Link.class))
             {
                 Link val = (Link) value;
                 String str = value != null ? val.getValue() : "";
-                return "<input type=\"url\" name=\""+name+"\" value=\""+str+"\" size=\"100\"/>";
+                return "<input "+classAttr+" type=\""+inputType+"\" name=\""+name+"\" value=\""+str+"\" size=\"100\"/>";
             }
             if (type.equals(PhoneNumber.class))
             {
                 PhoneNumber val = (PhoneNumber) value;
                 String str = value != null ? val.getNumber() : "";
-                return "<input type=\"tel\" name=\""+name+"\" value=\""+str+"\" size=\"40\"/>";
+                return "<input "+classAttr+" type=\""+inputType+"\" name=\""+name+"\" value=\""+str+"\" size=\"40\"/>";
             }
             if (type.equals(Category.class))
             {
                 Category val = (Category) value;
                 String str = value != null ? val.getCategory() : "";
-                return "<input type=\"text\" name=\""+name+"\" value=\""+str+"\"/>";
+                return "<input "+classAttr+" type=\"text\" name=\""+name+"\" value=\""+str+"\"/>";
             }
             /*
             if (type.equals(Date.class))
@@ -342,7 +426,7 @@ public abstract class EntityServlet extends HttpServlet
                 Date val = (Date) value;
                 
                 String str = value != null ? dateParser.formatISO8601(val) : "";
-                return "<input type=\"datetime\" name=\""+name+"\" value=\""+str+"\"/>";
+                return "<input "+classAttr+" type=\""+inputType+"\" name=\""+name+"\" value=\""+str+"\"/>";
             }
             */
             if (type.equals(Boolean.class))

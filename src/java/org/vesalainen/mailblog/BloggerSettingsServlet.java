@@ -47,9 +47,7 @@ public class BloggerSettingsServlet extends EntityServlet implements BlogConstan
         addProperty("Email", Email.class, true);
         addProperty("Nickname", String.class, false);
         addProperty("ConfirmEmail", Boolean.class, false);
-        addProperty("ShowCount", Long.class, false);
         addProperty("Template", Text.class, false);
-        addProperty("Language", String.class, false);
         addProperty("PicMaxHeight", Long.class, false);
         addProperty("PicMaxWidth", Long.class, false);
         addProperty("FixPic", Boolean.class, false);
@@ -77,6 +75,26 @@ public class BloggerSettingsServlet extends EntityServlet implements BlogConstan
         User user = userService.getCurrentUser();
         Key baseKey = KeyFactory.createKey(kind, BaseKey);
         return KeyFactory.createKey(baseKey, kind, user.getEmail());
+    }
+
+    @Override
+    protected Entity getEntity(Key key) throws HttpException
+    {
+        try
+        {
+            return super.getEntity(key);
+        }
+        catch (HttpException ex)
+        {
+            if (ex.getStatusCode() == HttpServletResponse.SC_NOT_FOUND)
+            {
+                return new Entity(key);
+            }
+            else
+            {
+                throw ex;
+            }
+        }
     }
 
     @Override

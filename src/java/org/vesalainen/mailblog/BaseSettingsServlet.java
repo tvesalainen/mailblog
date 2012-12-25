@@ -16,17 +16,11 @@
  */
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Text;
-import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import java.io.IOException;
@@ -45,11 +39,11 @@ public class BaseSettingsServlet extends EntityServlet implements BlogConstants
     {
         super("Settings");
         addProperty("ConfirmEmail", Boolean.class, false);
-        addProperty("ShowCount", Long.class, false);
-        addProperty("Template", Text.class, false);
-        addProperty("Language", String.class, false);
-        addProperty("PicMaxHeight", Long.class, false);
-        addProperty("PicMaxWidth", Long.class, false);
+        addProperty("ShowCount", Long.class, false, true);
+        addProperty("Template", Text.class, false, true);
+        addProperty("Language", String.class, false, true);
+        addProperty("PicMaxHeight", Long.class, false, true);
+        addProperty("PicMaxWidth", Long.class, false, true);
         addProperty("FixPic", Boolean.class, false);
     }
 
@@ -59,7 +53,14 @@ public class BaseSettingsServlet extends EntityServlet implements BlogConstants
         UserService userService = UserServiceFactory.getUserService();
         if (userService.isUserLoggedIn())
         {
-            super.doGet(req, resp);
+            if (userService.isUserAdmin())
+            {
+                super.doGet(req, resp);
+            }
+            else
+            {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+            }
         }
         else
         {
@@ -72,6 +73,26 @@ public class BaseSettingsServlet extends EntityServlet implements BlogConstants
     protected Key createKey(HttpServletRequest req)
     {
         return KeyFactory.createKey(kind, BaseKey);
+    }
+
+    @Override
+    protected Entity getEntity(Key key) throws HttpException
+    {
+        try
+        {
+            return super.getEntity(key);
+        }
+        catch (HttpException ex)
+        {
+            if (ex.getStatusCode() == HttpServletResponse.SC_NOT_FOUND)
+            {
+                return new Entity(key);
+            }
+            else
+            {
+                throw ex;
+            }
+        }
     }
 
     @Override
