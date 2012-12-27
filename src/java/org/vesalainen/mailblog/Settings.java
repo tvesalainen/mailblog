@@ -77,9 +77,9 @@ public class Settings implements BlogConstants, Serializable
     {
         return (Text) Objects.nonNull(map.get(TemplateProperty));
     }
-    public boolean isConfirmEmail()
+    public boolean isPublishImmediately()
     {
-        return (Boolean) Objects.nonNull(map.get(ConfirmEmailProperty));
+        return (Boolean) Objects.nonNull(map.get(PublishImmediatelyProperty));
     }
     public boolean isFixPic()
     {

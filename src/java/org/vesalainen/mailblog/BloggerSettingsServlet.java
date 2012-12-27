@@ -16,15 +16,10 @@
  */
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
@@ -38,19 +33,25 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Timo Vesalainen
  */
-public class BloggerSettingsServlet extends EntityServlet implements BlogConstants
+public class BloggerSettingsServlet extends SettingsServlet implements BlogConstants
 {
 
     public BloggerSettingsServlet()
     {
         super("Settings");
-        addProperty("Email", Email.class, true);
-        addProperty("Nickname", String.class, false);
-        addProperty("ConfirmEmail", Boolean.class, false);
-        addProperty("Template", Text.class, false);
-        addProperty("PicMaxHeight", Long.class, false);
-        addProperty("PicMaxWidth", Long.class, false);
-        addProperty("FixPic", Boolean.class, false);
+        addProperty("Nickname");
+        addProperty("PublishImmediately")
+                .setType(Boolean.class);
+        addProperty("Template")
+                .setType(Text.class)
+                .setAttribute("rows", "10")
+                .setAttribute("cols", "80");
+        addProperty("PicMaxHeight")
+                .setType(Long.class);
+        addProperty("PicMaxWidth")
+                .setType(Long.class);
+        addProperty("FixPic")
+                .setType(Boolean.class);
     }
 
     @Override
@@ -69,32 +70,22 @@ public class BloggerSettingsServlet extends EntityServlet implements BlogConstan
     }
 
     @Override
-    protected Key createKey(HttpServletRequest req)
+    protected Key getKey(HttpServletRequest req) throws HttpException
     {
         UserService userService = UserServiceFactory.getUserService();
         User user = userService.getCurrentUser();
         Key baseKey = KeyFactory.createKey(kind, BaseKey);
-        return KeyFactory.createKey(baseKey, kind, user.getEmail());
-    }
-
-    @Override
-    protected Entity getEntity(Key key) throws HttpException
-    {
-        try
+        Key key = KeyFactory.createKey(baseKey, kind, user.getEmail());
+        String keyString = req.getParameter(Key);
+        if (keyString != null)
         {
-            return super.getEntity(key);
-        }
-        catch (HttpException ex)
-        {
-            if (ex.getStatusCode() == HttpServletResponse.SC_NOT_FOUND)
+            Key requestKey = KeyFactory.stringToKey(keyString);
+            if (!key.equals(requestKey))
             {
-                return new Entity(key);
-            }
-            else
-            {
-                throw ex;
+                throw new HttpException(HttpServletResponse.SC_CONFLICT, key+" and request key "+requestKey+" differs");
             }
         }
+        return key;
     }
 
     @Override

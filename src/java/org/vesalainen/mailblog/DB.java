@@ -71,25 +71,20 @@ public class DB implements BlogConstants
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         datastore.delete(key);
     }
-    public String getPage(String path)
-    {
-        Entity page = getPageEntity(path);
-        if (page != null)
-        {
-            Text text = (Text) page.getProperty(PageProperty);
-            return text.getValue();
-        }
-        return "";
-    }
     public Entity getPageEntity(String path)
     {
-        Key key = KeyFactory.createKey(PageKind, path);
+        return getPageEntity(KeyFactory.createKey(PageKind, path));
+    }
+    public Entity getPageEntity(Key key)
+    {
         try
         {
             return get(key);
         }
         catch (EntityNotFoundException ex)
         {
+            /*
+            Entity base = null;
             String namespace = NamespaceManager.get();
             if (namespace != null && !namespace.isEmpty())
             {
@@ -98,8 +93,8 @@ public class DB implements BlogConstants
                     NamespaceManager.set(null);
                     try
                     {
-                        key = KeyFactory.createKey(PageKind, path);
-                        return get(key);
+                        key = KeyFactory.createKey(PageKind, key.getName());
+                        base = get(key);
                     }
                     catch (EntityNotFoundException ex1)
                     {
@@ -110,29 +105,25 @@ public class DB implements BlogConstants
                     NamespaceManager.set(namespace);
                 }
             }
+            if (base != null)
+            {
+                Entity entity = new Entity(key);
+                entity.setPropertiesFrom(base);
+                System.err.println(entity);
+                return entity;
+            }
+            */
         }
-        return null;
+        return new Entity(key);
     }
-    public void setPage(String path, String text)
+    public void setPage(Entity page)
     {
         Transaction tr = beginTransaction();
         try
         {
-            Key key = KeyFactory.createKey(PageKind, path);
-            Entity page = null;
-            try
-            {
-                page = get(key);
-                Entity backup = new Entity(PageBackupKind, key);
-                backup.setPropertiesFrom(page);
-                put(backup);
-            }
-            catch (EntityNotFoundException ex)
-            {
-                page = new Entity(key);
-            }
-            page.setUnindexedProperty(PageProperty, new Text(text));
-            page.setProperty(TimestampProperty, new Date());
+            Entity backup = new Entity(PageBackupKind, System.currentTimeMillis(), page.getKey());
+            backup.setPropertiesFrom(page);
+            put(backup);
             putAndCache(page);
             tr.commit();
         }

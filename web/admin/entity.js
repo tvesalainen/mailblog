@@ -15,15 +15,49 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var context = $("meta[name='context']").attr("content");
-
 $(document).ready(function(){
     
-    $("#fields").load(context);
+    $("form").each(function()
+    {
+       var action = $(this).attr("action");
+       $(this).contents(".fields").load(action);
+       $(this).contents(".select").load(action+"?select=true");
+    });
     
+    $("form").on("click", ".new", function(event)
+    {        
+       var action = $(event.delegateTarget).attr("action");
+       var txt = $(this).text();
+       var name = prompt(txt, "");
+       if (name != null && name != "")
+        {
+           $(event.delegateTarget).contents(".fields").load(action+"?new="+name);
+        }
+    });
+
+    $("form").on("change", ".entitySelect", function(event)
+    {        
+       var action = $(event.delegateTarget).attr("action");
+       var key = $(".entitySelect option:selected").val();
+        $(event.delegateTarget).contents(".fields").load(action+"?key="+key);
+    });
+
+    $("form").on("change", ".backupSelect", function(event)
+    {        
+       var action = $(event.delegateTarget).attr("action");
+       var key = $(".backupSelect option:selected").val();
+       $.get(action+"?backup="+key, function(data)
+       {
+          $('[name="Page"]').each(function()
+            {
+              $(this).text(data);
+            });
+       });
+    });
+
     $("form").submit(function() 
     {
-       $(".mandatory").each(function()
+       $(this).contents(".mandatory").each(function()
        {
           var val = $(this).val();
           if (val == "")
@@ -31,7 +65,14 @@ $(document).ready(function(){
               $(this).focus();
           }
        });
-       $.post(context, $("form").serialize());
+       var action = $(this).attr("action");
+       $.post(action, $(this).serialize(), function(data, textStatus, jqXHR)
+        {
+            if (textStatus != "success")
+            {
+                alert(textStatus);
+            }
+        });
        return false; 
     });
 

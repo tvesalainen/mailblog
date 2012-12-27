@@ -47,7 +47,7 @@ public interface BlogConstants
     static final String EmailProperty = "Email";
     static final String NicknameProperty = "Nickname";
     static final String TemplateProperty = "Template";
-    static final String ConfirmEmailProperty = "ConfirmEmail";
+    static final String PublishImmediatelyProperty = "PublishImmediately";
     static final String LanguageProperty = "Language";
     static final String PicMaxHeightProperty = "PicMaxHeight";
     static final String PicMaxWidthProperty = "PicMaxWidth";
@@ -71,6 +71,7 @@ public interface BlogConstants
     static final String SizeParameter = "size";
     static final String NamespaceParameter = "namespace";
     static final String CursorParameter = "cursor";
+    static final String NewParameter = "new";
     
     static final String BaseKey = "base";
     static final String FirstPageKey = "startCursor";

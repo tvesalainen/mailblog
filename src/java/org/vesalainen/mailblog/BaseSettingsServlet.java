@@ -17,7 +17,6 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
@@ -32,19 +31,33 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Timo Vesalainen
  */
-public class BaseSettingsServlet extends EntityServlet implements BlogConstants
+public class BaseSettingsServlet extends SettingsServlet implements BlogConstants
 {
 
     public BaseSettingsServlet()
     {
         super("Settings");
-        addProperty("ConfirmEmail", Boolean.class, false);
-        addProperty("ShowCount", Long.class, false, true);
-        addProperty("Template", Text.class, false, true);
-        addProperty("Language", String.class, false, true);
-        addProperty("PicMaxHeight", Long.class, false, true);
-        addProperty("PicMaxWidth", Long.class, false, true);
-        addProperty("FixPic", Boolean.class, false);
+        addProperty("PublishImmediately")
+                .setType(Boolean.class);
+        addProperty("ShowCount")
+                .setType(Long.class)
+                .setMandatory(true);
+        addProperty("Template")
+                .setType(Text.class)
+                .setAttribute("rows", "10")
+                .setAttribute("cols", "80")
+                .setMandatory(true);
+        addProperty("Language")
+                .setAttribute("size", "2")
+                .setMandatory(true);
+        addProperty("PicMaxHeight")
+                .setType(Long.class)
+                .setMandatory(true);
+        addProperty("PicMaxWidth")
+                .setType(Long.class)
+                .setMandatory(true);
+        addProperty("FixPic")
+                .setType(Boolean.class);
     }
 
     @Override
@@ -70,29 +83,19 @@ public class BaseSettingsServlet extends EntityServlet implements BlogConstants
     }
 
     @Override
-    protected Key createKey(HttpServletRequest req)
+    protected Key getKey(HttpServletRequest req) throws HttpException
     {
-        return KeyFactory.createKey(kind, BaseKey);
-    }
-
-    @Override
-    protected Entity getEntity(Key key) throws HttpException
-    {
-        try
+        Key key = KeyFactory.createKey(kind, BaseKey);
+        String keyString = req.getParameter(Key);
+        if (keyString != null)
         {
-            return super.getEntity(key);
-        }
-        catch (HttpException ex)
-        {
-            if (ex.getStatusCode() == HttpServletResponse.SC_NOT_FOUND)
+            Key requestKey = KeyFactory.stringToKey(keyString);
+            if (!key.equals(requestKey))
             {
-                return new Entity(key);
-            }
-            else
-            {
-                throw ex;
+                throw new HttpException(HttpServletResponse.SC_CONFLICT, key+" and request key "+requestKey+" differs");
             }
         }
+        return key;
     }
 
     @Override

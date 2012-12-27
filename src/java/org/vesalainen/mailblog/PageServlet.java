@@ -16,10 +16,23 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Text;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -27,75 +40,108 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author Timo Vesalainen
  */
-public class PageServlet extends HttpServlet implements BlogConstants
+public class PageServlet extends EntityServlet implements BlogConstants
 {
-
-    /**
-     * Handles the HTTP
-     * <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException
+    public static final String Backup = "backup";
+    
+    public PageServlet()
     {
-        String path = request.getParameter(PathParameter);
-        log("path="+path);
-        if (path != null)
+        super(PageKind);
+        addProperty("Page")
+                .setType(Text.class)
+                .setMandatory(true)
+                .setAttribute("rows", "50")
+                .setAttribute("cols", "100");
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
+    {
+        String backup = req.getParameter(Backup);
+        if (backup != null)
         {
-            DB db = DB.DB;
-            response.setContentType("text/plain;charset=UTF-8");
-            response.getWriter().write(db.getPage(path));
+            DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+            Key key = KeyFactory.stringToKey(backup);
+            try
+            {
+                Entity entity = datastore.get(key);
+                Text text = (Text) entity.getProperty("Page");
+                if (text != null)
+                {
+                    resp.setContentType("text/plain ;charset=utf-8");
+                    resp.getWriter().write(text.getValue());
+                }
+                else
+                {
+                    resp.sendError(HttpServletResponse.SC_NOT_FOUND, entity.toString());
+                }
+            }
+            catch (EntityNotFoundException ex)
+            {
+                resp.sendError(HttpServletResponse.SC_NOT_FOUND, key+" not found");
+            }
         }
         else
         {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            super.doGet(req, resp);
         }
     }
 
-    /**
-     * Handles the HTTP
-     * <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException
+    protected String getInputTable(Entity entity)
     {
-        log("here");
-        String path = request.getParameter(PathParameter);
-        String page = request.getParameter(PageParameter);
-        if (path != null && page != null)
-        {
-            log("path="+path);
-            log("page="+page);
-            DB db = DB.DB;
-            db.setPage(path, page);
-        }
-        else
-        {
-            log("path="+path);
-            log("page="+page);
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-        }
+        String i1 = super.getInputTable(entity);
+        String i2 = getSelectBackup(entity.getKey());
+        return i1 + i2;
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo()
+    private String getSelectBackup(Key parent)
     {
-        return "Short description";
+        StringBuilder sb = new StringBuilder();
+        sb.append("<select class=\"backupSelect\">");
+        sb.append("<option value=\"" + KeyFactory.keyToString(parent) + "\">Current</option>");
+        for (Entity entity : getBackups(parent))
+        {
+            Date date = new Date(entity.getKey().getId());
+            sb.append("<option value=\"" + KeyFactory.keyToString(entity.getKey()) + "\">" + date + "</option>");
+        }
+        sb.append("</select>");
+        return sb.toString();
     }
+    private List<Entity> getBackups(Key parent)
+    {
+        log(parent.toString());
+        log(parent.getNamespace());
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        Query query = new Query(PageBackupKind);
+        log(query.toString());
+        query.setAncestor(parent);
+        query.setKeysOnly();
+        List<Entity> list = new ArrayList<Entity>();
+        PreparedQuery prepared = datastore.prepare(query);
+        for (Entity entity : prepared.asIterable())
+        {
+            if (!parent.equals(entity.getKey()))
+            {
+                list.add(entity);
+            }
+        }
+        Collections.reverse(list);
+        return list;
+    }
+
+    @Override
+    protected Entity getEntity(Key key) throws HttpException
+    {
+        DB db = DB.DB;
+        return db.getPageEntity(key);
+    }
+
+    @Override
+    protected void putEntity(Entity entity)
+    {
+        DB db = DB.DB;
+        db.setPage(entity);
+    }
+
 }
