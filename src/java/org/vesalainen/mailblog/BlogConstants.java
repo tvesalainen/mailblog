@@ -39,7 +39,7 @@ public interface BlogConstants
     static final String HtmlProperty = "Html";
     static final String SubjectProperty = "Subject";
     static final String SenderProperty = "Sender";
-    static final String SentDateProperty = "Date";
+    static final String DateProperty = "Date";
     static final String CityProperty = "City";
     static final String CoordinateProperty = "Coordinate";
     static final String FilenameProperty = "Filename";
@@ -57,6 +57,7 @@ public interface BlogConstants
     static final String WebSizeProperty = "WebSize";
     static final String OriginalSizeProperty = "OriginalSize";
     static final String AttachmentsProperty = "Attachments";
+    static final String PublishProperty = "Publish";
     
     static final String RemoveParameter = "remove";
     static final String BlogParameter = "blog";
@@ -72,6 +73,7 @@ public interface BlogConstants
     static final String NamespaceParameter = "namespace";
     static final String CursorParameter = "cursor";
     static final String NewParameter = "new";
+    static final String BackupParameter = "backup";
     
     static final String BaseKey = "base";
     static final String FirstPageKey = "startCursor";

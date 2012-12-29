@@ -30,8 +30,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,12 +40,11 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class PageServlet extends EntityServlet implements BlogConstants
 {
-    public static final String Backup = "backup";
     
     public PageServlet()
     {
         super(PageKind);
-        addProperty("Page")
+        addProperty(PageProperty)
                 .setType(Text.class)
                 .setMandatory(true)
                 .setAttribute("rows", "50")
@@ -57,7 +54,7 @@ public class PageServlet extends EntityServlet implements BlogConstants
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
-        String backup = req.getParameter(Backup);
+        String backup = req.getParameter(BackupParameter);
         if (backup != null)
         {
             DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
@@ -65,7 +62,7 @@ public class PageServlet extends EntityServlet implements BlogConstants
             try
             {
                 Entity entity = datastore.get(key);
-                Text text = (Text) entity.getProperty("Page");
+                Text text = (Text) entity.getProperty(PageProperty);
                 if (text != null)
                 {
                     resp.setContentType("text/plain ;charset=utf-8");

@@ -59,6 +59,10 @@ public class ContentServlet extends HttpServlet implements BlogConstants
             if (page != null)
             {
                 Date timestamp = (Date) page.getProperty(TimestampProperty);
+                if (timestamp == null)
+                {
+                    timestamp = new Date(0);
+                }
                 log("timestamp="+timestamp);
                 long ifModifiedSince = request.getDateHeader("If-Modified-Since");
                 log("ifModifiedSince="+new Date(ifModifiedSince));

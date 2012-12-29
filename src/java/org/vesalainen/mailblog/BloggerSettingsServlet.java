@@ -38,19 +38,20 @@ public class BloggerSettingsServlet extends SettingsServlet implements BlogConst
 
     public BloggerSettingsServlet()
     {
-        super("Settings");
-        addProperty("Nickname");
-        addProperty("PublishImmediately")
+        super(SettingsKind);
+        addProperty(NicknameProperty)
+                .setMandatory(true);
+        addProperty(PublishImmediatelyProperty)
                 .setType(Boolean.class);
-        addProperty("Template")
+        addProperty(TemplateProperty)
                 .setType(Text.class)
                 .setAttribute("rows", "10")
                 .setAttribute("cols", "80");
-        addProperty("PicMaxHeight")
+        addProperty(PicMaxHeightProperty)
                 .setType(Long.class);
-        addProperty("PicMaxWidth")
+        addProperty(PicMaxWidthProperty)
                 .setType(Long.class);
-        addProperty("FixPic")
+        addProperty(FixPicProperty)
                 .setType(Boolean.class);
     }
 

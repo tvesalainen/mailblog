@@ -36,27 +36,27 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
 
     public BaseSettingsServlet()
     {
-        super("Settings");
-        addProperty("PublishImmediately")
+        super(SettingsKind);
+        addProperty(PublishImmediatelyProperty)
                 .setType(Boolean.class);
-        addProperty("ShowCount")
+        addProperty(ShowCountProperty)
                 .setType(Long.class)
                 .setMandatory(true);
-        addProperty("Template")
+        addProperty(TemplateProperty)
                 .setType(Text.class)
                 .setAttribute("rows", "10")
                 .setAttribute("cols", "80")
                 .setMandatory(true);
-        addProperty("Language")
+        addProperty(LanguageProperty)
                 .setAttribute("size", "2")
                 .setMandatory(true);
-        addProperty("PicMaxHeight")
+        addProperty(PicMaxHeightProperty)
                 .setType(Long.class)
                 .setMandatory(true);
-        addProperty("PicMaxWidth")
+        addProperty(PicMaxWidthProperty)
                 .setType(Long.class)
                 .setMandatory(true);
-        addProperty("FixPic")
+        addProperty(FixPicProperty)
                 .setType(Boolean.class);
     }
 

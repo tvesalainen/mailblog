@@ -55,7 +55,6 @@ public class BlogServlet extends HttpServlet implements BlogConstants
             String calendar = request.getParameter(CalendarParameter);
             if (calendar != null)
             {
-                log("calendar");
                 String calendarString = db.getCalendar();
                 response.setContentType("text/html; charset=UTF-8");
                 response.getWriter().write(calendarString);
@@ -65,14 +64,12 @@ public class BlogServlet extends HttpServlet implements BlogConstants
                 String blogKey = request.getParameter(BlogParameter);
                 if (blogKey != null)
                 {
-                    log("selected");
                     response.setContentType("text/html; charset=UTF-8");
                     response.getWriter().write(db.getBlog(blogKey));
                 }
                 else
                 {
                     String cursor = request.getParameter(CursorParameter);
-                    log("latest");
                     response.setContentType("text/html; charset=UTF-8");
                     response.getWriter().write(db.getBlogList(cursor));
                 }
@@ -100,14 +97,4 @@ public class BlogServlet extends HttpServlet implements BlogConstants
     {
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo()
-    {
-        return "Short description";
-    }// </editor-fold>
 }

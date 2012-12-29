@@ -69,7 +69,9 @@ public class DB implements BlogConstants
     public void delete(Key key)
     {
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
         datastore.delete(key);
+        cache.delete(key);
     }
     public Entity getPageEntity(String path)
     {
@@ -250,7 +252,7 @@ public class DB implements BlogConstants
             }
             StringBuilder sb = new StringBuilder();
             Query query = new Query(BlogKind);
-            query.addSort(SentDateProperty, Query.SortDirection.DESCENDING);
+            query.addSort(DateProperty, Query.SortDirection.DESCENDING);
             PreparedQuery prepared = datastore.prepare(query);
             QueryResultList<Entity> list = prepared.asQueryResultList(options);
             Cursor cursor = list.getCursor();
@@ -284,7 +286,7 @@ public class DB implements BlogConstants
     public String getBlog(Entity entity) throws EntityNotFoundException
     {
         String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
-        Date date = (Date) Objects.nonNull(entity.getProperty(SentDateProperty));
+        Date date = (Date) Objects.nonNull(entity.getProperty(DateProperty));
         Email sender = (Email) Objects.nonNull(entity.getProperty(SenderProperty));
         Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
         Settings senderSettings = Objects.nonNull(getSettingsFor(sender));
@@ -305,12 +307,12 @@ public class DB implements BlogConstants
             Calendar calendar = Calendar.getInstance(locale);
             Map<Integer,Map<Integer,List<String>>> yearMap = new TreeMap<Integer,Map<Integer,List<String>>>(Collections.reverseOrder());
             Query query = new Query(BlogKind);
-            query.addSort(SentDateProperty, Query.SortDirection.DESCENDING);
+            query.addSort(DateProperty, Query.SortDirection.DESCENDING);
             PreparedQuery prepared = datastore.prepare(query);
             for (Entity entity : prepared.asIterable(FetchOptions.Builder.withDefaults()))
             {
                 String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
-                Date date = (Date) Objects.nonNull(entity.getProperty(SentDateProperty));
+                Date date = (Date) Objects.nonNull(entity.getProperty(DateProperty));
                 Email sender = (Email) Objects.nonNull(entity.getProperty(SenderProperty));
                 Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
                 calendar.setTime(date);
@@ -400,10 +402,9 @@ public class DB implements BlogConstants
         Settings settings = (Settings) cache.get(email);
         if (settings == null)
         {
-            Query query = new Query(SettingsKind);
-            query.setFilter(new FilterPredicate(EmailProperty, Query.FilterOperator.EQUAL, email));
-            PreparedQuery prepared = datastore.prepare(query);
-            Entity entity = prepared.asSingleEntity();
+            Key parent = KeyFactory.createKey(SettingsKind, BaseKey);
+            Key key = KeyFactory.createKey(parent, SettingsKind, email.getEmail());
+            Entity entity = datastore.get(key);
             if (entity != null)
             {
                 settings = new Settings(this, entity);
@@ -415,6 +416,37 @@ public class DB implements BlogConstants
             }
         }
         return settings;
+    }
+
+    public void deleteWithChilds(Key key)
+    {
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
+        Transaction tr = datastore.beginTransaction(TransactionOptions.Builder.withXG(true));
+        try
+        {
+            Query query = new Query();
+            query.setAncestor(key);
+            query.setKeysOnly();
+            PreparedQuery prepared = datastore.prepare(query);
+            for (Entity entity : prepared.asIterable())
+            {
+                datastore.delete(entity.getKey());
+                System.err.println("delete "+entity.getKey());
+                cache.delete(entity.getKey());
+            }
+            datastore.delete(key);
+            System.err.println("delete "+key);
+            cache.delete(key);
+            tr.commit();
+        }
+        finally
+        {
+            if (tr.isActive())
+            {
+                tr.rollback();
+            }
+        }
     }
 
 }

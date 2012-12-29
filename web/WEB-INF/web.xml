@@ -42,6 +42,10 @@
         <servlet-name>BloggerSettingsServlet</servlet-name>
         <servlet-class>org.vesalainen.mailblog.BloggerSettingsServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>BlogEditServlet</servlet-name>
+        <servlet-class>org.vesalainen.mailblog.BlogEditServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>RemoteApiServlet</servlet-name>
         <url-pattern>/remote_api</url-pattern>
@@ -73,6 +77,10 @@
     <servlet-mapping>
         <servlet-name>PageServlet</servlet-name>
         <url-pattern>/admin/settings/page/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>BlogEditServlet</servlet-name>
+        <url-pattern>/admin/settings/blog/*</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

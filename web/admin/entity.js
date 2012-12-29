@@ -16,64 +16,113 @@
  */
 
 $(document).ready(function(){
-    
+
     $("form").each(function()
     {
-       var action = $(this).attr("action");
-       $(this).contents(".fields").load(action);
-       $(this).contents(".select").load(action+"?select=true");
+        var target = this;
+        var loaded = "";
+        var action = $(this).attr("action");
+        $(this).find(".fields").load(action, function(text, status, req)
+        {
+            loaded = status;
+        });
+        $(this).find(".select").load(action+"?select=true", function(text, status, req)
+        {
+            if (loaded != "success")
+            {
+                var key = $(target).find(".entitySelect option:selected").val();
+                $(target).find(".fields").load(action+"?key="+key);
+            }
+        });
     });
     
     $("form").on("click", ".new", function(event)
     {        
-       var action = $(event.delegateTarget).attr("action");
-       var txt = $(this).text();
-       var name = prompt(txt, "");
-       if (name != null && name != "")
+        var action = $(event.delegateTarget).attr("action");
+        var txt = $(this).text();
+        var name = prompt(txt, "");
+        if (name != null && name != "")
         {
-           $(event.delegateTarget).contents(".fields").load(action+"?new="+name);
+            $(event.delegateTarget).find(".fields").load(action+"?new="+name);
+            //$(event.delegateTarget).find(".select").load(action+"?select=true");
+        }
+    });
+
+    $("form").on("click", ".delete", function(event)
+    {        
+        var target = event.delegateTarget;
+        var deleteTarget = $(target).find(".entityId").text();
+        var res = confirm("Delete "+deleteTarget+"?");
+        if (res == true)
+        {
+            var action = $(event.delegateTarget).attr("action");
+            var key = $(event.delegateTarget).find("[name='key']").val();
+            $.post(action+"?delete="+key, function(data, textStatus, jqXHR)
+            {
+                if (textStatus != "success")
+                {
+                    alert(textStatus);
+                }
+                else
+                {
+                    $(target).find(".fields").text("");
+                    $(target).find(".select").load(action+"?select=true");
+                 }
+            });
         }
     });
 
     $("form").on("change", ".entitySelect", function(event)
     {        
-       var action = $(event.delegateTarget).attr("action");
-       var key = $(".entitySelect option:selected").val();
-        $(event.delegateTarget).contents(".fields").load(action+"?key="+key);
+        var target = event.delegateTarget;
+        var action = $(target).attr("action");
+        var key = $(target).find(".entitySelect option:selected").val();
+        $(target).find(".fields").load(action+"?key="+key);
     });
 
     $("form").on("change", ".backupSelect", function(event)
     {        
-       var action = $(event.delegateTarget).attr("action");
-       var key = $(".backupSelect option:selected").val();
-       $.get(action+"?backup="+key, function(data)
-       {
-          $('[name="Page"]').each(function()
+        var action = $(event.delegateTarget).attr("action");
+        var key = $(event.delegateTarget).find(".backupSelect option:selected").val();
+        $.get(action+"?backup="+key, function(data)
+        {
+            $('[name="Page"]').each(function()
             {
-              $(this).text(data);
+                $(this).text(data);
             });
-       });
+        });
     });
 
-    $("form").submit(function() 
+    $("form").on("click", ".submit", function(event)
     {
-       $(this).contents(".mandatory").each(function()
-       {
-          var val = $(this).val();
-          if (val == "")
-          {
-              $(this).focus();
-          }
-       });
-       var action = $(this).attr("action");
-       $.post(action, $(this).serialize(), function(data, textStatus, jqXHR)
+        var target = event.delegateTarget;
+        $(target).find(".mandatory").each(function()
+        {
+            var val = $(this).val();
+            if (val == "")
+            {
+                $(this).focus();
+            }
+        });
+        var action = $(target).attr("action");
+        $.post(action, $(target).serialize(), function(data, textStatus, jqXHR)
         {
             if (textStatus != "success")
             {
                 alert(textStatus);
             }
+            else
+            {
+                var key = $(target).find("[name='key']").val();
+                $(target).find(".fields").load(action+"?key="+key);
+                $(target).find(".select").load(action+"?select=true");
+             }
         });
-       return false; 
     });
 
+    $("form").submit(function() 
+    {
+        return false; 
+    });
+    
 });

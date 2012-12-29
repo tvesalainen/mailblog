@@ -33,15 +33,14 @@ import com.google.appengine.api.datastore.Text;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -50,8 +49,9 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Timo Vesalainen
  */
-public abstract class EntityServlet extends HttpServlet
+public abstract class EntityServlet extends HttpServlet implements BlogConstants
 {
+    public static final String DateFormat = "yyyy-MM-dd";
 
     public static final String Key = "key";
     public static final String Select = "select";
@@ -128,11 +128,11 @@ public abstract class EntityServlet extends HttpServlet
         Key key = entity.getKey();
         if (key.getName() != null)
         {
-            sb.append("<tr><th>Name</th><td>" + key.getName() + "</td></tr>");
+            sb.append("<tr><th>Name</th><td class=\"entityId\">" + key.getName() + "</td></tr>");
         }
         else
         {
-            sb.append("<tr><th>Id</th><td>" + key.getId() + "</td></tr>");
+            sb.append("<tr><th>Id</th><td class=\"entityId\">" + key.getId() + "</td></tr>");
 
         }
         for (Property property : properties)
@@ -167,10 +167,10 @@ public abstract class EntityServlet extends HttpServlet
         else
         {
             Key key = createNewKey(req);
-            DB db = DB.DB;
+            DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
             try
             {
-                db.get(key);
+                datastore.get(key);
                 throw new HttpException(HttpServletResponse.SC_CONFLICT, key+" exists");
             }
             catch (EntityNotFoundException ex)
@@ -182,10 +182,10 @@ public abstract class EntityServlet extends HttpServlet
 
     protected Entity getEntity(Key key) throws HttpException
     {
-        DB db = DB.DB;
+        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         try
         {
-            return db.get(key);
+            return datastore.get(key);
         }
         catch (EntityNotFoundException ex)
         {
@@ -222,6 +222,7 @@ public abstract class EntityServlet extends HttpServlet
         sb.append("<select class=\"entitySelect\">");
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         Query query = new Query(kind);
+        modifySelectQuery(query);
         PreparedQuery prepared = datastore.prepare(query);
         for (Entity entity : prepared.asIterable())
         {
@@ -235,7 +236,7 @@ public abstract class EntityServlet extends HttpServlet
     {
         log("delete " + key);
         DB db = DB.DB;
-        db.delete(key);
+        db.deleteWithChilds(key);
     }
 
     protected void update(HttpServletRequest req) throws HttpException
@@ -243,11 +244,11 @@ public abstract class EntityServlet extends HttpServlet
         Key key = getKey(req);
         if (key != null)
         {
-            DB db = DB.DB;
+            DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
             Entity entity = null;
             try
             {
-                entity = db.get(key);
+                entity = datastore.get(key);
             }
             catch (EntityNotFoundException ex)
             {
@@ -272,6 +273,7 @@ public abstract class EntityServlet extends HttpServlet
                     entity.removeProperty(property.getName());
                 }
             }
+            entity.setProperty(TimestampProperty, new Date());
             putEntity(entity);
         }
         else
@@ -289,6 +291,10 @@ public abstract class EntityServlet extends HttpServlet
     protected Key getParent()
     {
         return null;
+    }
+
+    protected void modifySelectQuery(Query query)
+    {
     }
 
     protected class Property
@@ -314,26 +320,6 @@ public abstract class EntityServlet extends HttpServlet
             try
             {
                 this.constructor = type.getConstructor(String.class);
-            }
-            catch (NoSuchMethodException ex)
-            {
-                throw new IllegalArgumentException(ex);
-            }
-            catch (SecurityException ex)
-            {
-                throw new IllegalArgumentException(ex);
-            }
-            return this;
-        }
-
-        public Property setInputType(String inputType)
-        {
-            if (inputType != null)
-            {
-                this.inputType = inputType;
-            }
-            else
-            {
                 this.inputType = "text";
                 if (type.equals(Long.class)
                         || type.equals(Rating.class))
@@ -357,6 +343,25 @@ public abstract class EntityServlet extends HttpServlet
                     this.inputType = "date";
                 }
             }
+            catch (NoSuchMethodException ex)
+            {
+                throw new IllegalArgumentException(ex);
+            }
+            catch (SecurityException ex)
+            {
+                throw new IllegalArgumentException(ex);
+            }
+            return this;
+        }
+        /**
+         * Sets HTML5 input type. Note! Use after setType method, because setType
+         * sets a default type for input.
+         * @param inputType
+         * @return 
+         */
+        public Property setInputType(String inputType)
+        {
+            this.inputType = inputType;
             return this;
         }
 
@@ -402,6 +407,18 @@ public abstract class EntityServlet extends HttpServlet
                 else
                 {
                     return Boolean.TRUE;
+                }
+            }
+            if (type.equals(Date.class))
+            {
+                SimpleDateFormat format = new SimpleDateFormat(DateFormat);
+                try
+                {
+                    return format.parse(str);
+                }
+                catch (ParseException ex)
+                {
+                    throw new IllegalArgumentException(ex);
                 }
             }
             if (str == null || str.isEmpty())
@@ -505,15 +522,13 @@ public abstract class EntityServlet extends HttpServlet
                 String str = value != null ? val.getCategory() : "";
                 return "<input " + attrs + " type=\"text\" name=\"" + name + "\" value=\"" + str + "\"/>";
             }
-            /*
-             if (type.equals(Date.class))
-             {
-             Date val = (Date) value;
-                
-             String str = value != null ? dateParser.formatISO8601(val) : "";
-             return "<input "+classAttr+" type=\""+inputType+"\" name=\""+name+"\" value=\""+str+"\"/>";
-             }
-             */
+            if (type.equals(Date.class))
+            {
+                Date val = (Date) value;
+                SimpleDateFormat format = new SimpleDateFormat(DateFormat);
+                String str = value != null ? format.format(val) : "";
+                return "<input "+attrs+" type=\""+inputType+"\" name=\""+name+"\" value=\""+str+"\"/>";
+            }
             if (type.equals(Boolean.class))
             {
                 Boolean val = (Boolean) value;
