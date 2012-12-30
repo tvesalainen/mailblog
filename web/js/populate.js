@@ -12,7 +12,7 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <http://www.gnu.org/licenses></http:>.
  */
 
 var pageStack = new Array();
@@ -31,15 +31,31 @@ $(document).ready(function(){
         window.open($(this).attr("src")+"&original=true");
     });
 
-    $("body").on("click", ".calendar-menu", function(event){        
+    $("body").on("click", ".calendar-menu", function(event){     
         var x = $(this).get(0);
-        var cls = "."+x.id;
+        var id = x.id;
+        var cls = "."+id;
         $(cls).toggle();
+        $(cls).removeClass("hidden");
+        if ("year" != id.substring(0, 4))
+        {
+            var disp = $(cls).css("display");
+            if (disp != "none")
+            {
+                pageStack.length = 0;
+                pageStack.push(id);
+                $("#blog").load("/blog?cursor="+id, function(){
+                    afterLoad();
+                });
+            }
+        }
     });
 
     $("body").on("click", ".blog-entry", function(event){        
         var x = $(this).get(0);
-        $("#blog").load("/blog?blog="+x.id);
+        $("#blog").load("/blog?blog="+x.id, function(){
+            afterLoad();
+        });
     });
 
     $("body").on("click", ".top", function(event){        
@@ -114,8 +130,5 @@ function afterLoad()
             $(this).attr("disabled", true);
         });
     }
-    $(".hidden").each(function()
-    {
-        $(this).hide();
-    });
+    $(".hidden").hide();
 }
