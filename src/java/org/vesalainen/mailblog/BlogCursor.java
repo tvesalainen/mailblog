@@ -19,6 +19,7 @@ package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.Cursor;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.logging.Level;
@@ -29,31 +30,54 @@ import java.util.logging.Logger;
  */
 public class BlogCursor extends WebSafe
 {
-    protected Cursor cursor;
+    protected com.google.appengine.api.datastore.Cursor datastoreCursor;
     protected Date begin;
     protected Date end;
-    protected String keyword;
+    protected String search;
+    private com.google.appengine.api.search.Cursor searchCursor;
 
     public BlogCursor()
     {
     }
 
-    public BlogCursor(Cursor cursor, Date begin, Date end, String keyword)
+    public boolean isSearch()
     {
-        this.cursor = cursor;
+        return search != null;
+    }
+    
+    public BlogCursor setDatastoreCursor(Cursor datastoreCursor)
+    {
+        this.datastoreCursor = datastoreCursor;
+        return this;
+    }
+
+    public BlogCursor setBegin(Date begin)
+    {
         this.begin = begin;
+        return this;
+    }
+
+    public BlogCursor setEnd(Date end)
+    {
         this.end = end;
-        this.keyword = keyword;
+        return this;
     }
 
-    public String getKeyword()
+    public BlogCursor setSearch(String search)
     {
-        return keyword;
+        this.search = search;
+        return this;
     }
 
-    public Cursor getCursor()
+    public BlogCursor setSearchCursor(com.google.appengine.api.search.Cursor searchCursor)
     {
-        return cursor;
+        this.searchCursor = searchCursor;
+        return this;
+    }
+
+    public com.google.appengine.api.datastore.Cursor getDatastoreCursor()
+    {
+        return datastoreCursor;
     }
 
     public Date getBegin()
@@ -64,6 +88,16 @@ public class BlogCursor extends WebSafe
     public Date getEnd()
     {
         return end;
+    }
+
+    public String getSearch()
+    {
+        return search;
+    }
+
+    public com.google.appengine.api.search.Cursor getSearchCursor()
+    {
+        return searchCursor;
     }
 
     public BlogCursor(String webSafe) throws IOException
@@ -101,6 +135,11 @@ public class BlogCursor extends WebSafe
     @Override
     protected String getWebSafe(Class<?> type, Object value)
     {
+        if (String.class.equals(type))
+        {
+            String str = (String) value;
+            return Hex.convertToHex(str);
+        }
         if (Date.class.equals(type))
         {
             Date date = (Date) value;
@@ -109,9 +148,14 @@ public class BlogCursor extends WebSafe
                 return Long.toHexString(date.getTime());
             }
         }
-        if (Cursor.class.equals(type))
+        if (com.google.appengine.api.datastore.Cursor.class.equals(type))
         {
-            Cursor cursor = (Cursor) value;
+            com.google.appengine.api.datastore.Cursor cursor = (com.google.appengine.api.datastore.Cursor) value;
+            return cursor.toWebSafeString();
+        }
+        if (com.google.appengine.api.search.Cursor.class.equals(type))
+        {
+            com.google.appengine.api.search.Cursor cursor = (com.google.appengine.api.search.Cursor) value;
             return cursor.toWebSafeString();
         }
         throw new UnsupportedOperationException(type+" not supported yet.");
@@ -120,14 +164,22 @@ public class BlogCursor extends WebSafe
     @Override
     protected Object getValue(Class<?> type, String websafe)
     {
+        if (String.class.equals(type))
+        {
+            return Hex.convertFromHex(websafe);
+        }
         if (Date.class.equals(type))
         {
             long l = Long.parseLong(websafe, 16);
             return new Date(l);
         }
-        if (Cursor.class.equals(type))
+        if (com.google.appengine.api.datastore.Cursor.class.equals(type))
         {
-            return Cursor.fromWebSafeString(websafe);
+            return com.google.appengine.api.datastore.Cursor.fromWebSafeString(websafe);
+        }
+        if (com.google.appengine.api.search.Cursor.class.equals(type))
+        {
+            return com.google.appengine.api.search.Cursor.newBuilder().build(websafe);
         }
         throw new UnsupportedOperationException(type+" not supported yet.");
     }

@@ -31,10 +31,7 @@ public class BooleanType extends PropertyType<Boolean>
         StringBuilder sb = new StringBuilder();
         sb.append("<input");
         appendAttributes(sb, attributes);
-        if (!attributes.containsKey("type"))
-        {
-            appendAttribute(sb, "type", getDefaultInputType());
-        }
+        appendAttribute(sb, "type", "checkbox");
         boolean val = value != null ? value.booleanValue() : false;
         appendAttribute(sb, "checked", val);
         appendAttribute(sb, "value", attributes.get("name"));

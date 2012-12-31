@@ -4,12 +4,38 @@
  */
 package org.vesalainen.mailblog;
 
+import java.io.UnsupportedEncodingException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author tkv
  */
 public class Hex
 {
+    public static String convertToHex(String str)
+    {
+        try
+        {
+            return convert(str.getBytes("UTF-8"));
+        }
+        catch (UnsupportedEncodingException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+    }
+    public static String convertFromHex(String hex)
+    {
+        try
+        {
+            return new String(convert(hex), "UTF-8");
+        }
+        catch (UnsupportedEncodingException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+    }
     public static byte[] convert(String str)
     {
         if ((str.length() % 2) != 0)
@@ -19,7 +45,7 @@ public class Hex
         byte[] bytes = new byte[str.length()/2];
         for (int ii=0;ii<bytes.length;ii++)
         {
-            bytes[ii] = Byte.parseByte(str.substring(2*ii, 2*ii+2), 16);
+            bytes[ii] = (byte)Integer.parseInt(str.substring(2*ii, 2*ii+2), 16);
         }
         return bytes;
     }

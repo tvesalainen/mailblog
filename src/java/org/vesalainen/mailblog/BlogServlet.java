@@ -59,17 +59,29 @@ public class BlogServlet extends HttpServlet implements BlogConstants
             }
             else
             {
-                String blogKey = request.getParameter(BlogParameter);
-                if (blogKey != null)
+                String search = request.getParameter(SearchParameter);
+                if (search != null)
                 {
+                    log("search="+search);
+                    BlogCursor bc = new BlogCursor()
+                            .setSearch(search);
                     response.setContentType("text/html; charset=UTF-8");
-                    response.getWriter().write(db.getBlog(blogKey));
+                    response.getWriter().write(db.getBlogList(bc.getWebSafe()));
                 }
                 else
                 {
-                    String blogCursor = request.getParameter(CursorParameter);
-                    response.setContentType("text/html; charset=UTF-8");
-                    response.getWriter().write(db.getBlogList(blogCursor));
+                    String blogKey = request.getParameter(BlogParameter);
+                    if (blogKey != null)
+                    {
+                        response.setContentType("text/html; charset=UTF-8");
+                        response.getWriter().write(db.getBlog(blogKey));
+                    }
+                    else
+                    {
+                        String blogCursor = request.getParameter(CursorParameter);
+                        response.setContentType("text/html; charset=UTF-8");
+                        response.getWriter().write(db.getBlogList(blogCursor));
+                    }
                 }
             }
         }

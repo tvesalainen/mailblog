@@ -621,7 +621,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     setProperty(message, DateProperty, blog, true);
                     blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
                     blog.setProperty(TimestampProperty, new Date());
-                    db.putAndCache(blog);
+                    db.saveBlog(blog);
                     return blog;
                 }
                 catch (MessagingException ex)

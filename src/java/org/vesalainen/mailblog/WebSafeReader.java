@@ -33,7 +33,7 @@ class WebSafeReader extends StringReader
 
     public String getFieldname() throws IOException
     {
-        char[] buf = new char[1];
+        char[] buf = new char[2];
         int rc = read(buf);
         if (rc == -1)
         {

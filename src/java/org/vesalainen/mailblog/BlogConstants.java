@@ -76,6 +76,7 @@ public interface BlogConstants
     static final String CursorParameter = "cursor";
     static final String NewParameter = "new";
     static final String BackupParameter = "backup";
+    static final String SearchParameter = "search";
     
     static final String BaseKey = "base";
     static final String FirstPageKey = "startCursor";

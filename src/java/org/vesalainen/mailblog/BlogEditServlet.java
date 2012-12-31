@@ -78,7 +78,7 @@ public class BlogEditServlet extends EntityServlet implements BlogConstants
     protected void putEntity(Entity entity)
     {
         DB db = DB.DB;
-        db.putAndCache(entity);
+        db.saveBlog(entity);
     }
     
     

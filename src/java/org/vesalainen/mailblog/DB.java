@@ -38,6 +38,13 @@ import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
+import com.google.appengine.api.search.Document;
+import com.google.appengine.api.search.Document.Builder;
+import com.google.appengine.api.search.Field;
+import com.google.appengine.api.search.Index;
+import com.google.appengine.api.search.IndexSpec;
+import com.google.appengine.api.search.SearchService;
+import com.google.appengine.api.search.SearchServiceFactory;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
 import java.io.IOException;
 import java.text.DateFormatSymbols;
@@ -48,7 +55,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Timo Vesalainen
@@ -249,15 +259,19 @@ public class DB implements BlogConstants
             Date begin = null;
             Date end = null;
             Cursor cursor = null;
-            String keyword = null;
             if (blogCursor != null)
             {
                 System.err.println(blogCursor);
                 BlogCursor bc = new BlogCursor(blogCursor);
+                if (bc.isSearch())
+                {
+                    str = Searches.getBlogListFromSearch(bc);
+                    cache.put(blogCursor, str);
+                    return str;
+                }
                 begin = bc.getBegin();
                 end = bc.getEnd();
-                cursor = bc.getCursor();
-                keyword = bc.getKeyword();
+                cursor = bc.getDatastoreCursor();
             }
             DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
             Settings settings = getSettings();
@@ -279,10 +293,6 @@ public class DB implements BlogConstants
             {
                 filters.add(new FilterPredicate(DateProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, end));
             }
-            if (keyword != null)
-            {
-                filters.add(new FilterPredicate(KeywordsProperty, Query.FilterOperator.EQUAL, keyword));
-            }
             if (filters.size() == 1)
             {
                 query.setFilter(filters.get(0));
@@ -299,7 +309,10 @@ public class DB implements BlogConstants
             PreparedQuery prepared = datastore.prepare(query);
             QueryResultList<Entity> list = prepared.asQueryResultList(options);
             cursor = list.getCursor();
-            BlogCursor bc = new BlogCursor(cursor, begin, end, keyword);
+            BlogCursor bc = new BlogCursor()
+                    .setDatastoreCursor(cursor)
+                    .setBegin(begin)
+                    .setEnd(end);
             for (Entity entity : list)
             {
                 sb.append(getBlog(entity));
@@ -395,7 +408,9 @@ public class DB implements BlogConstants
                     List<Entity> blogList = monthMap.get(month);
                     Date end = (Date) Objects.nonNull(blogList.get(0).getProperty(DateProperty));
                     Date begin = (Date) Objects.nonNull(blogList.get(blogList.size()-1).getProperty(DateProperty));
-                    BlogCursor bc = new BlogCursor(null, begin, end, null);
+                    BlogCursor bc = new BlogCursor()
+                            .setBegin(begin)
+                            .setEnd(end);
                     String monthId = bc.getWebSafe();
                     sb.append("<div id=\""+monthId+"\" class=\"calendar-menu\">"+prettify(months[month])+" (");
                     monthPtr = sb.length();
@@ -425,23 +440,30 @@ public class DB implements BlogConstants
     {
         return str.substring(0,1).toUpperCase()+str.substring(1);
     }
-    public Settings getSettings() throws EntityNotFoundException
+    public Settings getSettings()
     {
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
         Settings settings = (Settings) cache.get(BaseKey);
         if (settings == null)
         {
-            Key key = KeyFactory.createKey(SettingsKind, BaseKey);
-            Entity entity = datastore.get(key);
-            if (entity != null)
+            try
             {
-                settings = new Settings(this, entity);
-                cache.put(BaseKey, settings);
+                Key key = KeyFactory.createKey(SettingsKind, BaseKey);
+                Entity entity = datastore.get(key);
+                if (entity != null)
+                {
+                    settings = new Settings(this, entity);
+                    cache.put(BaseKey, settings);
+                }
+                else
+                {
+                    throw new IllegalArgumentException("Root Settings not found");
+                }
             }
-            else
+            catch (EntityNotFoundException ex)
             {
-                throw new IllegalArgumentException("Root Settings not found");
+                throw new IllegalArgumentException(ex);
             }
         }
         return settings;
@@ -498,6 +520,13 @@ public class DB implements BlogConstants
                 tr.rollback();
             }
         }
+    }
+
+    public void saveBlog(Entity blog)
+    {
+        assert BlogKind.equals(blog.getKind());
+        putAndCache(blog);
+        Searches.saveBlog(blog);
     }
 
 }

@@ -18,10 +18,7 @@
 package org.vesalainen.mailblog;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.lang.reflect.Field;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Timo Vesalainen
@@ -80,11 +77,11 @@ public abstract class WebSafe
             for (Field field : getClass().getDeclaredFields())
             {
                 String name = field.getName();
-                if (name.length() > 0xf)
+                if (name.length() > 0xff)
                 {
-                    throw new IllegalArgumentException("field "+name+" name is too long (>0xf)");
+                    throw new IllegalArgumentException("field "+name+" name is too long (>0xff)");
                 }
-                sb.append(String.format("%x", name.length()));
+                sb.append(String.format("%02x", name.length()));
                 sb.append(name);
                 String ws = "";
                 Object value = field.get(this);
