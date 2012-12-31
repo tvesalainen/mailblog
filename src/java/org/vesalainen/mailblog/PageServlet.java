@@ -46,7 +46,7 @@ public class PageServlet extends EntityServlet implements BlogConstants
         super(PageKind);
         addProperty(PageProperty)
                 .setType(Text.class)
-                .setMandatory(true)
+                .setMandatory()
                 .setAttribute("rows", "50")
                 .setAttribute("cols", "100");
     }

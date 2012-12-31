@@ -40,7 +40,7 @@ public class BloggerSettingsServlet extends SettingsServlet implements BlogConst
     {
         super(SettingsKind);
         addProperty(NicknameProperty)
-                .setMandatory(true);
+                .setMandatory();
         addProperty(PublishImmediatelyProperty)
                 .setType(Boolean.class);
         addProperty(TemplateProperty)

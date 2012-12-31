@@ -24,7 +24,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.PropertyContainer;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.images.Image;
@@ -61,11 +60,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -196,12 +194,6 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         MimeMessage message = new MimeMessage(session, request.getInputStream());
         String messageID = (String) getHeader(message, "Message-ID");
         
-        if ("<1431806998.39.1356256382339.JavaMail.tkv@tkv-PC>".equals(messageID))
-        {
-            log("<1431806998.39.1356256382339.JavaMail.tkv@tkv-PC>");
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
         if (messageID == null)
         {
             log("messageID missing");
@@ -235,10 +227,11 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             String htmlBody = getHtmlBody(bodyPartList);
             if (htmlBody != null)
             {
-                Entity blog = createBlog(blogKey, message, htmlBody);
+                boolean publishImmediately = settings.isPublishImmediately();
+                Entity blog = createBlog(blogKey, message, htmlBody, publishImmediately);
                 if (!ripping)
                 {
-                    sendMail(request, blogAuthor, blog);
+                    sendMail(request, blogAuthor, blog, publishImmediately);
                 }
             }
             List<Future<HTTPResponse>> futureList = new ArrayList<Future<HTTPResponse>>();
@@ -504,7 +497,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         return "Short description";
     }
 
-    private void sendMail(HttpServletRequest request, BlogAuthor blogAuthor, Entity blog) throws IOException
+    private void sendMail(HttpServletRequest request, BlogAuthor blogAuthor, Entity blog, boolean publishImmediately) throws IOException
     {
         try
         {
@@ -594,7 +587,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         return htmlBody;
     }
 
-    private Entity createBlog(final Key blogKey, final MimeMessage message, final String htmlBody) throws IOException
+    private Entity createBlog(final Key blogKey, final MimeMessage message, final String htmlBody, final boolean publishImmediately) throws IOException
     {
         Updater<Entity> updater = new Updater<Entity>()
         {
@@ -613,8 +606,18 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     {
                         blog = new Entity(blogKey);
                     }
-                    setProperty(message, SubjectProperty, blog, false);
-                    setProperty(message, SenderProperty, blog, false);
+                    String subject = (String) getHeader(message, SubjectProperty);
+                    int idx = subject.indexOf('{');
+                    if (idx != -1)
+                    {
+                        Set<String> keywords = getKeywords(subject.substring(idx+1));
+                        subject = subject.substring(0, idx-1).trim();
+                        blog.setProperty(KeywordsProperty, keywords);
+                    }
+                    blog.setProperty(SubjectProperty, subject);
+                    blog.setProperty(PublishProperty, publishImmediately);
+                    blog.setProperty(SubjectProperty, subject);
+                    setProperty(message, SenderProperty, blog, true);
                     setProperty(message, DateProperty, blog, true);
                     blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
                     blog.setProperty(TimestampProperty, new Date());
@@ -626,10 +629,28 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     throw new IOException(ex);
                 }
             }
+
         };
         return updater.start();
     }
 
+    static Set<String> getKeywords(String str)
+    {
+        Set<String> set = new HashSet<String>();
+        int idx = str.lastIndexOf('}');
+        if (idx != -1)
+        {
+            str = str.substring(0, idx-1);
+        }
+        str = str.trim();
+        String[] ss = str.split(" ");
+        for (String s : ss)
+        {
+            set.add(s);
+        }
+        return set;
+    }
+    
     private Entity createMetadata(final String digestString, final String filename, final String contentType, final byte[] bytes) throws IOException
     {
         Updater<Entity> updater = new Updater<Entity>()

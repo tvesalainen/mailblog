@@ -34,6 +34,7 @@ public interface BlogConstants
     static final String PageBackupKind = "PageBackup";
     static final String MetadataKind = "Metadata";
     static final String SettingsKind = "Settings";
+    static final String KeywordKind = "Settings";
     
     static final String TimestampProperty = "Timestamp";
     static final String HtmlProperty = "Html";
@@ -48,7 +49,7 @@ public interface BlogConstants
     static final String NicknameProperty = "Nickname";
     static final String TemplateProperty = "Template";
     static final String PublishImmediatelyProperty = "PublishImmediately";
-    static final String LanguageProperty = "Language";
+    static final String LocaleProperty = "Locale";
     static final String PicMaxHeightProperty = "PicMaxHeight";
     static final String PicMaxWidthProperty = "PicMaxWidth";
     static final String FixPicProperty = "FixPic";
@@ -58,6 +59,7 @@ public interface BlogConstants
     static final String OriginalSizeProperty = "OriginalSize";
     static final String AttachmentsProperty = "Attachments";
     static final String PublishProperty = "Publish";
+    static final String KeywordsProperty = "Keywords";
     
     static final String RemoveParameter = "remove";
     static final String BlogParameter = "blog";

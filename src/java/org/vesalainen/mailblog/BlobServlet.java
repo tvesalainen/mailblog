@@ -21,10 +21,8 @@ import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Transaction;
-import com.google.apphosting.api.ApiProxy;
 import java.io.IOException;
-import java.util.ConcurrentModificationException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -59,6 +57,21 @@ public class BlobServlet extends HttpServlet implements BlogConstants
             Entity metadata = db.getMetadata(sha1);
             if (metadata != null)
             {
+                Date timestamp = (Date) metadata.getProperty(TimestampProperty);
+                if (timestamp == null)
+                {
+                    timestamp = new Date(0);
+                }
+                long ifModifiedSince = request.getDateHeader("If-Modified-Since");
+                if (ifModifiedSince != -1)
+                {
+                    if (ifModifiedSince >= timestamp.getTime())
+                    {
+                        response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
+                        return;
+                    }
+                }
+                response.setDateHeader("Modified-Since", timestamp.getTime());
                 BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
                 String original = request.getParameter(OriginalParameter);
                 if (original != null)

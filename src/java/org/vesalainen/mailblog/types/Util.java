@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.vesalainen.mailblog;
+package org.vesalainen.mailblog.types;
 
 import com.google.appengine.api.datastore.GeoPt;
 import java.util.Locale;
@@ -28,6 +28,7 @@ public class Util
 {
     public static Locale getLocale(HttpServletRequest request)
     {
+        // TODO change in java 7
         String language = request.getHeader("Accept-Language");
         language = language.substring(0, 2);
         String country = request.getHeader("X-AppEngine-Country");

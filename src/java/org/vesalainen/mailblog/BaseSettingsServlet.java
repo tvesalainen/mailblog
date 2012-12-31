@@ -23,6 +23,7 @@ import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import java.io.IOException;
+import java.util.Locale;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,21 +42,21 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
                 .setType(Boolean.class);
         addProperty(ShowCountProperty)
                 .setType(Long.class)
-                .setMandatory(true);
+                .setMandatory();
         addProperty(TemplateProperty)
                 .setType(Text.class)
                 .setAttribute("rows", "10")
                 .setAttribute("cols", "80")
-                .setMandatory(true);
-        addProperty(LanguageProperty)
-                .setAttribute("size", "2")
-                .setMandatory(true);
+                .setMandatory();
+        addProperty(LocaleProperty)
+                .setType(Locale.class)
+                .setMandatory();
         addProperty(PicMaxHeightProperty)
                 .setType(Long.class)
-                .setMandatory(true);
+                .setMandatory();
         addProperty(PicMaxWidthProperty)
                 .setType(Long.class)
-                .setMandatory(true);
+                .setMandatory();
         addProperty(FixPicProperty)
                 .setType(Boolean.class);
     }

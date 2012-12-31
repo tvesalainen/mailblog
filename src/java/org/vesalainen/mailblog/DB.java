@@ -17,7 +17,6 @@
 
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -29,6 +28,9 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.CompositeFilter;
+import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
+import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.QueryResultList;
 import com.google.appengine.api.datastore.Text;
@@ -37,6 +39,7 @@ import com.google.appengine.api.datastore.TransactionOptions;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
+import java.io.IOException;
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -229,49 +232,90 @@ public class DB implements BlogConstants
         return get(KeyFactory.stringToKey(keyString));
     }
 
-    public String getBlogList(String start) throws EntityNotFoundException
+    public String getBlogList(String blogCursor) throws EntityNotFoundException, IOException
     {
         MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
         String str = null;
-        if (start == null)
+        if (blogCursor == null)
         {
             str = (String) cache.get(FirstPageKey);
         }
         else
         {
-            str = (String) cache.get(start);
+            str = (String) cache.get(blogCursor);
         }
         if (str == null)
         {
+            Date begin = null;
+            Date end = null;
+            Cursor cursor = null;
+            String keyword = null;
+            if (blogCursor != null)
+            {
+                System.err.println(blogCursor);
+                BlogCursor bc = new BlogCursor(blogCursor);
+                begin = bc.getBegin();
+                end = bc.getEnd();
+                cursor = bc.getCursor();
+                keyword = bc.getKeyword();
+            }
             DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
             Settings settings = getSettings();
             FetchOptions options = FetchOptions.Builder.withLimit(settings.getShowCount());
-            if (start != null)
+            if (cursor != null)
             {
-                options = options.startCursor(Cursor.fromWebSafeString(start));
+                options = options.startCursor(cursor);
             }
             StringBuilder sb = new StringBuilder();
             Query query = new Query(BlogKind);
             query.addSort(DateProperty, Query.SortDirection.DESCENDING);
+            List<Filter> filters = new ArrayList<Filter>();
+            filters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
+            if (begin != null)
+            {
+                filters.add(new FilterPredicate(DateProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, begin));
+            }
+            if (end != null)
+            {
+                filters.add(new FilterPredicate(DateProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, end));
+            }
+            if (keyword != null)
+            {
+                filters.add(new FilterPredicate(KeywordsProperty, Query.FilterOperator.EQUAL, keyword));
+            }
+            if (filters.size() == 1)
+            {
+                query.setFilter(filters.get(0));
+            }
+            else
+            {
+                if (filters.size() > 1)
+                {
+                    CompositeFilter filter = new CompositeFilter(CompositeFilterOperator.AND, filters);
+                    query.setFilter(filter);
+                }
+            }
+            System.err.println(query);
             PreparedQuery prepared = datastore.prepare(query);
             QueryResultList<Entity> list = prepared.asQueryResultList(options);
-            Cursor cursor = list.getCursor();
+            cursor = list.getCursor();
+            BlogCursor bc = new BlogCursor(cursor, begin, end, keyword);
             for (Entity entity : list)
             {
                 sb.append(getBlog(entity));
             }
             if (list.size() == settings.getShowCount())
             {
-                sb.append("<span id=\"nextPage\" class=\"hidden\">"+cursor.toWebSafeString()+"</span>");
+                sb.append("<span id=\"nextPage\" class=\"hidden\">"+bc.getWebSafe()+"</span>");
             }
             str = sb.toString();
-            if (start == null)
+            if (blogCursor == null)
             {
                 cache.put(FirstPageKey, str);
             }
             else
             {
-                cache.put(start, str);
+                cache.put(blogCursor, str);
             }
         }
         return str;
@@ -293,7 +337,7 @@ public class DB implements BlogConstants
         return String.format(senderSettings.getTemplate().getValue(), subject, date, senderSettings.getNickname(), body.getValue());
     }
     
-    public String getCalendar() throws EntityNotFoundException
+    public String getCalendar() throws EntityNotFoundException, IOException
     {
         DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
         MemcacheService cache = MemcacheServiceFactory.getMemcacheService();
@@ -305,8 +349,9 @@ public class DB implements BlogConstants
             DateFormatSymbols dfs = new DateFormatSymbols(locale);
             String[] months = dfs.getMonths();
             Calendar calendar = Calendar.getInstance(locale);
-            Map<Integer,Map<Integer,List<String>>> yearMap = new TreeMap<Integer,Map<Integer,List<String>>>(Collections.reverseOrder());
+            Map<Integer,Map<Integer,List<Entity>>> yearMap = new TreeMap<Integer,Map<Integer,List<Entity>>>(Collections.reverseOrder());
             Query query = new Query(BlogKind);
+            query.setFilter(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
             query.addSort(DateProperty, Query.SortDirection.DESCENDING);
             PreparedQuery prepared = datastore.prepare(query);
             for (Entity entity : prepared.asIterable(FetchOptions.Builder.withDefaults()))
@@ -318,19 +363,20 @@ public class DB implements BlogConstants
                 calendar.setTime(date);
                 int year = calendar.get(Calendar.YEAR);
                 int month = calendar.get(Calendar.MONTH);
-                Map<Integer,List<String>> monthMap = yearMap.get(year);
+                Map<Integer,List<Entity>> monthMap = yearMap.get(year);
                 if (monthMap == null)
                 {
-                    monthMap = new TreeMap<Integer,List<String>>(Collections.reverseOrder());
+                    monthMap = new TreeMap<Integer,List<Entity>>(Collections.reverseOrder());
                     yearMap.put(year, monthMap);
                 }
-                List<String> list = monthMap.get(month);
+                List<Entity> list = monthMap.get(month);
                 if (list == null)
                 {
-                    list = new ArrayList<String>();
+                    list = new ArrayList<Entity>();
                     monthMap.put(month, list);
                 }
-                list.add("<div class=\"blog-entry\" id=\""+KeyFactory.keyToString(entity.getKey())+"\">"+subject+"</div>");
+                list.add(entity);
+                //list.add("<div class=\"blog-entry\" id=\""+KeyFactory.keyToString(entity.getKey())+"\">"+subject+"</div>");
             }
             StringBuilder sb = new StringBuilder();
             int yearCount = 0;
@@ -343,17 +389,22 @@ public class DB implements BlogConstants
                 yearPtr = sb.length();
                 sb.append(")</div>\n");
                 sb.append("<div class=\"hidden year"+year+" calendar-indent\">\n");
-                Map<Integer,List<String>> monthMap = yearMap.get(year);
+                Map<Integer,List<Entity>> monthMap = yearMap.get(year);
                 for (int month : monthMap.keySet())
                 {
-                    sb.append("<div id=\"month"+year+month+"\" class=\"calendar-menu\">"+prettify(months[month])+" (");
+                    List<Entity> blogList = monthMap.get(month);
+                    Date end = (Date) Objects.nonNull(blogList.get(0).getProperty(DateProperty));
+                    Date begin = (Date) Objects.nonNull(blogList.get(blogList.size()-1).getProperty(DateProperty));
+                    BlogCursor bc = new BlogCursor(null, begin, end, null);
+                    String monthId = bc.getWebSafe();
+                    sb.append("<div id=\""+monthId+"\" class=\"calendar-menu\">"+prettify(months[month])+" (");
                     monthPtr = sb.length();
                     sb.append(")</div>\n");
-                    sb.append("<div class=\"hidden month"+year+month+" calendar-indent\">\n");
-                    List<String> blogList = monthMap.get(month);
-                    for (String a : blogList)
+                    sb.append("<div class=\"hidden "+monthId+" calendar-indent\">\n");
+                    for (Entity entity : blogList)
                     {
-                        sb.append(a);
+                        String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
+                        sb.append("<div class=\"blog-entry\" id=\""+KeyFactory.keyToString(entity.getKey())+"\">"+subject+"</div>");
                         yearCount++;
                         monthCount++;
                     }

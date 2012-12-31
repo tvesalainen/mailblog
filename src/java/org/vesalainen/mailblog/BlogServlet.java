@@ -4,15 +4,13 @@
  */
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.blobstore.BlobstoreService;
-import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import java.io.IOException;
+import java.util.Date;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.JSONException;
 
 /**
  *
@@ -69,9 +67,9 @@ public class BlogServlet extends HttpServlet implements BlogConstants
                 }
                 else
                 {
-                    String cursor = request.getParameter(CursorParameter);
+                    String blogCursor = request.getParameter(CursorParameter);
                     response.setContentType("text/html; charset=UTF-8");
-                    response.getWriter().write(db.getBlogList(cursor));
+                    response.getWriter().write(db.getBlogList(blogCursor));
                 }
             }
         }

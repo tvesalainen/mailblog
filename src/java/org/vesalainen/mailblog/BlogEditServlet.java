@@ -19,9 +19,11 @@ package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Text;
 import java.util.Date;
+import java.util.HashSet;
 
 /**
  * @author Timo Vesalainen
@@ -34,23 +36,30 @@ public class BlogEditServlet extends EntityServlet implements BlogConstants
         super(BlogKind);
         addProperty(SubjectProperty)
                 .setAttribute("size", "80")
-                .setMandatory(true);
+                .setIndexed(true)
+                .setMandatory();
         addProperty(DateProperty)
                 .setType(Date.class)
                 .setIndexed(true)
-                .setMandatory(true);
+                .setMandatory();
         addProperty(SenderProperty)
                 .setType(Email.class)
+                .setIndexed(true)
                 .setAttribute("size", "40")
                 .setAttribute("disabled", true)
-                .setMandatory(true);
+                .setMandatory();
         addProperty(PublishProperty)
-                .setType(Boolean.class);
+                .setType(Boolean.class)
+                .setIndexed(true);
+        addProperty(KeywordsProperty)
+                .setType(HashSet.class, String.class)
+                .setAttribute("size", "80")
+                .setIndexed(true);
         addProperty(HtmlProperty)
                 .setType(Text.class)
                 .setAttribute("rows", "50")
                 .setAttribute("cols", "100")
-                .setMandatory(true);
+                .setMandatory();
     }
 
     @Override
@@ -64,7 +73,13 @@ public class BlogEditServlet extends EntityServlet implements BlogConstants
     {
         query.addSort(DateProperty, Query.SortDirection.DESCENDING);
     }
-    
+
+    @Override
+    protected void putEntity(Entity entity)
+    {
+        DB db = DB.DB;
+        db.putAndCache(entity);
+    }
     
     
 }

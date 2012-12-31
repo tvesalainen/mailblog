@@ -27,6 +27,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import org.vesalainen.mailblog.types.LocaleHelp;
 
 /**
  * @author Timo Vesalainen
@@ -65,13 +66,9 @@ public class Settings implements BlogConstants, Serializable
     {
         return (String) Objects.nonNull(map.get(NicknameProperty));
     }
-    public String getLanguage()
-    {
-        return (String) Objects.nonNull(map.get(LanguageProperty));
-    }
     public Locale getLocale()
     {
-        return new Locale(getLanguage());
+        return LocaleHelp.toLocale((String)map.get(LocaleProperty));
     }
     public Text getTemplate()
     {

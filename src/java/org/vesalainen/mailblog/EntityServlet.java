@@ -33,9 +33,11 @@ import com.google.appengine.api.datastore.Text;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -45,14 +47,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.vesalainen.mailblog.types.PropertyType;
 
 /**
  * @author Timo Vesalainen
  */
 public abstract class EntityServlet extends HttpServlet implements BlogConstants
 {
-    public static final String DateFormat = "yyyy-MM-dd";
-
     public static final String Key = "key";
     public static final String Select = "select";
     public static final String Delete = "delete";
@@ -256,21 +257,24 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
             }
             for (Property property : properties)
             {
-                Object value = property.newInstance(req.getParameter(property.getName()));
-                if (value != null)
+                if (!property.is("disabled"))
                 {
-                    if (property.isIndexed())
+                    Object value = property.newInstance(req.getParameter(property.getName()));
+                    if (value != null)
                     {
-                        entity.setProperty(property.getName(), value);
+                        if (property.isIndexed())
+                        {
+                            entity.setProperty(property.getName(), value);
+                        }
+                        else
+                        {
+                            entity.setUnindexedProperty(property.getName(), value);
+                        }
                     }
                     else
                     {
-                        entity.setUnindexedProperty(property.getName(), value);
+                        entity.removeProperty(property.getName());
                     }
-                }
-                else
-                {
-                    entity.removeProperty(property.getName());
                 }
             }
             entity.setProperty(TimestampProperty, new Date());
@@ -299,58 +303,24 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
 
     protected class Property
     {
-
-        private String name;
-        private Class<?> type;
-        private String inputType;
+        private PropertyType type;
         private boolean indexed;
-        private boolean mandatory;
-        private Constructor constructor;
         private Map<String, String> attributes = new HashMap<String, String>();
 
         protected Property(String name)
         {
-            this.name = name;
+            setAttribute("name", name);
             setType(String.class);
         }
 
+        public Property setType(Class<? extends Collection> type, Class<?> component)
+        {
+            this.type = PropertyType.getInstance(type, component);
+            return this;
+        }
         public Property setType(Class<?> type)
         {
-            this.type = type;
-            try
-            {
-                this.constructor = type.getConstructor(String.class);
-                this.inputType = "text";
-                if (type.equals(Long.class)
-                        || type.equals(Rating.class))
-                {
-                    this.inputType = "number";
-                }
-                if (type.equals(Email.class))
-                {
-                    this.inputType = "email";
-                }
-                if (type.equals(Link.class))
-                {
-                    this.inputType = "url";
-                }
-                if (type.equals(PhoneNumber.class))
-                {
-                    this.inputType = "tel";
-                }
-                if (type.equals(Date.class))
-                {
-                    this.inputType = "date";
-                }
-            }
-            catch (NoSuchMethodException ex)
-            {
-                throw new IllegalArgumentException(ex);
-            }
-            catch (SecurityException ex)
-            {
-                throw new IllegalArgumentException(ex);
-            }
+            this.type = PropertyType.getInstance(type);
             return this;
         }
         /**
@@ -361,7 +331,7 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
          */
         public Property setInputType(String inputType)
         {
-            this.inputType = inputType;
+            setAttribute("type", inputType);
             return this;
         }
 
@@ -371,12 +341,29 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
             return this;
         }
 
-        public Property setMandatory(boolean mandatory)
+        public Property setMandatory()
         {
-            this.mandatory = mandatory;
-            return this;
+            return addClass("mandatory");
         }
 
+        public boolean is(String attribute)
+        {
+            return attributes.containsKey(attribute);
+        }
+        
+        public Property addClass(String classname)
+        {
+            String classes = attributes.get("class");
+            if (classes == null)
+            {
+                attributes.put("class", classname);
+            }
+            else
+            {
+                attributes.put("class", classes+" "+classname);
+            }
+            return this;
+        }
         public Property setAttribute(String name, String value)
         {
             attributes.put(name, value);
@@ -398,63 +385,7 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
 
         protected Object newInstance(String str)
         {
-            if (type.equals(Boolean.class))
-            {
-                if (str == null)
-                {
-                    return Boolean.FALSE;
-                }
-                else
-                {
-                    return Boolean.TRUE;
-                }
-            }
-            if (type.equals(Date.class))
-            {
-                SimpleDateFormat format = new SimpleDateFormat(DateFormat);
-                try
-                {
-                    return format.parse(str);
-                }
-                catch (ParseException ex)
-                {
-                    throw new IllegalArgumentException(ex);
-                }
-            }
-            if (str == null || str.isEmpty())
-            {
-                return null;
-            }
-            try
-            {
-                return constructor.newInstance(str);
-            }
-            catch (InstantiationException ex)
-            {
-                throw new IllegalArgumentException(ex);
-            }
-            catch (IllegalAccessException ex)
-            {
-                throw new IllegalArgumentException(ex);
-            }
-            catch (IllegalArgumentException ex)
-            {
-                throw new IllegalArgumentException(ex);
-            }
-            catch (InvocationTargetException ex)
-            {
-                throw new IllegalArgumentException(ex);
-            }
-        }
-
-        protected String getName()
-        {
-            return name;
-        }
-
-        protected Class<?> getType()
-        {
-            return type;
+            return type.newInstance(str);
         }
 
         public boolean isIndexed()
@@ -462,87 +393,14 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
             return indexed;
         }
 
+        public String getName()
+        {
+            return attributes.get("name");
+        }
         protected String getInputElement(Entity entity)
         {
-            String attrs = "";
-            if (mandatory)
-            {
-                attrs = "class=\"mandatory\"";
-            }
-            for (Entry<String, String> entry : attributes.entrySet())
-            {
-                attrs = attrs + " " + entry.getKey() + "=\"" + entry.getValue() + "\"";
-            }
-            Object value = entity.getProperty(name);
-            if (type.equals(String.class))
-            {
-                String val = (String) value;
-                String str = value != null ? val : "";
-                return "<input " + attrs + " type=\"" + inputType + "\" name=\"" + name + "\" value=\"" + str + "\"/>";
-            }
-            if (type.equals(Text.class))
-            {
-                Text val = (Text) value;
-                String str = value != null ? val.getValue() : "";
-                return "<textarea " + attrs + " name=\"" + name + "\">" + str + "</textarea>";
-            }
-            if (type.equals(Long.class))
-            {
-                Long val = (Long) value;
-                String str = value != null ? val.toString() : "";
-                return "<input " + attrs + " type=\"" + inputType + "\" name=\"" + name + "\" value=\"" + str + "\"/>";
-            }
-            if (type.equals(Rating.class))
-            {
-                Rating val = (Rating) value;
-                String str = value != null ? String.valueOf(val.getRating()) : "";
-                return "<input " + attrs + " type=\"number\" min=\"" + Rating.MIN_VALUE + "\" max=\"" + Rating.MAX_VALUE + "\" name=\"" + name + "\" value=\"" + str + "\"/>";
-            }
-            if (type.equals(Email.class))
-            {
-                Email val = (Email) value;
-                String str = value != null ? val.getEmail() : "";
-                return "<input " + attrs + " type=\"" + inputType + "\" name=\"" + name + "\" value=\"" + str + "\"/>";
-            }
-            if (type.equals(Link.class))
-            {
-                Link val = (Link) value;
-                String str = value != null ? val.getValue() : "";
-                return "<input " + attrs + " type=\"" + inputType + "\" name=\"" + name + "\" value=\"" + str + "\"/>";
-            }
-            if (type.equals(PhoneNumber.class))
-            {
-                PhoneNumber val = (PhoneNumber) value;
-                String str = value != null ? val.getNumber() : "";
-                return "<input " + attrs + " type=\"" + inputType + "\" name=\"" + name + "\" value=\"" + str + "\"/>";
-            }
-            if (type.equals(Category.class))
-            {
-                Category val = (Category) value;
-                String str = value != null ? val.getCategory() : "";
-                return "<input " + attrs + " type=\"text\" name=\"" + name + "\" value=\"" + str + "\"/>";
-            }
-            if (type.equals(Date.class))
-            {
-                Date val = (Date) value;
-                SimpleDateFormat format = new SimpleDateFormat(DateFormat);
-                String str = value != null ? format.format(val) : "";
-                return "<input "+attrs+" type=\""+inputType+"\" name=\""+name+"\" value=\""+str+"\"/>";
-            }
-            if (type.equals(Boolean.class))
-            {
-                Boolean val = (Boolean) value;
-                boolean checked = value != null ? val.booleanValue() : false;
-                if (checked)
-                {
-                    return "<input type=\"checkbox\" name=\"" + name + "\" checked=\"checked\" value=\"" + name + "\"/>";
-                }
-                else
-                {
-                    return "<input type=\"checkbox\" name=\"" + name + "\" value=\"" + name + "\"/>";
-                }
-            }
-            throw new IllegalArgumentException("unsupported type " + type);
+            Object value = entity.getProperty(attributes.get("name"));
+            return type.getHtmlInput(attributes, value);
         }
     }
 }
