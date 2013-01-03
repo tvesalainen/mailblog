@@ -43,9 +43,19 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
         addProperty(ShowCountProperty)
                 .setType(Long.class)
                 .setMandatory();
-        addProperty(TemplateProperty)
+        addProperty(BlogAreaTemplateProperty)
                 .setType(Text.class)
                 .setAttribute("rows", "10")
+                .setAttribute("cols", "80")
+                .setMandatory();
+        addProperty(BlogTemplateProperty)
+                .setType(Text.class)
+                .setAttribute("rows", "10")
+                .setAttribute("cols", "80")
+                .setMandatory();
+        addProperty(CommentTemplateProperty)
+                .setType(Text.class)
+                .setAttribute("rows", "6")
                 .setAttribute("cols", "80")
                 .setMandatory();
         addProperty(LocaleProperty)
@@ -84,9 +94,31 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
     }
 
     @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
+    {
+        UserService userService = UserServiceFactory.getUserService();
+        if (userService.isUserLoggedIn())
+        {
+            if (userService.isUserAdmin())
+            {
+                super.doPost(req, resp);
+            }
+            else
+            {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+            }
+        }
+        else
+        {
+            String loginURL = userService.createLoginURL("");
+            resp.getWriter().write(loginURL);
+        }
+    }
+
+    @Override
     protected Key getKey(HttpServletRequest req) throws HttpException
     {
-        Key key = KeyFactory.createKey(kind, BaseKey);
+        Key key = KeyFactory.createKey(DS.Root, kind, BaseKey);
         String keyString = req.getParameter(Key);
         if (keyString != null)
         {

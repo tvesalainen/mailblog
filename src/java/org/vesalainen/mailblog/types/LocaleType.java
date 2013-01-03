@@ -31,7 +31,11 @@ public class LocaleType extends PropertyType<String>
     @Override
     public String newInstance(String languageTag)
     {
-        return languageTag;
+        if (languageTag != null && !languageTag.isEmpty())
+        {
+            return languageTag;
+        }
+        return null;
     }
 
     @Override

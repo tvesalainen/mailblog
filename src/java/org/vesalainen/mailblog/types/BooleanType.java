@@ -25,6 +25,7 @@ import java.util.Map;
 public class BooleanType extends PropertyType<Boolean> 
 {
 
+    @Override
     public String getHtmlInput(Map<String,String> attributes, Object obj)
     {
         Boolean value = (Boolean) obj;
@@ -42,7 +43,11 @@ public class BooleanType extends PropertyType<Boolean>
     @Override
     public Boolean newInstance(String value)
     {
-        return new Boolean(value);
+        if (value != null && !value.isEmpty())
+        {
+            return new Boolean(value);
+        }
+        return null;
     }
 
     @Override

@@ -26,7 +26,11 @@ public class StringType extends PropertyType<String>
     @Override
     public String newInstance(String value)
     {
-        return value;
+        if (value != null && !value.isEmpty())
+        {
+            return value;
+        }
+        return null;
     }
 
     @Override

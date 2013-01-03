@@ -28,7 +28,11 @@ public class LinkType extends PropertyType<Link>
     @Override
     public Link newInstance(String value)
     {
-        return new Link(value);
+        if (value != null && !value.isEmpty())
+        {
+            return new Link(value);
+        }
+        return null;
     }
 
     @Override

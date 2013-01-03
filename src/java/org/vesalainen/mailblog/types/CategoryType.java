@@ -28,7 +28,11 @@ public class CategoryType extends PropertyType<Category>
     @Override
     public Category newInstance(String value)
     {
-        return new Category(value);
+        if (value != null && !value.isEmpty())
+        {
+            return new Category(value);
+        }
+        return null;
     }
 
     @Override

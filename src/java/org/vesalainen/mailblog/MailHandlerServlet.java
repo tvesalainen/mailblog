@@ -19,6 +19,7 @@ package org.vesalainen.mailblog;
 import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
@@ -188,7 +189,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
     }
     private void handleMail(HttpServletRequest request, HttpServletResponse response, BlogAuthor blogAuthor) throws IOException, ServletException, EntityNotFoundException, MessagingException
     {
-        DB db = DB.DB;
+        DS ds = DS.get();
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
         MimeMessage message = new MimeMessage(session, request.getInputStream());
@@ -210,7 +211,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             return;
         }
         Email senderEmail = new Email(sender.getAddress());
-        Settings settings = db.getSettingsFor(senderEmail);
+        Settings settings = ds.getSettingsFor(senderEmail);
         if (settings == null)
         {
             log(senderEmail.getEmail()+" not allowed to send blogs");
@@ -223,7 +224,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         List<BodyPart> bodyPartList = findParts(multipart);
         try
         {
-            Key blogKey = db.getBlogKey(messageID);
+            Key blogKey = ds.getBlogKey(messageID);
             String htmlBody = getHtmlBody(bodyPartList);
             if (htmlBody != null)
             {
@@ -243,7 +244,6 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     futureList.addAll(futures);
                 }
             }
-            db.blogsChanged();
             long remainingMillis = ApiProxy.getCurrentEnvironment().getRemainingMillis();
             log("remainingMillis="+remainingMillis);
             for (Future<HTTPResponse> res : futureList)
@@ -331,7 +331,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
     private Collection<Future<HTTPResponse>> handleBodyPart(HttpServletRequest request, Key blogKey, BodyPart bodyPart, Settings settings) throws MessagingException, IOException
     {
         ImagesService imagesService = ImagesServiceFactory.getImagesService();
-        DB db = DB.DB;
+        DS ds = DS.get();
         Collection<Future<HTTPResponse>> futures = new ArrayList<Future<HTTPResponse>>();
         String contentType = bodyPart.getContentType();
         log(contentType);
@@ -444,17 +444,16 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
     private void remove(String encoded, HttpServletResponse response) throws IOException
     {
         BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
-        DB db = DB.DB;
+        DatastoreService datastore = DS.get();
         Key key = KeyFactory.stringToKey(encoded);
-        Transaction tr = db.beginTransaction();
+        Transaction tr = datastore.beginTransaction();
         try
         {
-            Entity blog = db.get(key);
-            db.deleteBlog(key);
+            Entity blog = datastore.get(key);
+            datastore.delete(key);
             response.setContentType("text/plain");
             PrintWriter writer = response.getWriter();
             writer.println("Deleted blog: "+blog.getProperty("Subject"));
-            writer.close();
             tr.commit();
         }
         catch (EntityNotFoundException ex)
@@ -486,17 +485,6 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         return baos.toByteArray();
     }
     
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo()
-    {
-        return "Short description";
-    }
-
     private void sendMail(HttpServletRequest request, BlogAuthor blogAuthor, Entity blog, boolean publishImmediately) throws IOException
     {
         try
@@ -529,11 +517,11 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             @Override
             protected Object update() throws IOException
             {
-                DB db = DB.DB;
+                DS ds = DS.get();
                 Entity blog;
                 try
                 {
-                    blog = db.get(blogKey);
+                    blog = ds.get(blogKey);
                 }
                 catch (EntityNotFoundException ex)
                 {
@@ -545,7 +533,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     attachments = new HashSet<Key>();
                     blog.setUnindexedProperty(AttachmentsProperty, attachments);
                 }
-                attachments.add(db.getMetadataKey(sha1));
+                attachments.add(ds.getMetadataKey(sha1));
                 String cid = cidStr;
                 if (cid.startsWith("<") && cid.endsWith(">"))
                 {
@@ -555,7 +543,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                 String body = text.getValue();
                 body = body.replace("cid:"+cid, "/blob?"+Sha1Parameter+"="+sha1);
                 blog.setUnindexedProperty(HtmlProperty, new Text(body));
-                db.putAndCache(blog);
+                ds.put(blog);
                 return null;
             }
         };
@@ -596,11 +584,11 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             {
                 try
                 {
-                    DB db = DB.DB;
+                    DS ds = DS.get();
                     Entity blog;
                     try
                     {
-                        blog = db.get(blogKey);
+                        blog = ds.get(blogKey);
                     }
                     catch (EntityNotFoundException ex)
                     {
@@ -621,7 +609,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     setProperty(message, DateProperty, blog, true);
                     blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
                     blog.setProperty(TimestampProperty, new Date());
-                    db.saveBlog(blog);
+                    ds.saveBlog(blog);
                     return blog;
                 }
                 catch (MessagingException ex)
@@ -658,8 +646,8 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             @Override
             protected Entity update() throws IOException
             {
-                DB db = DB.DB;
-                Entity metadata = db.getMetadata(digestString);
+                DS ds = DS.get();
+                Entity metadata = ds.getMetadata(digestString);
                 log(metadata.toString());
                 if (metadata.getProperties().isEmpty())
                 {
@@ -681,7 +669,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     catch (Exception ex)
                     {
                     }
-                    db.putAndCache(metadata);
+                    ds.put(metadata);
                 }
                 return metadata;
             }

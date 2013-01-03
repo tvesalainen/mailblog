@@ -1,24 +1,30 @@
-
 <!DOCTYPE html>
 <html>
     <head>
 		<link rel="stylesheet" type="text/css" href="css/blog.css">
         <title></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <meta name="blog" content="/blog"/>
+        <meta name="calendar" content="/blog?calendar=true"/>
+        <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
         <script src="/js/populate.js"></script>
 
     </head>
     <body>
-	
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>	
 		
 <div id="page">
 	<div id="header">
-            <div id="headermainos">
-
-        </div>
-            <div id="blogname">
-                <center>
+<center>
+            
             <script type="text/javascript"><!--
 google_ad_client = "ca-pub-8272107041521885";
 /* 728 x 15 */
@@ -30,65 +36,58 @@ google_ad_height = 15;
 <script type="text/javascript"
 src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 </script>
+        
+            
+                
+
 <br>
                 <h1>
-			Adventurer's Blog
+			s/y Valpuri
 		</h1>
-            </center>
-            </div>
-		
+            
+            
+	</center>	
 		
 	</div>
 	<div id="navigation">
 		<ul>
-			<li><a href="#">Home</a></li>
-			<li><a href="#">About</a></li>
-			<li><a href="#">Contact us</a></li>
+			<li><a href="#">Etusivu</a></li>
+			<li><a href="#">Vene</a></li>
+			<li><a href="#">Miehistö</a></li>
 		</ul>
 	</div>
 	<div id="content">
 		<div id="leftside">
+Arkisto
 			<div id="calendar">
-				<h2>Kalenteri</h2>
-				2012<br>
-				November<br>
-				December<br>
-				November<br>
-				December<br>
-				November<br>
-				December<br>
-				November<br>
-				December<br>
-				November<br>
-				December<br>
+				
 				
 			</div>
 			<div id="topics">
-				<h2>Topics</h2>
+			<!--	<h2>Topics</h2>
 				Before sailing away<br>
 				Fixing the boat<br>
 				General travel<br>
 				Sailing<br>
+                        -->
 			</div>
                     
 		
 		</div>
-		<div id="blog">
-			<div class="subject">
-				Superblog by SuperJonna (Vaikka tämä onkin vielä hieman roskaa)
-			</div>
-			<div class="date">
-				9.12.2012
-			</div>
-			<div class="sender">
-				Jonna
-			</div>
-			<div class="body">
-				Jotain tähän nyt pitäisi kirjoittaa. Ihan mitä vaan mitä mieleen tulee ja näppäimistölä irtoaa. Aina sitä näköjään jotain roskaa pystyy ihan näin vauhdissa kirjoittamaan.
-			</div>
-                    
-			
-		</div>
+                <div id="blogarea">
+                <div>
+                         <label>Haku: <input class="search" name="search" type="search" size="40"/></label>
+                         <div class="keywordSelect"></div>
+                 </div>
+                <div><button class="top">Uusin</button></div>
+                <div><button class="backward">Vanhemmat kirjoitukset</button></div>
+                <div><button disabled="true" class="forward">Uudemmat kirjoitukset</button></div>
+		<div id="blog"></div>
+                <div><button class="top">Uusin</button></div>
+                <div><button class="backward">Vanhemmat kirjoitukset</button></div>
+                <div><button disabled="true" class="forward">Uudemmat kirjoitukset</button>
+</div>
+</div>
 		<div id="rightside">
 			<script type="text/javascript"><!--
 google_ad_client = "ca-pub-8272107041521885";
@@ -107,7 +106,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 	</div>
 	<div id="footer">
             <center>
-			Copyright © SailFarAway.net, 2012 - Powered by Adventurer's Blog
+			Copyright @ SailFarAway.net, 2012 - Powered by Adventurer's Blog
                         </center>
 		</div>
 </div>

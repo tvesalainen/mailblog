@@ -34,7 +34,7 @@ public class BlogCursor extends WebSafe
     protected Date begin;
     protected Date end;
     protected String search;
-    private com.google.appengine.api.search.Cursor searchCursor;
+    protected com.google.appengine.api.search.Cursor searchCursor;
 
     public BlogCursor()
     {

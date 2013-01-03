@@ -42,7 +42,11 @@ public class TextType extends PropertyType<Text>
     @Override
     public Text newInstance(String value)
     {
-        return new Text(value);
+        if (value != null && !value.isEmpty())
+        {
+            return new Text(value);
+        }
+        return null;
     }
 
     @Override

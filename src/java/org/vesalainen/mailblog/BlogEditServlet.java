@@ -74,12 +74,4 @@ public class BlogEditServlet extends EntityServlet implements BlogConstants
         query.addSort(DateProperty, Query.SortDirection.DESCENDING);
     }
 
-    @Override
-    protected void putEntity(Entity entity)
-    {
-        DB db = DB.DB;
-        db.saveBlog(entity);
-    }
-    
-    
 }

@@ -28,7 +28,11 @@ public class EmailType extends PropertyType<Email>
     @Override
     public Email newInstance(String value)
     {
-        return new Email(value);
+        if (value != null && !value.isEmpty())
+        {
+            return new Email(value);
+        }
+        return null;
     }
 
     @Override

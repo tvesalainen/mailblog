@@ -44,8 +44,8 @@ public abstract class Updater<T>
 
     private T updateWithTransaction() throws IOException
     {
-        DB db = DB.DB;
-        Transaction tr = db.beginTransaction();
+        DS ds = DS.get();
+        Transaction tr = ds.beginTransaction();
         try
         {
             T result = update();

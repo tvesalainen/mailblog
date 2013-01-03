@@ -76,33 +76,33 @@ public abstract class WebSafe
             StringBuilder sb = new StringBuilder();
             for (Field field : getClass().getDeclaredFields())
             {
-                String name = field.getName();
-                if (name.length() > 0xff)
-                {
-                    throw new IllegalArgumentException("field "+name+" name is too long (>0xff)");
-                }
-                sb.append(String.format("%02x", name.length()));
-                sb.append(name);
-                String ws = "";
                 Object value = field.get(this);
                 if (value != null)
                 {
+                    String name = field.getName();
+                    if (name.length() > 0xff)
+                    {
+                        throw new IllegalArgumentException("field "+name+" name is too long (>0xff)");
+                    }
+                    sb.append(String.format("%02x", name.length()));
+                    sb.append(name);
+                    String ws = "";
                     ws = getWebSafe(field.getType(), value);
+                    if (name.length() > 0xff)
+                    {
+                        throw new IllegalArgumentException("fields "+name+" websafe content is too long (>0xff)");
+                    }
+                    if (
+                            ws.indexOf("<") != -1 ||
+                            ws.indexOf(">") != -1 ||
+                            ws.indexOf(" ") != -1
+                            )
+                    {
+                        throw new IllegalArgumentException("fields "+name+" websafe content is not websafe");
+                    }
+                    sb.append(String.format("%02x", ws.length()));
+                    sb.append(ws);
                 }
-                if (name.length() > 0xff)
-                {
-                    throw new IllegalArgumentException("fields "+name+" websafe content is too long (>0xff)");
-                }
-                if (
-                        ws.indexOf("<") != -1 ||
-                        ws.indexOf(">") != -1 ||
-                        ws.indexOf(" ") != -1
-                        )
-                {
-                    throw new IllegalArgumentException("fields "+name+" websafe content is not websafe");
-                }
-                sb.append(String.format("%02x", ws.length()));
-                sb.append(ws);
             }
             return sb.toString();
         }

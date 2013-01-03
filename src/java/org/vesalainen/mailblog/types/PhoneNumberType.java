@@ -28,7 +28,11 @@ public class PhoneNumberType extends PropertyType<PhoneNumber>
     @Override
     public PhoneNumber newInstance(String value)
     {
-        return new PhoneNumber(value);
+        if (value != null && !value.isEmpty())
+        {
+            return new PhoneNumber(value);
+        }
+        return null;
     }
 
     @Override

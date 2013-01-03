@@ -17,6 +17,7 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Text;
 import java.io.IOException;
 import java.util.Date;
@@ -50,50 +51,56 @@ public class ContentServlet extends HttpServlet implements BlogConstants
         log("pathInfo="+pathInfo);
         if (pathInfo != null)
         {
-            if ("/".equals(pathInfo))
+            try
             {
-                pathInfo = "/index.html";
-            }
-            DB db = DB.DB;
-            Entity page = db.getPageEntity(pathInfo.substring(1));
-            if (page != null)
-            {
-                Date timestamp = (Date) page.getProperty(TimestampProperty);
-                if (timestamp == null)
+                if ("/".equals(pathInfo))
                 {
-                    timestamp = new Date(0);
+                    pathInfo = "/index.html";
                 }
-                log("timestamp="+timestamp);
-                long ifModifiedSince = request.getDateHeader("If-Modified-Since");
-                log("ifModifiedSince="+new Date(ifModifiedSince));
-                if (ifModifiedSince != -1)
+                DS ds = DS.get();
+                Entity page = ds.getPageEntity(pathInfo.substring(1));
+                if (page != null)
                 {
-                    if (ifModifiedSince >= timestamp.getTime())
+                    Date timestamp = (Date) page.getProperty(TimestampProperty);
+                    if (timestamp == null)
                     {
-                        response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
+                        timestamp = new Date(0);
+                    }
+                    log("timestamp="+timestamp);
+                    long ifModifiedSince = request.getDateHeader("If-Modified-Since");
+                    log("ifModifiedSince="+new Date(ifModifiedSince));
+                    if (ifModifiedSince != -1)
+                    {
+                        if (ifModifiedSince >= timestamp.getTime())
+                        {
+                            response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
+                            return;
+                        }
+                    }
+                    ServletContext servletContext = getServletContext();
+                    String mimeType = servletContext.getMimeType(pathInfo);
+                    if (mimeType == null)
+                    {
+                        log("mimetype not found "+pathInfo);
+                        response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
                         return;
                     }
-                }
-                ServletContext servletContext = getServletContext();
-                String mimeType = servletContext.getMimeType(pathInfo);
-                if (mimeType == null)
-                {
-                    log("mimetype not found "+pathInfo);
-                    response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+                    response.setDateHeader("Modified-Since", timestamp.getTime());
+                    response.setContentType(mimeType);
+                    Text text = (Text) page.getProperty(PageProperty);
+                    String content = text.getValue();
+                    if (content == null)
+                    {
+                        log("page is empty"+pathInfo);
+                        response.sendError(HttpServletResponse.SC_CONFLICT);
+                        return;
+                    }
+                    response.getWriter().write(content);
                     return;
                 }
-                response.setDateHeader("Modified-Since", timestamp.getTime());
-                response.setContentType(mimeType);
-                Text text = (Text) page.getProperty(PageProperty);
-                String content = text.getValue();
-                if (content == null)
-                {
-                    log("page is empty"+pathInfo);
-                    response.sendError(HttpServletResponse.SC_CONFLICT);
-                    return;
-                }
-                response.getWriter().write(content);
-                return;
+            }
+            catch (EntityNotFoundException ex)
+            {
             }
         }
         response.sendError(HttpServletResponse.SC_NOT_FOUND);

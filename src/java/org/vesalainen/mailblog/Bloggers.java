@@ -62,7 +62,7 @@ public class Bloggers implements BlogConstants
     }
     public void update(HttpServletRequest req)
     {
-        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        DatastoreService datastore = DS.get();
         Set<Key> newBloggers = new HashSet<Key>();
         String[] emails = req.getParameterValues(Blogger);
         if (emails != null)
@@ -96,7 +96,7 @@ public class Bloggers implements BlogConstants
     }
     private List<Entity> getBloggers()
     {
-        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        DatastoreService datastore = DS.get();
         Query query = new Query(SettingsKind);
         query.setAncestor(parent);
         query.setKeysOnly();

@@ -27,8 +27,27 @@ $(document).ready(function(){
         $(".hidden").hide();
     });
     
+    $(".keywordSelect").load("/blog?keywords=true");
+    
     $("body").on("click", "img", function(event){        
         window.open($(this).attr("src")+"&original=true");
+    });
+
+    $("body").on("change", ".search", function(event){        
+        var search = $(this).val();
+        $.post("/blog", {search: search }, function(data){
+            $("#blog").html(data);
+            $(".hidden").hide();
+        });
+    });
+
+    $("body").on("change", ".keywordSelect", function(event){    
+        var target = event.delegateTarget;
+        var search = $(target).find(".keywordSelect option:selected").val();    
+        $.post("/blog", {search: search }, function(data){
+            $("#blog").html(data);
+            $(".hidden").hide();
+        });
     });
 
     $("body").on("click", ".calendar-menu", function(event){     

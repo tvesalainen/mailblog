@@ -33,15 +33,19 @@ public class DateType extends PropertyType<Date>
     @Override
     public Date newInstance(String value)
     {
-        SimpleDateFormat format = new SimpleDateFormat(DateFormat);
-        try
+        if (value != null && !value.isEmpty())
         {
-            return format.parse(value);
+            SimpleDateFormat format = new SimpleDateFormat(DateFormat);
+            try
+            {
+                return format.parse(value);
+            }
+            catch (ParseException ex)
+            {
+                throw new IllegalArgumentException(ex);
+            }
         }
-        catch (ParseException ex)
-        {
-            throw new IllegalArgumentException(ex);
-        }
+        return null;
     }
 
     @Override

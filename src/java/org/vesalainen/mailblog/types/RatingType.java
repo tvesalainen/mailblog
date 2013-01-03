@@ -52,7 +52,11 @@ public class RatingType extends PropertyType<Rating>
     @Override
     public Rating newInstance(String value)
     {
-        return new Rating(Integer.parseInt(value));
+        if (value != null && !value.isEmpty())
+        {
+            return new Rating(Integer.parseInt(value));
+        }
+        return null;
     }
 
     @Override

@@ -20,6 +20,7 @@ import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import java.io.IOException;
 import java.util.Date;
@@ -53,8 +54,8 @@ public class BlobServlet extends HttpServlet implements BlogConstants
         String sha1 = request.getParameter(Sha1Parameter);
         if (sha1 != null)
         {
-            DB db = DB.DB;
-            Entity metadata = db.getMetadata(sha1);
+            DS ds = DS.get();
+            Entity metadata = ds.getMetadata(sha1);
             if (metadata != null)
             {
                 Date timestamp = (Date) metadata.getProperty(TimestampProperty);
@@ -129,16 +130,16 @@ public class BlobServlet extends HttpServlet implements BlogConstants
             public Object update() throws IOException
             {
                 BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
-                DB db = DB.DB;
+                DS ds = DS.get();
                 Map<String, List<BlobKey>> blobs = blobstore.getUploads(request);
                 for (Map.Entry<String, List<BlobKey>> entry : blobs.entrySet())
                 {
                     String sha1 = entry.getKey();
                     log("sha1="+sha1);
-                    Entity metadata = db.getMetadata(sha1);
+                    Entity metadata = ds.getMetadata(sha1);
                     BlobKey blobKey = entry.getValue().get(0);
                     metadata.setUnindexedProperty(sizeString, blobKey);
-                    db.putAndCache(metadata);
+                    ds.put(metadata);
                 }
                 return null;
             }

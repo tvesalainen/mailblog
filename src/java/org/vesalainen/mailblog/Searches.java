@@ -17,18 +17,25 @@
 
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
+import com.google.appengine.api.search.Cursor;
 import com.google.appengine.api.search.Document;
 import com.google.appengine.api.search.Field;
 import com.google.appengine.api.search.Index;
 import com.google.appengine.api.search.IndexSpec;
 import com.google.appengine.api.search.Query;
+import com.google.appengine.api.search.QueryOptions;
+import com.google.appengine.api.search.QueryOptions.Builder;
 import com.google.appengine.api.search.Results;
 import com.google.appengine.api.search.ScoredDocument;
 import com.google.appengine.api.search.SearchService;
 import com.google.appengine.api.search.SearchServiceFactory;
+import java.io.IOException;
+import java.net.URL;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
@@ -41,53 +48,79 @@ public class Searches implements BlogConstants
 
     static void saveBlog(Entity blog)
     {
-        DB db = DB.DB;
-        Settings settings = db.getSettings();
+        DS ds = DS.get();
+        Settings settings = ds.getSettings();
         Locale locale = settings.getLocale();
+        Boolean publish = (Boolean) blog.getProperty(PublishProperty);
         String subject = (String) blog.getProperty(SubjectProperty);
+        Email sender = (Email) blog.getProperty(SenderProperty);
         Text html = (Text) blog.getProperty(HtmlProperty);
         Date date = (Date) blog.getProperty(DateProperty);
         Set<String> keywords = (Set) blog.getProperty(KeywordsProperty);
         Document.Builder builder = Document.newBuilder();
-        builder.setId(blog.getKey().getName());
-        builder.setLocale(locale);
-        builder.addField(Field.newBuilder()
-                .setName(SubjectProperty)
-                .setText(subject));
-        builder.addField(Field.newBuilder()
-                .setName(HtmlProperty)
-                .setHTML(html.getValue()));
-        builder.addField(Field.newBuilder()
-                .setName(DateProperty)
-                .setDate(date));
-        if (keywords != null)
+        builder.setId(KeyFactory.keyToString(blog.getKey()));
+        if (publish != null && publish)
         {
-            for (String kw : keywords)
+            builder.setLocale(locale);
+            builder.addField(Field.newBuilder()
+                    .setName(SubjectProperty)
+                    .setText(subject));
+            builder.addField(Field.newBuilder()
+                    .setName(SenderProperty)
+                    .setText(sender.getEmail()));
+            builder.addField(Field.newBuilder()
+                    .setName(HtmlProperty)
+                    .setHTML(html.getValue()));
+            builder.addField(Field.newBuilder()
+                    .setName(DateProperty)
+                    .setDate(date));
+            if (keywords != null)
             {
-                builder.addField(Field.newBuilder()
-                        .setName("Keyword")
-                        .setText(kw));
+                for (String kw : keywords)
+                {
+                    builder.addField(Field.newBuilder()
+                            .setName(KeywordProperty)
+                            .setAtom(kw));
+                }
             }
         }
         Document document = builder.build();
         SearchService searchService = SearchServiceFactory.getSearchService();
-        Index index = searchService.getIndex(IndexSpec.newBuilder().setName("BlogIndex"));        
+        Index index = searchService.getIndex(IndexSpec.newBuilder().setName(BlogIndex));        
         index.put(document);
     }
 
-    public static String getBlogListFromSearch(BlogCursor bc) throws EntityNotFoundException
+    public static String getBlogListFromSearch(BlogCursor bc, URL base) throws EntityNotFoundException, IOException
     {
-        DB db = DB.DB;
+        DS ds = DS.get();
+        Settings settings = ds.getSettings();
         StringBuilder sb = new StringBuilder();
         SearchService searchService = SearchServiceFactory.getSearchService();
-        Index index = searchService.getIndex(IndexSpec.newBuilder().setName("BlogIndex"));        
-        Results<ScoredDocument> result = index.search(bc.getSearch());
+        Index index = searchService.getIndex(IndexSpec.newBuilder().setName(BlogIndex));
+        Builder optionsBuilder = QueryOptions.newBuilder();
+        optionsBuilder.setLimit(settings.getShowCount());
+        optionsBuilder.setFieldsToReturn(SubjectProperty, DateProperty, SenderProperty, HtmlProperty);
+        Cursor searchCursor = bc.getSearchCursor();
+        if (searchCursor != null)
+        {
+            optionsBuilder.setCursor(searchCursor);
+        }
+        System.err.println(bc.getSearch());
+        Query query = Query.newBuilder().setOptions(optionsBuilder.build()).build(bc.getSearch());
+        Results<ScoredDocument> result = index.search(query);
         for (ScoredDocument sd : result)
         {
-            String id = sd.getId();
-            Entity blog = db.getBlogFromMessageId(id);
-            sb.append(db.getBlog(blog));
+            sb.append(ds.getBlog(
+                    sd.getOnlyField(SenderProperty).getText(), 
+                    sd.getOnlyField(SubjectProperty).getText(), 
+                    sd.getOnlyField(DateProperty).getDate(), 
+                    sd.getOnlyField(HtmlProperty).getHTML(),
+                    sd.getId(),
+                    base
+                    ));
         }
+        bc.setSearchCursor(result.getCursor());
+        sb.append("<span id=\"nextPage\" class=\"hidden\">"+bc.getWebSafe()+"</span>");
         return sb.toString();
     }
 

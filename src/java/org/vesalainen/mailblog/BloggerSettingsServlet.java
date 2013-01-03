@@ -43,9 +43,17 @@ public class BloggerSettingsServlet extends SettingsServlet implements BlogConst
                 .setMandatory();
         addProperty(PublishImmediatelyProperty)
                 .setType(Boolean.class);
-        addProperty(TemplateProperty)
+        addProperty(BlogAreaTemplateProperty)
                 .setType(Text.class)
                 .setAttribute("rows", "10")
+                .setAttribute("cols", "80");
+        addProperty(BlogTemplateProperty)
+                .setType(Text.class)
+                .setAttribute("rows", "10")
+                .setAttribute("cols", "80");
+        addProperty(CommentTemplateProperty)
+                .setType(Text.class)
+                .setAttribute("rows", "6")
                 .setAttribute("cols", "80");
         addProperty(PicMaxHeightProperty)
                 .setType(Long.class);
@@ -71,11 +79,26 @@ public class BloggerSettingsServlet extends SettingsServlet implements BlogConst
     }
 
     @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
+    {
+        UserService userService = UserServiceFactory.getUserService();
+        if (userService.isUserLoggedIn())
+        {
+            super.doPost(req, resp);
+        }
+        else
+        {
+            String loginURL = userService.createLoginURL("");
+            resp.getWriter().write(loginURL);
+        }
+    }
+
+    @Override
     protected Key getKey(HttpServletRequest req) throws HttpException
     {
         UserService userService = UserServiceFactory.getUserService();
         User user = userService.getCurrentUser();
-        Key baseKey = KeyFactory.createKey(kind, BaseKey);
+        Key baseKey = KeyFactory.createKey(DS.Root, kind, BaseKey);
         Key key = KeyFactory.createKey(baseKey, kind, user.getEmail());
         String keyString = req.getParameter(Key);
         if (keyString != null)

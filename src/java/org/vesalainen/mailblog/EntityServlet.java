@@ -16,33 +16,21 @@
  */
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.datastore.Category;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.Link;
-import com.google.appengine.api.datastore.PhoneNumber;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Rating;
-import com.google.appengine.api.datastore.Text;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -168,7 +156,7 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
         else
         {
             Key key = createNewKey(req);
-            DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+            DatastoreService datastore = DS.get();
             try
             {
                 datastore.get(key);
@@ -183,7 +171,7 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
 
     protected Entity getEntity(Key key) throws HttpException
     {
-        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        DatastoreService datastore = DS.get();
         try
         {
             return datastore.get(key);
@@ -208,7 +196,7 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
         }
         else
         {
-            return KeyFactory.createKey(kind, name);
+            return KeyFactory.createKey(DS.Root, kind, name);
         }
     }
 
@@ -221,7 +209,7 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
     {
         StringBuilder sb = new StringBuilder();
         sb.append("<select class=\"entitySelect\">");
-        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        DatastoreService datastore = DS.get();
         Query query = new Query(kind);
         modifySelectQuery(query);
         PreparedQuery prepared = datastore.prepare(query);
@@ -236,8 +224,8 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
     protected void delete(Key key)
     {
         log("delete " + key);
-        DB db = DB.DB;
-        db.deleteWithChilds(key);
+        DS ds = DS.get();
+        ds.deleteWithChilds(key);
     }
 
     protected void update(HttpServletRequest req) throws HttpException
@@ -245,7 +233,7 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
         Key key = getKey(req);
         if (key != null)
         {
-            DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+            DatastoreService datastore = DS.get();
             Entity entity = null;
             try
             {
@@ -278,18 +266,12 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
                 }
             }
             entity.setProperty(TimestampProperty, new Date());
-            putEntity(entity);
+            datastore.put(entity);
         }
         else
         {
             throw new HttpException(HttpServletResponse.SC_CONFLICT, "key == null");
         }
-    }
-
-    protected void putEntity(Entity entity)
-    {
-        DB db = DB.DB;
-        db.putAndCache(entity);
     }
 
     protected Key getParent()

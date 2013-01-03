@@ -37,15 +37,15 @@ public class Settings implements BlogConstants, Serializable
     private static final long serialVersionUID = 1L;
     private Map<String,Object> map = new HashMap<String,Object>();
 
-    Settings(DB db, Entity entity) throws EntityNotFoundException
+    Settings(DS db, Entity entity) throws EntityNotFoundException
     {
         populate(db, entity);
     }
     
-    private void populate(DB db, Entity entity) throws EntityNotFoundException
+    private void populate(DS db, Entity entity) throws EntityNotFoundException
     {
         Key parent = entity.getParent();
-        if (parent != null)
+        if (parent != null && SettingsKind.equals(parent.getKind()))
         {
             Entity ent = db.get(parent);
             populate(db, ent);
@@ -70,9 +70,32 @@ public class Settings implements BlogConstants, Serializable
     {
         return LocaleHelp.toLocale((String)map.get(LocaleProperty));
     }
-    public Text getTemplate()
+    public String getBlogAreaTemplate()
     {
-        return (Text) Objects.nonNull(map.get(TemplateProperty));
+        Text text = (Text) Objects.nonNull(map.get(BlogAreaTemplateProperty));
+        String tmpl = text.getValue();
+        return tmpl;
+    }
+    public String getBlogTemplate()
+    {
+        Text text = (Text) Objects.nonNull(map.get(BlogTemplateProperty));
+        String tmpl = text.getValue();
+        tmpl = tmpl.replace("${Subject}", "%1$s");
+        tmpl = tmpl.replace("${Date}", "%2$s");
+        tmpl = tmpl.replace("${Sender}", "%3$s");
+        tmpl = tmpl.replace("${Blog}", "%4$s");
+        tmpl = tmpl.replace("${Url}", "%5$s");
+        tmpl = tmpl.replace("${Id}", "%6$s");
+        return tmpl;
+    }
+    public String getCommentTemplate()
+    {
+        Text text = (Text) Objects.nonNull(map.get(CommentTemplateProperty));
+        String tmpl = text.getValue();
+        tmpl = tmpl.replace("${Nickname}", "%1$s");
+        tmpl = tmpl.replace("${Date}", "%2$s");
+        tmpl = tmpl.replace("${Comment}", "%3$s");
+        return tmpl;
     }
     public boolean isPublishImmediately()
     {

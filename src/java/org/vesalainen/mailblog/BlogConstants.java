@@ -35,6 +35,7 @@ public interface BlogConstants
     static final String MetadataKind = "Metadata";
     static final String SettingsKind = "Settings";
     static final String KeywordKind = "Settings";
+    static final String CommentsKind = "Comments";
     
     static final String TimestampProperty = "Timestamp";
     static final String HtmlProperty = "Html";
@@ -47,7 +48,9 @@ public interface BlogConstants
     static final String ContentTypeProperty = "ContentType";
     static final String EmailProperty = "Email";
     static final String NicknameProperty = "Nickname";
-    static final String TemplateProperty = "Template";
+    static final String BlogAreaTemplateProperty = "BlogAreaTemplate";
+    static final String BlogTemplateProperty = "BlogTemplate";
+    static final String CommentTemplateProperty = "CommentTemplate";
     static final String PublishImmediatelyProperty = "PublishImmediately";
     static final String LocaleProperty = "Locale";
     static final String PicMaxHeightProperty = "PicMaxHeight";
@@ -60,6 +63,9 @@ public interface BlogConstants
     static final String AttachmentsProperty = "Attachments";
     static final String PublishProperty = "Publish";
     static final String KeywordsProperty = "Keywords";
+    static final String KeywordProperty = "Keyword";
+    static final String CommentProperty = "Keyword";
+    static final String UserProperty = "User";
     
     static final String RemoveParameter = "remove";
     static final String BlogParameter = "blog";
@@ -77,9 +83,15 @@ public interface BlogConstants
     static final String NewParameter = "new";
     static final String BackupParameter = "backup";
     static final String SearchParameter = "search";
+    static final String KeywordsParameter = "keywords";
+    static final String CommentParameter = "comment";
+    static final String CommentsParameter = "comments";
     
     static final String BaseKey = "base";
     static final String FirstPageKey = "startCursor";
     static final String CalendarKey = "calendar";
     static final String CursorsKey = "cursors";
+    static final String KeywordsKey = "keywords";
+    
+    static final String BlogIndex = "BlogIndex";
 }

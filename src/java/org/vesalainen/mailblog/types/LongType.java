@@ -26,7 +26,11 @@ public class LongType extends PropertyType<Long>
     @Override
     public Long newInstance(String value)
     {
-        return new Long(value);
+        if (value != null && !value.isEmpty())
+        {
+            return new Long(value);
+        }
+        return null;
     }
 
     @Override

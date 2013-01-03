@@ -57,7 +57,7 @@ public class PageServlet extends EntityServlet implements BlogConstants
         String backup = req.getParameter(BackupParameter);
         if (backup != null)
         {
-            DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+            DatastoreService datastore = DS.get();
             Key key = KeyFactory.stringToKey(backup);
             try
             {
@@ -109,7 +109,7 @@ public class PageServlet extends EntityServlet implements BlogConstants
     {
         log(parent.toString());
         log(parent.getNamespace());
-        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        DatastoreService datastore = DS.get();
         Query query = new Query(PageBackupKind);
         log(query.toString());
         query.setAncestor(parent);
@@ -125,20 +125,6 @@ public class PageServlet extends EntityServlet implements BlogConstants
         }
         Collections.reverse(list);
         return list;
-    }
-
-    @Override
-    protected Entity getEntity(Key key) throws HttpException
-    {
-        DB db = DB.DB;
-        return db.getPageEntity(key);
-    }
-
-    @Override
-    protected void putEntity(Entity entity)
-    {
-        DB db = DB.DB;
-        db.setPage(entity);
     }
 
 }

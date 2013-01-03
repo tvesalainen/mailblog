@@ -47,7 +47,7 @@ public abstract class SettingsServlet extends EntityServlet
     @Override
     protected void update(HttpServletRequest req) throws HttpException
     {
-        DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+        DatastoreService datastore = DS.get();
         Transaction tr = datastore.beginTransaction();
         try
         {
