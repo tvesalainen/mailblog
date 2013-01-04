@@ -18,8 +18,6 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
@@ -39,6 +37,8 @@ import com.google.appengine.api.datastore.TransactionOptions;
 import com.google.appengine.api.users.User;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
@@ -51,6 +51,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.servlet.http.HttpServletResponse;
+import org.vesalainen.rss.Channel;
+import org.vesalainen.rss.Item;
+import org.vesalainen.rss.RSS;
 
 /**
  * @author Timo Vesalainen
@@ -124,6 +130,54 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
     }
     
+    public void writeRSS(URL base, HttpServletResponse response) throws IOException
+    {
+        try
+        {
+            URI baseUri = base.toURI();
+            Settings settings = getSettings();
+            RSS rss = new RSS();
+            Channel channel = new Channel();
+            rss.getChannel().add(channel);
+            channel.setTitle(settings.getTitle());
+            channel.setDescription(settings.getDescription());
+            channel.setLanguage(settings.getLocale().getLanguage());
+            Date now = new Date();
+            channel.setPubDate(now);
+            channel.setLastBuildDate(now);
+            Query query = new Query(BlogKind);
+            query.addSort(DateProperty, Query.SortDirection.DESCENDING);
+            PreparedQuery prepared = prepare(query);
+            for (Entity blog : prepared.asIterable())
+            {
+                String subject = (String) Objects.nonNull(blog.getProperty(SubjectProperty));
+                Date date = (Date) Objects.nonNull(blog.getProperty(DateProperty));
+                Email sender = (Email) Objects.nonNull(blog.getProperty(SenderProperty));
+                String nickname = getNickname(sender);
+                try
+                {
+                    Settings bloggerSettings = getSettingsFor(sender);
+                    nickname = bloggerSettings.getNickname();
+                }
+                catch (EntityNotFoundException ex)
+                {
+                }
+                Item item = new Item();
+                item.setAuthor(nickname);
+                item.setTitle(subject);
+                item.setPubDate(date);
+                URI uri = baseUri.resolve("/blog?blog="+KeyFactory.keyToString(blog.getKey()));
+                item.setLink(uri);
+                channel.getItem().add(item);
+            }
+            response.setContentType("application/rss+xml");
+            rss.marshall(response.getWriter());
+        }
+        catch (URISyntaxException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+    }
     public String getBlogList(String blogCursor, URL base) throws EntityNotFoundException, IOException
     {
         Date begin = null;
@@ -191,7 +245,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         return sb.toString();
     }
 
-    public String getComments(Key blogKey) throws EntityNotFoundException
+    public String getComments(Key blogKey, User loggedUser) throws EntityNotFoundException
     {
         Entity blog = get(blogKey);
         Email sender = (Email) Objects.nonNull(blog.getProperty(SenderProperty));
@@ -209,11 +263,16 @@ public class DS extends CachingDatastoreService implements BlogConstants
             User user = (User) comment.getProperty(UserProperty);
             Date date = (Date) comment.getProperty(TimestampProperty);
             Text text = (Text) comment.getProperty(CommentProperty);
+            String hidden = "hidden";
+            if (user.equals(loggedUser))
+            {
+                hidden = "";
+            }
             if (user != null && text != null && date != null)
             {
                 String nickname = getNickname(user);
                 String dateString = dateFormat.format(date);
-                sb.append(String.format(locale, commentTemplate, nickname, dateString, text.getValue()));
+                sb.append(String.format(locale, commentTemplate, nickname, dateString, text.getValue(), hidden, KeyFactory.keyToString(comment.getKey())));
             }
         }
         return sb.toString();
@@ -228,9 +287,37 @@ public class DS extends CachingDatastoreService implements BlogConstants
         comment.setProperty(TimestampProperty, new Date());
         put(comment);
     }
+    public void removeComment(Key commentKey, User currentUser) throws HttpException
+    {
+        try
+        {
+            Entity comment = get(commentKey);
+            User user = (User) comment.getProperty(UserProperty);
+            if (currentUser.equals(user))
+            {
+                delete(commentKey);
+            }
+            else
+            {
+                throw new HttpException(HttpServletResponse.SC_FORBIDDEN);
+            }
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new HttpException(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+
+    private String getNickname(Email email)
+    {
+        return getNickname(email.getEmail());
+    }
     private String getNickname(User user)
     {
-        String email = user.getEmail();
+        return getNickname(user.getEmail());
+    }
+    private String getNickname(String email)
+    {
         int idx = email.indexOf('@');
         if (idx == -1)
         {

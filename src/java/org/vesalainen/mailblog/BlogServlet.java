@@ -7,6 +7,7 @@ package org.vesalainen.mailblog;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import java.io.IOException;
@@ -82,8 +83,14 @@ public class BlogServlet extends HttpServlet implements BlogConstants
                         String comments = request.getParameter(CommentsParameter);
                         if (comments != null)
                         {
+                            User user = null;
+                            UserService userService = UserServiceFactory.getUserService();
+                            if (userService.isUserLoggedIn())
+                            {
+                                user = userService.getCurrentUser();
+                            }
                             response.setContentType("text/html; charset=UTF-8");
-                            response.getWriter().write(ds.getComments(blogKey));
+                            response.getWriter().write(ds.getComments(blogKey, user));
                         }
                         else
                         {
@@ -120,47 +127,75 @@ public class BlogServlet extends HttpServlet implements BlogConstants
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        URL base = getBase(request);
-        response.setHeader("Cache-Control", "private, max-age=0, no-cache");
-        DS ds = DS.get();
-        String search = request.getParameter(SearchParameter);
-        if (search != null)
+        try
         {
-            try
+            URL base = getBase(request);
+            response.setHeader("Cache-Control", "private, max-age=0, no-cache");
+            DS ds = DS.get();
+            String search = request.getParameter(SearchParameter);
+            if (search != null)
             {
-                log("search="+search);
-                BlogCursor bc = new BlogCursor()
-                        .setSearch(search);
-                response.setContentType("text/html; charset=UTF-8");
-                response.getWriter().write(ds.getBlogList(bc.getWebSafe(), base));
-            }
-            catch (EntityNotFoundException ex)
-            {
-                log("", ex);
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
-            }
-        }
-        else
-        {
-            String blogKeyString = request.getParameter(BlogParameter);
-            if (blogKeyString != null)
-            {
-                Key blogKey = KeyFactory.stringToKey(blogKeyString);
-                String comment = request.getParameter(CommentParameter);
-                if (comment != null)
+                try
                 {
-                    UserService userService = UserServiceFactory.getUserService();
-                    if (userService.isUserLoggedIn())
+                    log("search="+search);
+                    BlogCursor bc = new BlogCursor()
+                            .setSearch(search);
+                    response.setContentType("text/html; charset=UTF-8");
+                    response.getWriter().write(ds.getBlogList(bc.getWebSafe(), base));
+                }
+                catch (EntityNotFoundException ex)
+                {
+                    log("", ex);
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                }
+            }
+            else
+            {
+                String blogKeyString = request.getParameter(BlogParameter);
+                if (blogKeyString != null)
+                {
+                    Key blogKey = KeyFactory.stringToKey(blogKeyString);
+                    String comment = request.getParameter(CommentParameter);
+                    if (comment != null)
                     {
-                        ds.addComment(blogKey, userService.getCurrentUser(), comment);
+                        UserService userService = UserServiceFactory.getUserService();
+                        if (userService.isUserLoggedIn())
+                        {
+                            ds.addComment(blogKey, userService.getCurrentUser(), comment);
+                        }
+                        else
+                        {
+                            String loginURL = userService.createLoginURL("");
+                            log(loginURL);
+                            response.getWriter().write(loginURL);
+                        }
                     }
-                    else
+                }
+                else
+                {
+                    String removeComment = request.getParameter(RemoveCommentParameter);
+                    if (removeComment != null)
                     {
-                        String loginURL = userService.createLoginURL("");
-                        response.getWriter().write(loginURL);
+                        Key commentKey = KeyFactory.stringToKey(removeComment);
+                        UserService userService = UserServiceFactory.getUserService();
+                        if (userService.isUserLoggedIn())
+                        {
+                            ds.removeComment(commentKey, userService.getCurrentUser());
+                        }
+                        else
+                        {
+                            String loginURL = userService.createLoginURL("");
+                            log(loginURL);
+                            response.getWriter().write(loginURL);
+                        }
                     }
                 }
             }
+        }
+        catch (HttpException ex)
+        {
+            log(ex.getMessage(), ex);
+            ex.sendError(response);
         }
     }
 

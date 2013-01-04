@@ -38,6 +38,8 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
     public BaseSettingsServlet()
     {
         super(SettingsKind);
+        addProperty(TitleProperty);
+        addProperty(DescriptionProperty);
         addProperty(PublishImmediatelyProperty)
                 .setType(Boolean.class);
         addProperty(ShowCountProperty)

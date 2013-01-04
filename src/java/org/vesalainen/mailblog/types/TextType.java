@@ -33,7 +33,10 @@ public class TextType extends PropertyType<Text>
         sb.append("<textarea");
         appendAttributes(sb, attributes);
         sb.append(">");
-        sb.append(getString(value));
+        String text = getString(value);
+        text = text.replace("<", "&lt;");
+        text = text.replace(">", "&gt;");
+        sb.append(text);
         sb.append("</textarea>");
         
         return sb.toString();
@@ -44,6 +47,8 @@ public class TextType extends PropertyType<Text>
     {
         if (value != null && !value.isEmpty())
         {
+            value = value.replace("&lt;", "<");
+            value = value.replace("&gt;", ">");
             return new Text(value);
         }
         return null;

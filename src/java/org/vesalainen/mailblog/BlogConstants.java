@@ -37,6 +37,8 @@ public interface BlogConstants
     static final String KeywordKind = "Settings";
     static final String CommentsKind = "Comments";
     
+    static final String TitleProperty = "Title";
+    static final String DescriptionProperty = "Description";
     static final String TimestampProperty = "Timestamp";
     static final String HtmlProperty = "Html";
     static final String SubjectProperty = "Subject";
@@ -64,7 +66,7 @@ public interface BlogConstants
     static final String PublishProperty = "Publish";
     static final String KeywordsProperty = "Keywords";
     static final String KeywordProperty = "Keyword";
-    static final String CommentProperty = "Keyword";
+    static final String CommentProperty = "Comment";
     static final String UserProperty = "User";
     
     static final String RemoveParameter = "remove";
@@ -86,12 +88,9 @@ public interface BlogConstants
     static final String KeywordsParameter = "keywords";
     static final String CommentParameter = "comment";
     static final String CommentsParameter = "comments";
+    static final String RemoveCommentParameter = "removecomment";
     
     static final String BaseKey = "base";
-    static final String FirstPageKey = "startCursor";
-    static final String CalendarKey = "calendar";
-    static final String CursorsKey = "cursors";
-    static final String KeywordsKey = "keywords";
     
     static final String BlogIndex = "BlogIndex";
 }

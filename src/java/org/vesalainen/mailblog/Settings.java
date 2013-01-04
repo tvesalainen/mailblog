@@ -58,6 +58,14 @@ public class Settings implements BlogConstants, Serializable
         return map;
     }
     
+    public String getTitle()
+    {
+        return (String) map.get(TitleProperty);
+    }
+    public String getDescription()
+    {
+        return (String) map.get(DescriptionProperty);
+    }
     public Email getEmail()
     {
         return (Email) Objects.nonNull(map.get(EmailProperty));
@@ -95,6 +103,8 @@ public class Settings implements BlogConstants, Serializable
         tmpl = tmpl.replace("${Nickname}", "%1$s");
         tmpl = tmpl.replace("${Date}", "%2$s");
         tmpl = tmpl.replace("${Comment}", "%3$s");
+        tmpl = tmpl.replace("${Hidden}", "%4$s");
+        tmpl = tmpl.replace("${Id}", "%5$s");
         return tmpl;
     }
     public boolean isPublishImmediately()
