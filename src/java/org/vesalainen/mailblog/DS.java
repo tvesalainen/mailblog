@@ -142,9 +142,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             channel.setTitle(settings.getTitle());
             channel.setDescription(settings.getDescription());
             channel.setLanguage(settings.getLocale().getLanguage());
-            Date now = new Date();
-            channel.setPubDate(now);
-            channel.setLastBuildDate(now);
+            Date last = new Date(0);
             Query query = new Query(BlogKind);
             query.addSort(DateProperty, Query.SortDirection.DESCENDING);
             PreparedQuery prepared = prepare(query);
@@ -152,6 +150,10 @@ public class DS extends CachingDatastoreService implements BlogConstants
             {
                 String subject = (String) Objects.nonNull(blog.getProperty(SubjectProperty));
                 Date date = (Date) Objects.nonNull(blog.getProperty(DateProperty));
+                if (date.after(last))
+                {
+                    last = date;
+                }
                 Email sender = (Email) Objects.nonNull(blog.getProperty(SenderProperty));
                 String nickname = getNickname(sender);
                 try
@@ -166,10 +168,12 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 item.setAuthor(nickname);
                 item.setTitle(subject);
                 item.setPubDate(date);
-                URI uri = baseUri.resolve("/blog?blog="+KeyFactory.keyToString(blog.getKey()));
+                URI uri = baseUri.resolve("/index.html?blog="+KeyFactory.keyToString(blog.getKey()));
                 item.setLink(uri);
                 channel.getItem().add(item);
             }
+            channel.setPubDate(last);
+            channel.setLastBuildDate(last);
             response.setContentType("application/rss+xml");
             rss.marshall(response.getWriter());
         }
