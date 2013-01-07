@@ -63,16 +63,14 @@ public class BlobServlet extends HttpServlet implements BlogConstants
                 {
                     timestamp = new Date(0);
                 }
-                long ifModifiedSince = request.getDateHeader("If-Modified-Since");
-                if (ifModifiedSince != -1)
+                String eTag = String.valueOf(timestamp.getTime());
+                String ifNoneMatch = request.getHeader("If-None-Match");
+                if (eTag.equals(ifNoneMatch))
                 {
-                    if (ifModifiedSince >= timestamp.getTime())
-                    {
-                        response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
-                        return;
-                    }
+                    response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
+                    return;
                 }
-                response.setDateHeader("Modified-Since", timestamp.getTime());
+                response.setHeader("ETag", eTag);
                 BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
                 String original = request.getParameter(OriginalParameter);
                 if (original != null)

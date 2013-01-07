@@ -39,6 +39,7 @@ import java.net.URL;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
+import org.vesalainen.mailblog.DS.CacheWriter;
 
 /**
  * @author Timo Vesalainen
@@ -90,11 +91,10 @@ public class Searches implements BlogConstants
         index.put(document);
     }
 
-    public static String getBlogListFromSearch(BlogCursor bc, URL base) throws EntityNotFoundException, IOException
+    public static void getBlogListFromSearch(BlogCursor bc, URL base, CacheWriter sb) throws EntityNotFoundException, IOException
     {
         DS ds = DS.get();
         Settings settings = ds.getSettings();
-        StringBuilder sb = new StringBuilder();
         SearchService searchService = SearchServiceFactory.getSearchService();
         Index index = searchService.getIndex(IndexSpec.newBuilder().setName(BlogIndex));
         Builder optionsBuilder = QueryOptions.newBuilder();
@@ -121,7 +121,7 @@ public class Searches implements BlogConstants
         }
         bc.setSearchCursor(result.getCursor());
         sb.append("<span id=\"nextPage\" class=\"hidden\">"+bc.getWebSafe()+"</span>");
-        return sb.toString();
+        sb.ready();
     }
 
 }

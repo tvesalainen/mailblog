@@ -48,8 +48,12 @@ public class RSSServlet extends HttpServlet
             throws ServletException, IOException
     {
         DS ds = DS.get();
-        URL base = getBase(request);
-        ds.writeRSS(base, response);
+        if (!ds.serveFromCache(request, response))
+        {
+            URL base = getBase(request);
+            DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response, "application/rss+xml", "utf-8", false);
+            ds.writeRSS(base, cacheWriter);
+        }
     }
 
     /**

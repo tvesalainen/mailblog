@@ -37,6 +37,9 @@ import com.google.appengine.api.datastore.TransactionOptions;
 import com.google.appengine.api.users.User;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -47,12 +50,12 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.vesalainen.rss.Channel;
 import org.vesalainen.rss.Item;
@@ -71,7 +74,66 @@ public class DS extends CachingDatastoreService implements BlogConstants
     {
         return new DS();
     }
-    
+    /**
+     * Convenience method that sets contentType to "text/html" and charset to "utf-8"
+     * @param response
+     * @return
+     * @throws IOException 
+     */
+    public CacheWriter createCacheWriter(HttpServletRequest request, HttpServletResponse response) throws IOException
+    {
+        return createCacheWriter(request, response, "text/html", "utf-8", false);
+    }
+    public CacheWriter createCacheWriter(HttpServletRequest request, HttpServletResponse response, String contentType, String charset, boolean isPrivate) throws IOException
+    {
+        response.setContentType(contentType);
+        response.setCharacterEncoding(charset);
+        return new CacheWriter(request, response, isPrivate);
+    }
+    public boolean serveFromCache(HttpServletRequest request, HttpServletResponse response) throws IOException
+    {
+        String ifNoneMatch = request.getHeader("If-None-Match");
+        if (ifNoneMatch != null)
+        {
+            if (!changedETAG(ifNoneMatch))
+            {
+                response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
+                return true;
+            }
+        }
+        String cacheKey = getCacheKey(request);
+        CachedContent cachedContent = (CachedContent) cache.get(cacheKey);
+        if (cachedContent != null)
+        {
+            System.err.println("serve "+cacheKey);
+            cachedContent.serve(response);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    public String getCacheKey(HttpServletRequest request)
+    {
+        StringBuilder sb = new StringBuilder();
+        String ServletPath = request.getServletPath();
+        if (ServletPath != null)
+        {
+            sb.append(ServletPath);
+        }
+        String pathInfo = request.getPathInfo();
+        if (pathInfo != null)
+        {
+            sb.append(pathInfo);
+        }
+        String queryString = request.getQueryString();
+        if (queryString != null)
+        {
+            sb.append('?'+queryString);
+        }
+        return sb.toString();
+    }
     public Entity getPageEntity(String path) throws EntityNotFoundException
     {
         return get(KeyFactory.createKey(Root, PageKind, path));
@@ -130,7 +192,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
     }
     
-    public void writeRSS(URL base, HttpServletResponse response) throws IOException
+    public void writeRSS(URL base, CacheWriter cw) throws IOException
     {
         try
         {
@@ -174,38 +236,41 @@ public class DS extends CachingDatastoreService implements BlogConstants
             }
             channel.setPubDate(last);
             channel.setLastBuildDate(last);
-            response.setContentType("application/rss+xml");
-            rss.marshall(response.getWriter());
+            rss.marshall(cw);
+            cw.ready();
         }
         catch (URISyntaxException ex)
         {
             throw new IllegalArgumentException(ex);
         }
     }
-    public String getBlogList(String blogCursor, URL base) throws EntityNotFoundException, IOException
+    public void getBlogList(String blogCursor, URL base, boolean all, CacheWriter sb) throws EntityNotFoundException, IOException
     {
         Date begin = null;
         Date end = null;
         Cursor cursor = null;
         if (blogCursor != null)
         {
-            System.err.println(blogCursor);
             BlogCursor bc = new BlogCursor(blogCursor);
             if (bc.isSearch())
             {
-                return Searches.getBlogListFromSearch(bc, base);
+                Searches.getBlogListFromSearch(bc, base, sb);
+                return;
             }
             begin = bc.getBegin();
             end = bc.getEnd();
             cursor = bc.getDatastoreCursor();
         }
         Settings settings = getSettings();
-        FetchOptions options = FetchOptions.Builder.withLimit(settings.getShowCount());
+        FetchOptions options = FetchOptions.Builder.withDefaults();
+        if (!all)
+        {
+            options.limit(settings.getShowCount());
+        }
         if (cursor != null)
         {
             options = options.startCursor(cursor);
         }
-        StringBuilder sb = new StringBuilder();
         Query query = new Query(BlogKind);
         query.addSort(DateProperty, Query.SortDirection.DESCENDING);
         List<Filter> filters = new ArrayList<Filter>();
@@ -246,10 +311,10 @@ public class DS extends CachingDatastoreService implements BlogConstants
         {
             sb.append("<span id=\"nextPage\" class=\"hidden\">"+bc.getWebSafe()+"</span>");
         }
-        return sb.toString();
+        sb.ready();
     }
 
-    public String getComments(Key blogKey, User loggedUser) throws EntityNotFoundException
+    public void getComments(Key blogKey, User loggedUser, CacheWriter cw) throws EntityNotFoundException, IOException
     {
         Entity blog = get(blogKey);
         Email sender = (Email) Objects.nonNull(blog.getProperty(SenderProperty));
@@ -257,7 +322,6 @@ public class DS extends CachingDatastoreService implements BlogConstants
         String commentTemplate = senderSettings.getCommentTemplate();
         Locale locale = senderSettings.getLocale();
         DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, locale);
-        StringBuilder sb = new StringBuilder();
         Query query = new Query(CommentsKind);
         query.setAncestor(blogKey);
         query.addSort(TimestampProperty, Query.SortDirection.DESCENDING);
@@ -276,10 +340,10 @@ public class DS extends CachingDatastoreService implements BlogConstants
             {
                 String nickname = getNickname(user);
                 String dateString = dateFormat.format(date);
-                sb.append(String.format(locale, commentTemplate, nickname, dateString, text.getValue(), hidden, KeyFactory.keyToString(comment.getKey())));
+                cw.append(String.format(locale, commentTemplate, nickname, dateString, text.getValue(), hidden, KeyFactory.keyToString(comment.getKey())));
             }
         }
-        return sb.toString();
+        cw.ready();
     }
     public void addComment(Key blogKey, User user, String text)
     {
@@ -338,13 +402,13 @@ public class DS extends CachingDatastoreService implements BlogConstants
             return name;
         }
     }
-    public String getBlog(Key key, URL base) throws EntityNotFoundException
+    public void getBlog(Key key, URL base, CacheWriter cw) throws EntityNotFoundException, IOException
     {
         Entity entity = get(key);
-        return getBlog(entity, base);
-        
+        cw.append(getBlog(entity, base));
+        cw.ready();
     }
-    public String getBlog(Entity entity, URL base) throws EntityNotFoundException
+    public String getBlog(Entity entity, URL base) throws EntityNotFoundException, IOException
     {
         String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
         Date date = (Date) Objects.nonNull(entity.getProperty(DateProperty));
@@ -364,7 +428,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         String dateString = dateFormat.format(date);
         return String.format(locale, senderSettings.getBlogTemplate(), subject, dateString, senderSettings.getNickname(), body, base.toString(), key);
     }
-    public String getCalendar() throws EntityNotFoundException, IOException
+    public void getCalendar(CacheWriter cw) throws EntityNotFoundException, IOException
     {
         Settings settings = getSettings();
         Locale locale = settings.getLocale();
@@ -400,18 +464,16 @@ public class DS extends CachingDatastoreService implements BlogConstants
             list.add(entity);
             //list.add("<div class=\"blog-entry\" id=\""+KeyFactory.keyToString(entity.getKey())+"\">"+subject+"</div>");
         }
-        StringBuilder sb = new StringBuilder();
-        int yearCount = 0;
-        int monthCount = 0;
-        int yearPtr = 0;
-        int monthPtr = 0;
         for (int year : yearMap.keySet())
         {
-            sb.append("<div id=\"year"+year+"\" class=\"calendar-menu\">"+year+" (");
-            yearPtr = sb.length();
-            sb.append(")</div>\n");
-            sb.append("<div class=\"hidden year"+year+" calendar-indent\">\n");
             Map<Integer,List<Entity>> monthMap = yearMap.get(year);
+            int yearCount = 0;
+            for (List<Entity> list : monthMap.values())
+            {
+                yearCount += list.size();
+            }
+            cw.append("<div id=\"year"+year+"\" class=\"calendar-menu\">"+year+" ("+yearCount+")</div>\n");
+            cw.append("<div class=\"hidden year"+year+" calendar-indent\">\n");
             for (int month : monthMap.keySet())
             {
                 List<Entity> blogList = monthMap.get(month);
@@ -421,26 +483,19 @@ public class DS extends CachingDatastoreService implements BlogConstants
                         .setBegin(begin)
                         .setEnd(end);
                 String monthId = bc.getWebSafe();
-                sb.append("<div id=\""+monthId+"\" class=\"calendar-menu\">"+prettify(months[month])+" (");
-                monthPtr = sb.length();
-                sb.append(")</div>\n");
-                sb.append("<div class=\"hidden "+monthId+" calendar-indent\">\n");
+                cw.append("<div id=\""+monthId+"\" class=\"calendar-menu\">"+prettify(months[month])+" ("+blogList.size()+")</div>\n");
+                cw.append("<div class=\"hidden "+monthId+" calendar-indent\">\n");
                 for (Entity entity : blogList)
                 {
                     String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
-                    sb.append("<div class=\"blog-entry\" id=\""+KeyFactory.keyToString(entity.getKey())+"\">"+subject+"</div>");
-                    yearCount++;
-                    monthCount++;
+                    cw.append("<div class=\"blog-entry\" id=\""+KeyFactory.keyToString(entity.getKey())+"\">"+subject+"</div>");
                 }
-                sb.insert(monthPtr, monthCount);
-                monthCount = 0;
-                sb.append("</div>\n");
+                cw.append("</div>\n");
             }
-            sb.append("</div>\n");
-            sb.insert(yearPtr, yearCount);
+            cw.append("</div>\n");
             yearCount = 0;
         }
-        return sb.toString();
+        cw.ready();
     }
     private String prettify(String str)
     {
@@ -514,9 +569,8 @@ public class DS extends CachingDatastoreService implements BlogConstants
         Searches.saveBlog(blog);
     }
 
-    public String getKeywordSelect()
+    public void getKeywordSelect(CacheWriter cw) throws IOException
     {   // TODO performance
-        StringBuilder sb = new StringBuilder();
         Query query = new Query(BlogKind);
 
         PreparedQuery prepared = prepare(query);
@@ -543,14 +597,69 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 }
             }
         }
-        sb.append("<select id=\"keywordSelect\">");
-        sb.append("<option>------</option>");
+        cw.append("<select id=\"keywordSelect\">");
+        cw.append("<option>------</option>");
         for (String kw : map.keySet())
         {
-            sb.append("<option value=\"Keyword:"+kw+"\">"+kw+"("+map.get(kw) +")</option>");
+            cw.append("<option value=\"Keyword:"+kw+"\">"+kw+"("+map.get(kw) +")</option>");
         }
-        sb.append("</select>");
-        return sb.toString();
+        cw.append("</select>");
+        cw.ready();
     }
 
+    public class CacheWriter extends Writer
+    {
+        private Writer out;
+        private StringWriter stringWriter = new StringWriter();
+        private HttpServletResponse response;
+        private String eTag;
+        private String cacheKey;
+        private boolean isPrivate;
+
+        private CacheWriter(HttpServletRequest request, HttpServletResponse response, boolean isPrivate) throws IOException
+        {
+            out = response.getWriter();
+            this.cacheKey = getCacheKey(request);
+            this.response = response;
+            this.eTag = getETag();
+            this.isPrivate = isPrivate;
+            response.setHeader("ETag", eTag);
+            if (isPrivate)
+            {
+                response.setHeader("Cache-Control", "private");
+            }
+            else
+            {
+                response.setHeader("Cache-Control", "public");
+            }
+        }
+
+        public void ready()
+        {
+            if (!isPrivate)
+            {
+                String content = stringWriter.toString();
+                CachedContent cachedContent = new CachedContent(content, response.getContentType(), response.getCharacterEncoding(), eTag, isPrivate);
+                cache.put(cacheKey, cachedContent);
+            }
+        }
+        
+        @Override
+        public void write(char[] buf, int off, int len) throws IOException
+        {
+            out.write(buf, off, len);
+            stringWriter.write(buf, off, len);
+        }
+
+        @Override
+        public void flush() throws IOException
+        {
+        }
+
+        @Override
+        public void close() throws IOException
+        {
+        }
+
+    }
 }

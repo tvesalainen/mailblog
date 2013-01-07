@@ -19,6 +19,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.vesalainen.mailblog.DS.CacheWriter;
 
 /**
  *
@@ -53,64 +54,65 @@ public class BlogServlet extends HttpServlet implements BlogConstants
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        URL base = getBase(request);
-        response.setHeader("Cache-Control", "private, max-age=0, no-cache");
         DS ds = DS.get();
-        try
+        if (!ds.serveFromCache(request, response))
         {
-            
-            String calendar = request.getParameter(CalendarParameter);
-            if (calendar != null)
+            try
             {
-                String calendarString = ds.getCalendar();
-                response.setContentType("text/html; charset=UTF-8");
-                response.getWriter().write(calendarString);
-            }
-            else
-            {
-                String keywords = request.getParameter(KeywordsParameter);
-                if (keywords != null)
+                URL base = getBase(request);
+                String calendar = request.getParameter(CalendarParameter);
+                if (calendar != null)
                 {
-                    response.setContentType("text/html; charset=UTF-8");
-                    response.getWriter().write(ds.getKeywordSelect());
+                    CacheWriter cacheWriter = ds.createCacheWriter(request, response);
+                    ds.getCalendar(cacheWriter);
                 }
                 else
                 {
-                    String blogKeyString = request.getParameter(BlogParameter);
-                    if (blogKeyString != null)
+                    String keywords = request.getParameter(KeywordsParameter);
+                    if (keywords != null)
                     {
-                        Key blogKey = KeyFactory.stringToKey(blogKeyString);
-                        String comments = request.getParameter(CommentsParameter);
-                        if (comments != null)
-                        {
-                            User user = null;
-                            UserService userService = UserServiceFactory.getUserService();
-                            if (userService.isUserLoggedIn())
-                            {
-                                user = userService.getCurrentUser();
-                            }
-                            response.setContentType("text/html; charset=UTF-8");
-                            response.getWriter().write(ds.getComments(blogKey, user));
-                        }
-                        else
-                        {
-                            response.setContentType("text/html; charset=UTF-8");
-                            response.getWriter().write(ds.getBlog(blogKey, base));
-                        }
+                        CacheWriter cacheWriter = ds.createCacheWriter(request, response);
+                        ds.getKeywordSelect(cacheWriter);
                     }
                     else
                     {
-                        String blogCursor = request.getParameter(CursorParameter);
-                        response.setContentType("text/html; charset=UTF-8");
-                        response.getWriter().write(ds.getBlogList(blogCursor, base));
+                        String blogKeyString = request.getParameter(BlogParameter);
+                        if (blogKeyString != null)
+                        {
+                            Key blogKey = KeyFactory.stringToKey(blogKeyString);
+                            String comments = request.getParameter(CommentsParameter);
+                            if (comments != null)
+                            {
+                                User user = null;
+                                UserService userService = UserServiceFactory.getUserService();
+                                if (userService.isUserLoggedIn())
+                                {
+                                    user = userService.getCurrentUser();
+                                }
+                                CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", true);
+                                ds.getComments(blogKey, user, cacheWriter);
+                            }
+                            else
+                            {
+                                CacheWriter cacheWriter = ds.createCacheWriter(request, response);
+                                ds.getBlog(blogKey, base, cacheWriter);
+                            }
+                        }
+                        else
+                        {
+                            String blogCursor = request.getParameter(CursorParameter);
+                            boolean all = request.getParameter(AllParameter) != null;
+                            CacheWriter cacheWriter = ds.createCacheWriter(request, response);
+                            ds.getBlogList(blogCursor, base, all, cacheWriter);
+                        }
                     }
                 }
             }
-        }
-        catch (EntityNotFoundException ex)
-        {
-            log("", ex);
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            catch (EntityNotFoundException ex)
+            {
+                log("", ex);
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            }
         }
     }
 
@@ -135,18 +137,20 @@ public class BlogServlet extends HttpServlet implements BlogConstants
             String search = request.getParameter(SearchParameter);
             if (search != null)
             {
-                try
+                if (!ds.serveFromCache(request, response))
                 {
-                    log("search="+search);
-                    BlogCursor bc = new BlogCursor()
-                            .setSearch(search);
-                    response.setContentType("text/html; charset=UTF-8");
-                    response.getWriter().write(ds.getBlogList(bc.getWebSafe(), base));
-                }
-                catch (EntityNotFoundException ex)
-                {
-                    log("", ex);
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    try
+                    {
+                        BlogCursor bc = new BlogCursor()
+                                .setSearch(search);
+                        CacheWriter cacheWriter = ds.createCacheWriter(request, response);
+                        ds.getBlogList(bc.getWebSafe(), base, false, cacheWriter);
+                    }
+                    catch (EntityNotFoundException ex)
+                    {
+                        log("", ex);
+                        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    }
                 }
             }
             else

@@ -44,8 +44,8 @@ import java.util.Map;
 public class CachingDatastoreService implements DatastoreService, BlogConstants
 {
     public static Key Root = KeyFactory.createKey(RootKind, 1);
-    private DatastoreService datastore;
-    private MemcacheService cache;
+    protected DatastoreService datastore;
+    protected MemcacheService cache;
     private static long version;
     private Key entityGroupKey;
 
@@ -109,10 +109,19 @@ public class CachingDatastoreService implements DatastoreService, BlogConstants
         }
         catch (EntityNotFoundException ex)
         {
-            throw new IllegalArgumentException(ex);
+            cache.clearAll();
+            version = 0;
         }
     }
-    
+    public String getETag()
+    {
+        return String.valueOf(version);
+    }
+    public boolean changedETAG(String etag)
+    {
+        long et = Long.parseLong(etag);
+        return version != et;
+    }
     public PreparedQuery prepare(Transaction t, Query query)
     {
         return datastore.prepare(t, query);
