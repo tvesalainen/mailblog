@@ -86,21 +86,6 @@ import org.vesalainen.mailblog.exif.ExifParser;
 public class MailHandlerServlet extends HttpServlet implements BlogConstants
 {
     private static final String CRLF = "\r\n";
-    private MessageDigest sha1;
-
-    @Override
-    public void init(ServletConfig config) throws ServletException
-    {
-        super.init(config);
-        try
-        {
-            sha1 = MessageDigest.getInstance("SHA-1");
-        }
-        catch (NoSuchAlgorithmException ex)
-        {
-            throw new ServletException(ex);
-        }
-    }
 
     /**
      * Handles the HTTP
@@ -115,12 +100,6 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        log("namespace="+NamespaceManager.get());
-        String removeKey = request.getParameter(RemoveParameter);
-        if (removeKey != null)
-        {
-            remove(removeKey, response);
-        }
     }
 
     /**
@@ -136,32 +115,40 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        String removeKey = request.getParameter(RemoveParameter);
-        if (removeKey != null)
+        try
         {
-            remove(removeKey, response);
-        }
-        else
-        {
-            try
+            String removeKey = request.getParameter(RemoveParameter);
+            if (removeKey != null)
             {
-                BlogAuthor blogAuthor = setNamespace(request, response);
-                if (blogAuthor == null)
+                remove(removeKey, response);
+            }
+            else
+            {
+                try
                 {
-                    return;
+                    BlogAuthor blogAuthor = setNamespace(request, response);
+                    if (blogAuthor == null)
+                    {
+                        return;
+                    }
+                    handleMail(request, response, blogAuthor);
                 }
-                handleMail(request, response, blogAuthor);
+                catch (MessagingException ex)
+                {
+                    log(ex.getMessage(), ex);
+                    response.sendError(HttpServletResponse.SC_CONFLICT);
+                }
+                catch (EntityNotFoundException ex)
+                {
+                    log(ex.getMessage(), ex);
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                }
             }
-            catch (MessagingException ex)
-            {
-                log(ex.getMessage(), ex);
-                response.sendError(HttpServletResponse.SC_CONFLICT);
-            }
-            catch (EntityNotFoundException ex)
-            {
-                log(ex.getMessage(), ex);
-                response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            }
+        }
+        catch (HttpException ex)
+        {
+            log(ex.getMessage(), ex);
+            ex.sendError(response);
         }
     }
     private BlogAuthor setNamespace(HttpServletRequest request, HttpServletResponse response) throws IOException
@@ -187,7 +174,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         String address = pathInfo.substring(idx+1);
         return new BlogAuthor(namespace, address);
     }
-    private void handleMail(HttpServletRequest request, HttpServletResponse response, BlogAuthor blogAuthor) throws IOException, ServletException, EntityNotFoundException, MessagingException
+    private void handleMail(HttpServletRequest request, HttpServletResponse response, BlogAuthor blogAuthor) throws IOException, ServletException, EntityNotFoundException, MessagingException, HttpException
     {
         DS ds = DS.get();
         Properties props = new Properties();
@@ -347,9 +334,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             }
             String cid = cids[0];
             byte[] bytes = getBytes(bodyPart);
-            byte[] digest = sha1.digest(bytes);
-            String digestString = Hex.convert(digest);
-            log(digestString);
+            String digestString = DS.getDigest(bytes);
             Entity metadata = createMetadata(digestString, filename, contentType, bytes);
             replaceBlogRef(blogKey, cid, digestString);
             if (contentType.startsWith("image/"))
@@ -489,7 +474,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
     {
         try
         {
-            log(blog.toString());
+            String digest = DS.getBlogDigest(blog);
             MailService mailService = MailServiceFactory.getMailService();
             Message reply = new Message();
             reply.setSender(blogAuthor.toString());
@@ -497,11 +482,22 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             reply.setTo(sender.getEmail());
             String subject = (String) blog.getProperty(SubjectProperty);
             reply.setSubject("Blog: "+subject+" received");
-            StringBuilder blogDeleteHref = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             URI reqUri = new URI(request.getScheme(), NamespaceManager.get(), "", "");
-            URI uri = reqUri.resolve("/blog?remove="+KeyFactory.keyToString(blog.getKey()));
-            blogDeleteHref.append(uri.toASCIIString());
-            reply.setHtmlBody("<a href=\""+blogDeleteHref+"\">Delete Blog</a>");
+            if (!publishImmediately)
+            {
+                sb.append("<div>");
+                sb.append("<p>Blog is not yet published because it was sent from untrusted email address "+sender.getEmail()+". </p>");
+                URI publishUri = reqUri.resolve("/blog?action=publish&blog="+KeyFactory.keyToString(blog.getKey())+"&auth="+digest);
+                sb.append("<a href=\""+publishUri.toASCIIString()+"\">Publish Blog</a>");
+                sb.append("</div>");
+            }
+            sb.append("<div>");
+            sb.append("<p>If blog is not ok, you can delete and then resend it.</p>");
+            URI deleteUri = reqUri.resolve("/blog?action=remove&blog="+KeyFactory.keyToString(blog.getKey())+"&auth="+digest);
+            sb.append("<a href=\""+deleteUri.toASCIIString()+"\">Delete Blog</a>");
+            sb.append("</div>");
+            reply.setHtmlBody(sb.toString());
             mailService.send(reply);
         }
         catch (URISyntaxException ex)

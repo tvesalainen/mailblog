@@ -37,12 +37,18 @@ import com.google.appengine.api.datastore.TransactionOptions;
 import com.google.appengine.api.users.User;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
 import java.util.ArrayList;
@@ -50,11 +56,12 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.vesalainen.rss.Channel;
@@ -73,6 +80,76 @@ public class DS extends CachingDatastoreService implements BlogConstants
     public static DS get()
     {
         return new DS();
+    }
+    public static String getBlogDigest(Entity blog)
+    {
+        try
+        {
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
+            DigestOutputStream dos = new DigestOutputStream(new NullOutputStream(), messageDigest);
+            ObjectOutputStream oos = new ObjectOutputStream(dos);
+            oos.writeObject(blog.getKey());
+            oos.writeObject(blog.getProperty(SubjectProperty));
+            oos.writeObject(blog.getProperty(SenderProperty));
+            oos.writeObject(blog.getProperty(DateProperty));
+            oos.close();
+            byte[] digest = messageDigest.digest();
+            return Hex.convert(digest);
+        }
+        catch (IOException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+    }
+
+    public static String getDigest(Serializable serializable)
+    {
+        try
+        {
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
+            DigestOutputStream dos = new DigestOutputStream(new NullOutputStream(), messageDigest);
+            ObjectOutputStream oos = new ObjectOutputStream(dos);
+            oos.writeObject(serializable);
+            oos.close();
+            byte[] digest = messageDigest.digest();
+            return Hex.convert(digest);
+        }
+        catch (IOException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+    }
+    public static String getDigest(String str)
+    {
+        try
+        {
+            return getDigest(str.getBytes("utf-8"));
+        }
+        catch (UnsupportedEncodingException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+    }
+    public static String getDigest(byte[] bytes)
+    {
+        try
+        {
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
+            byte[] digest = messageDigest.digest(bytes);
+            return Hex.convert(digest);
+        }
+        catch (NoSuchAlgorithmException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
     }
     /**
      * Convenience method that sets contentType to "text/html" and charset to "utf-8"
@@ -140,6 +217,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
     }
     public void setPage(Entity page)
     {
+        assert PageKind.equals(page.getKind());
         Transaction tr = beginTransaction();
         try
         {
@@ -192,7 +270,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
     }
     
-    public void writeRSS(URL base, CacheWriter cw) throws IOException
+    public void writeRSS(URL base, CacheWriter cw) throws IOException, HttpException
     {
         try
         {
@@ -218,14 +296,8 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 }
                 Email sender = (Email) Objects.nonNull(blog.getProperty(SenderProperty));
                 String nickname = getNickname(sender);
-                try
-                {
-                    Settings bloggerSettings = getSettingsFor(sender);
-                    nickname = bloggerSettings.getNickname();
-                }
-                catch (EntityNotFoundException ex)
-                {
-                }
+                Settings bloggerSettings = getSettingsFor(sender);
+                nickname = bloggerSettings.getNickname();
                 Item item = new Item();
                 item.setAuthor(nickname);
                 item.setTitle(subject);
@@ -244,7 +316,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             throw new IllegalArgumentException(ex);
         }
     }
-    public void getBlogList(String blogCursor, URL base, boolean all, CacheWriter sb) throws EntityNotFoundException, IOException
+    public void getBlogList(String blogCursor, URL base, boolean all, CacheWriter sb) throws HttpException, IOException
     {
         Date begin = null;
         Date end = null;
@@ -314,11 +386,20 @@ public class DS extends CachingDatastoreService implements BlogConstants
         sb.ready();
     }
 
-    public void getComments(Key blogKey, User loggedUser, CacheWriter cw) throws EntityNotFoundException, IOException
+    public void getComments(Key blogKey, User loggedUser, CacheWriter cw) throws HttpException, IOException
     {
-        Entity blog = get(blogKey);
+        Entity blog;
+        try
+        {
+            blog = get(blogKey);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new HttpException(HttpServletResponse.SC_NOT_FOUND, blogKey+" not found");
+        }
         Email sender = (Email) Objects.nonNull(blog.getProperty(SenderProperty));
-        Settings senderSettings = Objects.nonNull(getSettingsFor(sender));
+        Settings senderSettings;
+        senderSettings = Objects.nonNull(getSettingsFor(sender));
         String commentTemplate = senderSettings.getCommentTemplate();
         Locale locale = senderSettings.getLocale();
         DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, locale);
@@ -402,13 +483,21 @@ public class DS extends CachingDatastoreService implements BlogConstants
             return name;
         }
     }
-    public void getBlog(Key key, URL base, CacheWriter cw) throws EntityNotFoundException, IOException
+    public void getBlog(Key key, URL base, CacheWriter cw) throws HttpException, IOException
     {
-        Entity entity = get(key);
+        Entity entity;
+        try
+        {
+            entity = get(key);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new HttpException(HttpServletResponse.SC_NOT_FOUND, key+" not found");
+        }
         cw.append(getBlog(entity, base));
         cw.ready();
     }
-    public String getBlog(Entity entity, URL base) throws EntityNotFoundException, IOException
+    public String getBlog(Entity entity, URL base) throws HttpException, IOException
     {
         String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
         Date date = (Date) Objects.nonNull(entity.getProperty(DateProperty));
@@ -416,11 +505,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
         Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
         return getBlog(sender, subject, date, body.getValue(), KeyFactory.keyToString(entity.getKey()), base);
     }
-    public String getBlog(String sender, String subject, Date date, String body, String key, URL base) throws EntityNotFoundException
+    public String getBlog(String sender, String subject, Date date, String body, String key, URL base) throws HttpException
     {
         return getBlog(new Email(sender), subject, date, body, key, base);
     }
-    public String getBlog(Email sender, String subject, Date date, String body, String key, URL base) throws EntityNotFoundException
+    public String getBlog(Email sender, String subject, Date date, String body, String key, URL base) throws HttpException
     {
         Settings senderSettings = Objects.nonNull(getSettingsFor(sender));
         Locale locale = senderSettings.getLocale();
@@ -428,7 +517,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         String dateString = dateFormat.format(date);
         return String.format(locale, senderSettings.getBlogTemplate(), subject, dateString, senderSettings.getNickname(), body, base.toString(), key);
     }
-    public void getCalendar(CacheWriter cw) throws EntityNotFoundException, IOException
+    public void getCalendar(CacheWriter cw) throws IOException
     {
         Settings settings = getSettings();
         Locale locale = settings.getLocale();
@@ -521,18 +610,25 @@ public class DS extends CachingDatastoreService implements BlogConstants
             throw new IllegalArgumentException(ex);
         }
     }
-    public Settings getSettingsFor(Email email) throws EntityNotFoundException
+    public Settings getSettingsFor(Email email) throws HttpException
     {
-        Key parent = KeyFactory.createKey(Root, SettingsKind, BaseKey);
-        Key key = KeyFactory.createKey(parent, SettingsKind, email.getEmail());
-        Entity entity = get(key);
-        if (entity != null)
+        try
         {
-            return new Settings(this, entity);
+            Key parent = KeyFactory.createKey(Root, SettingsKind, BaseKey);
+            Key key = KeyFactory.createKey(parent, SettingsKind, email.getEmail());
+            Entity entity = get(key);
+            if (entity != null)
+            {
+                return new Settings(this, entity);
+            }
+            else
+            {
+                throw new IllegalArgumentException(email.getEmail());
+            }
         }
-        else
+        catch (EntityNotFoundException ex)
         {
-            throw new IllegalArgumentException(email.getEmail());
+            throw new HttpException(HttpServletResponse.SC_CONFLICT, "settings for "+email.getEmail()+" not found");
         }
     }
 
@@ -566,6 +662,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
     public void saveBlog(Entity blog)
     {
         assert BlogKind.equals(blog.getKind());
+        put(blog);
         Searches.saveBlog(blog);
     }
 
@@ -605,6 +702,43 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
         cw.append("</select>");
         cw.ready();
+    }
+
+    public void handleBlogAction(Key blogKey, String action, String auth, CacheWriter cw) throws HttpException, IOException
+    {
+        try
+        {
+            Entity blog = get(blogKey);
+            String subject = (String) blog.getProperty(SubjectProperty);
+            String digest = getBlogDigest(blog);
+            if (!digest.equals(auth))
+            {
+                System.err.println("digest not match "+digest+" <> "+auth+" request is illegal or blog has been changed");
+                throw new HttpException(HttpServletResponse.SC_FORBIDDEN);
+            }
+            if (PublishParameter.equals(action))
+            {
+                blog.setProperty(PublishProperty, true);
+                put(blog);
+                cw.append("Blog "+subject+" has been published!");
+            }
+            else
+            {
+                if (RemoveParameter.equals(action))
+                {
+                    deleteWithChilds(blogKey);
+                    cw.append("Blog "+subject+" has been deleted!");
+                }
+                else
+                {
+                    throw new HttpException(HttpServletResponse.SC_CONFLICT, action+" unknown");
+                }
+            }
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new HttpException(HttpServletResponse.SC_NOT_FOUND, blogKey+" not found");
+        }
     }
 
     public class CacheWriter extends Writer
@@ -661,5 +795,12 @@ public class DS extends CachingDatastoreService implements BlogConstants
         {
         }
 
+    }
+    private static class NullOutputStream extends OutputStream
+    {
+        @Override
+        public void write(int b) throws IOException
+        {
+        }
     }
 }

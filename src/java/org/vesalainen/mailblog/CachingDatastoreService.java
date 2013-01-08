@@ -115,6 +115,7 @@ public class CachingDatastoreService implements DatastoreService, BlogConstants
     }
     public String getETag()
     {
+        check();
         return String.valueOf(version);
     }
     public boolean changedETAG(String etag)

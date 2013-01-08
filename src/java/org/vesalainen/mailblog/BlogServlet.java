@@ -94,8 +94,18 @@ public class BlogServlet extends HttpServlet implements BlogConstants
                             }
                             else
                             {
-                                CacheWriter cacheWriter = ds.createCacheWriter(request, response);
-                                ds.getBlog(blogKey, base, cacheWriter);
+                                String action = request.getParameter(ActionParameter);
+                                if (action != null)
+                                {
+                                    String auth = request.getParameter(AuthParameter);
+                                    CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/plain", "utf-8", true);
+                                    ds.handleBlogAction(blogKey, action, auth, cacheWriter);
+                                }
+                                else
+                                {
+                                    CacheWriter cacheWriter = ds.createCacheWriter(request, response);
+                                    ds.getBlog(blogKey, base, cacheWriter);
+                                }
                             }
                         }
                         else
@@ -108,10 +118,10 @@ public class BlogServlet extends HttpServlet implements BlogConstants
                     }
                 }
             }
-            catch (EntityNotFoundException ex)
+            catch (HttpException ex)
             {
                 log("", ex);
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                ex.sendError(response);
             }
         }
     }
@@ -139,18 +149,10 @@ public class BlogServlet extends HttpServlet implements BlogConstants
             {
                 if (!ds.serveFromCache(request, response))
                 {
-                    try
-                    {
-                        BlogCursor bc = new BlogCursor()
-                                .setSearch(search);
-                        CacheWriter cacheWriter = ds.createCacheWriter(request, response);
-                        ds.getBlogList(bc.getWebSafe(), base, false, cacheWriter);
-                    }
-                    catch (EntityNotFoundException ex)
-                    {
-                        log("", ex);
-                        response.sendError(HttpServletResponse.SC_NOT_FOUND);
-                    }
+                    BlogCursor bc = new BlogCursor()
+                            .setSearch(search);
+                    CacheWriter cacheWriter = ds.createCacheWriter(request, response);
+                    ds.getBlogList(bc.getWebSafe(), base, false, cacheWriter);
                 }
             }
             else

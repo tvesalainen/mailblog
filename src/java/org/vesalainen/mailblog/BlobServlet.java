@@ -58,6 +58,17 @@ public class BlobServlet extends HttpServlet implements BlogConstants
             Entity metadata = ds.getMetadata(sha1);
             if (metadata != null)
             {
+                BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
+                String original = request.getParameter(OriginalParameter);
+                if (original != null)
+                {
+                    BlobKey originalBlobKey = (BlobKey) metadata.getProperty(OriginalSizeProperty);
+                    if (originalBlobKey != null)
+                    {
+                        blobstore.serve(originalBlobKey, response);
+                        return;
+                    }
+                }
                 Date timestamp = (Date) metadata.getProperty(TimestampProperty);
                 if (timestamp == null)
                 {
@@ -71,17 +82,6 @@ public class BlobServlet extends HttpServlet implements BlogConstants
                     return;
                 }
                 response.setHeader("ETag", eTag);
-                BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
-                String original = request.getParameter(OriginalParameter);
-                if (original != null)
-                {
-                    BlobKey originalBlobKey = (BlobKey) metadata.getProperty(OriginalSizeProperty);
-                    if (originalBlobKey != null)
-                    {
-                        blobstore.serve(originalBlobKey, response);
-                        return;
-                    }
-                }
                 BlobKey webBlobKey = (BlobKey) metadata.getProperty(WebSizeProperty);
                 if (webBlobKey != null)
                 {

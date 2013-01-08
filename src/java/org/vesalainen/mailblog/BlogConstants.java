@@ -90,6 +90,9 @@ public interface BlogConstants
     static final String CommentsParameter = "comments";
     static final String RemoveCommentParameter = "removecomment";
     static final String AllParameter = "all";
+    static final String ActionParameter = "action";
+    static final String AuthParameter = "auth";
+    static final String PublishParameter = "publish";
     
     static final String BaseKey = "base";
     

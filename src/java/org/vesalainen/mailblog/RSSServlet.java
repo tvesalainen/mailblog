@@ -47,12 +47,20 @@ public class RSSServlet extends HttpServlet
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        DS ds = DS.get();
-        if (!ds.serveFromCache(request, response))
+        try
         {
-            URL base = getBase(request);
-            DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response, "application/rss+xml", "utf-8", false);
-            ds.writeRSS(base, cacheWriter);
+            DS ds = DS.get();
+            if (!ds.serveFromCache(request, response))
+            {
+                URL base = getBase(request);
+                DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response, "application/rss+xml", "utf-8", false);
+                ds.writeRSS(base, cacheWriter);
+            }
+        }
+        catch (HttpException ex)
+        {
+            log(ex.getMessage(), ex);
+            ex.sendError(response);
         }
     }
 

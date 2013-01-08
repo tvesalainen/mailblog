@@ -91,7 +91,7 @@ public class Searches implements BlogConstants
         index.put(document);
     }
 
-    public static void getBlogListFromSearch(BlogCursor bc, URL base, CacheWriter sb) throws EntityNotFoundException, IOException
+    public static void getBlogListFromSearch(BlogCursor bc, URL base, CacheWriter sb) throws HttpException, IOException
     {
         DS ds = DS.get();
         Settings settings = ds.getSettings();

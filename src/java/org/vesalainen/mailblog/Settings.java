@@ -109,11 +109,13 @@ public class Settings implements BlogConstants, Serializable
     }
     public boolean isPublishImmediately()
     {
-        return (Boolean) Objects.nonNull(map.get(PublishImmediatelyProperty));
+        Boolean b = (Boolean) map.get(PublishImmediatelyProperty);
+        return b != null ? b: false;
     }
     public boolean isFixPic()
     {
-        return (Boolean) Objects.nonNull(map.get(FixPicProperty));
+        Boolean b = (Boolean) map.get(FixPicProperty);
+        return b != null ? b: false;
     }
     public int getPicMaxHeight()
     {
