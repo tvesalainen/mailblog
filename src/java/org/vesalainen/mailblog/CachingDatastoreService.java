@@ -109,6 +109,7 @@ public class CachingDatastoreService implements DatastoreService, BlogConstants
         }
         catch (EntityNotFoundException ex)
         {
+            ex.printStackTrace();   // because this should not happen!!!!
             cache.clearAll();
             version = 0;
         }
@@ -121,6 +122,7 @@ public class CachingDatastoreService implements DatastoreService, BlogConstants
     public boolean changedETAG(String etag)
     {
         long et = Long.parseLong(etag);
+        check();
         return version != et;
     }
     public PreparedQuery prepare(Transaction t, Query query)
