@@ -59,6 +59,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -402,7 +403,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         senderSettings = Objects.nonNull(getSettingsFor(sender));
         String commentTemplate = senderSettings.getCommentTemplate();
         Locale locale = senderSettings.getLocale();
-        DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, locale);
+        DateFormat dateFormat = senderSettings.getDateFormat();
         Query query = new Query(CommentsKind);
         query.setAncestor(blogKey);
         query.addSort(TimestampProperty, Query.SortDirection.DESCENDING);
@@ -513,7 +514,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
     {
         Settings senderSettings = Objects.nonNull(getSettingsFor(sender));
         Locale locale = senderSettings.getLocale();
-        DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, locale);
+        DateFormat dateFormat = senderSettings.getDateFormat();
         String dateString = dateFormat.format(date);
         return String.format(locale, senderSettings.getBlogTemplate(), subject, dateString, senderSettings.getNickname(), body, base.toString(), key);
     }

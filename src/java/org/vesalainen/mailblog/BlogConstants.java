@@ -55,6 +55,7 @@ public interface BlogConstants
     static final String CommentTemplateProperty = "CommentTemplate";
     static final String PublishImmediatelyProperty = "PublishImmediately";
     static final String LocaleProperty = "Locale";
+    static final String TimeZoneProperty = "TimeZone";
     static final String PicMaxHeightProperty = "PicMaxHeight";
     static final String PicMaxWidthProperty = "PicMaxWidth";
     static final String FixPicProperty = "FixPic";

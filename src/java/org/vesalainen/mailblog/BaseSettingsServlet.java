@@ -24,6 +24,7 @@ import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.TimeZone;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -62,6 +63,9 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
                 .setMandatory();
         addProperty(LocaleProperty)
                 .setType(Locale.class)
+                .setMandatory();
+        addProperty(TimeZoneProperty)
+                .setType(TimeZone.class)
                 .setMandatory();
         addProperty(PicMaxHeightProperty)
                 .setType(Long.class)

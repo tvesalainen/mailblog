@@ -24,9 +24,11 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
 import java.io.Serializable;
+import java.text.DateFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import org.vesalainen.mailblog.types.LocaleHelp;
 
 /**
@@ -77,6 +79,19 @@ public class Settings implements BlogConstants, Serializable
     public Locale getLocale()
     {
         return LocaleHelp.toLocale((String)map.get(LocaleProperty));
+    }
+    public TimeZone getTimeZone()
+    {
+        String id = (String) map.get(TimeZoneProperty);
+        return id != null ? TimeZone.getTimeZone(id) : TimeZone.getDefault();
+    }
+    public DateFormat getDateFormat()
+    {
+        Locale locale = getLocale();
+        DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, locale);
+        TimeZone timeZone = getTimeZone();
+        dateFormat.setTimeZone(timeZone);
+        return dateFormat;
     }
     public String getBlogAreaTemplate()
     {

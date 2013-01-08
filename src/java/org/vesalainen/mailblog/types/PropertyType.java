@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TimeZone;
 
 /**
  * @author Timo Vesalainen
@@ -133,6 +134,10 @@ public abstract class PropertyType<T>
         if (Locale.class.isAssignableFrom(type))
         {
             return new LocaleType();
+        }
+        if (TimeZone.class.isAssignableFrom(type))
+        {
+            return new TimeZoneType();
         }
         throw new IllegalArgumentException("unsupported type "+type);
     }
