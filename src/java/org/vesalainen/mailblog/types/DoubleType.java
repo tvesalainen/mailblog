@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Timo Vesalainen
+ * Copyright (C) 2013 Timo Vesalainen
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -17,35 +17,18 @@
 
 package org.vesalainen.mailblog.types;
 
-import java.util.Map;
-
 /**
  * @author Timo Vesalainen
  */
-public class BooleanType extends PropertyType<Boolean> 
+public class DoubleType extends PropertyType<Double> 
 {
 
     @Override
-    public String getHtmlInput(Map<String,String> attributes, Object obj)
-    {
-        Boolean value = (Boolean) obj;
-        StringBuilder sb = new StringBuilder();
-        sb.append("<input");
-        appendAttributes(sb, attributes);
-        appendAttribute(sb, "type", "checkbox");
-        boolean val = value != null ? value.booleanValue() : false;
-        appendAttribute(sb, "checked", val);
-        appendAttribute(sb, "value", attributes.get("name"));
-        
-        sb.append("/>");
-        return sb.toString();
-    }
-    @Override
-    public Boolean newInstance(String value)
+    public Double newInstance(String value)
     {
         if (value != null && !value.isEmpty())
         {
-            return new Boolean(true);
+            return new Double(value);
         }
         return null;
     }
@@ -53,8 +36,12 @@ public class BooleanType extends PropertyType<Boolean>
     @Override
     public String getString(Object obj)
     {
-        Boolean value = (Boolean) obj;
-        return value != null ? value.toString() : "";
+        if (obj != null)
+        {
+            Double d = (Double) obj;
+            return d.toString();
+        }
+        return "";
     }
 
 }

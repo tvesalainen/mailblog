@@ -4,6 +4,10 @@
         <property name="Publish" direction="asc"/>
         <property name="Date" direction="desc"/>
     </datastore-index>
+    <datastore-index kind="Blog" ancestor="false" source="manual">
+        <property name="Publish" direction="asc"/>
+        <property name="Location" direction="asc"/>
+    </datastore-index>    
     <datastore-index kind="Comments" ancestor="true" source="manual">
         <property name="Timestamp" direction="desc"/>
     </datastore-index>

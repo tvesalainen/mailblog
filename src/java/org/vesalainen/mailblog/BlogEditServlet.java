@@ -19,7 +19,7 @@ package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.GeoPt;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Text;
 import java.util.Date;
@@ -55,6 +55,9 @@ public class BlogEditServlet extends EntityServlet implements BlogConstants
                 .setType(HashSet.class, String.class)
                 .setAttribute("size", "80")
                 .setIndexed(true);
+        addProperty(LocationProperty)
+                .setIndexed(true)
+                .setType(GeoPt.class);
         addProperty(HtmlProperty)
                 .setType(Text.class)
                 .setAttribute("rows", "50")

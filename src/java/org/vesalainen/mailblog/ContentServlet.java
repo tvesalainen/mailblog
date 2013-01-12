@@ -59,51 +59,49 @@ public class ContentServlet extends HttpServlet implements BlogConstants
                 }
                 DS ds = DS.get();
                 Entity page = ds.getPageEntity(pathInfo.substring(1));
-                if (page != null)
+                ServletContext servletContext = getServletContext();
+                String mimeType = servletContext.getMimeType(pathInfo);
+                if (mimeType == null)
                 {
-                    Date timestamp = (Date) page.getProperty(TimestampProperty);
-                    if (timestamp == null)
-                    {
-                        timestamp = new Date(0);
-                    }
-                    log("timestamp="+timestamp);
-                    long ifModifiedSince = request.getDateHeader("If-Modified-Since");
-                    log("ifModifiedSince="+new Date(ifModifiedSince));
-                    if (ifModifiedSince != -1)
-                    {
-                        if (ifModifiedSince >= timestamp.getTime())
-                        {
-                            response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
-                            return;
-                        }
-                    }
-                    ServletContext servletContext = getServletContext();
-                    String mimeType = servletContext.getMimeType(pathInfo);
-                    if (mimeType == null)
-                    {
-                        log("mimetype not found "+pathInfo);
-                        response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-                        return;
-                    }
-                    response.setDateHeader("Modified-Since", timestamp.getTime());
-                    response.setContentType(mimeType);
-                    Text text = (Text) page.getProperty(PageProperty);
-                    String content = text.getValue();
-                    if (content == null)
-                    {
-                        log("page is empty"+pathInfo);
-                        response.sendError(HttpServletResponse.SC_CONFLICT);
-                        return;
-                    }
-                    response.getWriter().write(content);
+                    log("mimetype not found "+pathInfo);
+                    response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
                     return;
                 }
+                Date timestamp = (Date) page.getProperty(TimestampProperty);
+                if (timestamp == null)
+                {
+                    timestamp = new Date(0);
+                }
+                String eTag = String.valueOf(timestamp.getTime());
+                String ifNoneMatch = request.getHeader("If-None-Match");
+                if (eTag.equals(ifNoneMatch))
+                {
+                    response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
+                    return;
+                }
+                response.setHeader("ETag", eTag);
+                response.setContentType(mimeType);
+                Text text = (Text) page.getProperty(PageProperty);
+                String content = text.getValue();
+                if (content == null)
+                {
+                    log("page is empty"+pathInfo);
+                    response.sendError(HttpServletResponse.SC_CONFLICT);
+                    return;
+                }
+                response.getWriter().write(content);
+                return;
             }
-            catch (EntityNotFoundException ex)
+            catch (HttpException ex)
             {
+                log("", ex);
+                ex.sendError(response);
             }
         }
-        response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        else
+        {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
     }
 
     /**

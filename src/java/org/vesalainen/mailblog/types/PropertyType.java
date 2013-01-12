@@ -19,6 +19,7 @@ package org.vesalainen.mailblog.types;
 
 import com.google.appengine.api.datastore.Category;
 import com.google.appengine.api.datastore.Email;
+import com.google.appengine.api.datastore.GeoPt;
 import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.datastore.PhoneNumber;
 import com.google.appengine.api.datastore.Rating;
@@ -103,6 +104,10 @@ public abstract class PropertyType<T>
         {
             return new LongType();
         }
+        if (Double.class.isAssignableFrom(type))
+        {
+            return new DoubleType();
+        }
         if (Rating.class.isAssignableFrom(type))
         {
             return new RatingType();
@@ -122,6 +127,10 @@ public abstract class PropertyType<T>
         if (Category.class.isAssignableFrom(type))
         {
             return new CategoryType();
+        }
+        if (GeoPt.class.isAssignableFrom(type))
+        {
+            return new GeoPtType();
         }
         if (Date.class.isAssignableFrom(type))
         {

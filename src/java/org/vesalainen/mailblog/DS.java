@@ -22,6 +22,7 @@ import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.GeoPt;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
@@ -56,15 +57,22 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import net.opengis.kml.DocumentType;
+import net.opengis.kml.ObjectFactory;
+import net.opengis.kml.PlacemarkType;
+import net.opengis.kml.PointType;
+import net.opengis.kml.TimeStampType;
+import org.vesalainen.kml.KML;
 import org.vesalainen.rss.Channel;
 import org.vesalainen.rss.Item;
 import org.vesalainen.rss.RSS;
@@ -212,9 +220,16 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
         return sb.toString();
     }
-    public Entity getPageEntity(String path) throws EntityNotFoundException
+    public Entity getPageEntity(String path) throws HttpException
     {
-        return get(KeyFactory.createKey(Root, PageKind, path));
+        try
+        {
+            return get(KeyFactory.createKey(Root, PageKind, path));
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new HttpException(HttpServletResponse.SC_NOT_FOUND, path+" not found");
+        }
     }
     public void setPage(Entity page)
     {
@@ -742,6 +757,75 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
     }
 
+    public void updateKml(float west, float south, float east, float north, URL reqUrl, OutputStream outputStream) throws IOException
+    {
+        URI base;
+        try
+        {
+            base = reqUrl.toURI();
+        }
+        catch (URISyntaxException ex)
+        {
+            throw new IOException();
+        }
+        KML kml = new KML();
+        ObjectFactory factory = kml.getFactory();
+        DatatypeFactory dtFactory = kml.getDtFactory();
+        JAXBElement<DocumentType> document = factory.createDocument(factory.createDocumentType());
+        kml.getKml().getValue().setAbstractFeatureGroup(document);
+        // styles
+        // blogs
+        Query query = new Query(BlogKind);
+        List<Filter> filters = new ArrayList<Filter>();
+        filters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
+        addFilters(filters, south, north);
+        query.setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters));
+        //query.addSort(DateProperty, Query.SortDirection.DESCENDING);
+        PreparedQuery prepared = prepare(query);
+        for (Entity blog : prepared.asIterable(FetchOptions.Builder.withDefaults()))
+        {
+            GeoPt location = (GeoPt) blog.getProperty(LocationProperty);
+            if (match(location, west, south, east, north))
+            {
+                System.err.println(location+" match "+west+", "+south+", "+east+", "+north);
+                String subject = (String) blog.getProperty(SubjectProperty);
+                Date date = (Date) blog.getProperty(DateProperty);
+                URI uri = base.resolve("/index.html?blog="+KeyFactory.keyToString(blog.getKey()));
+
+                PlacemarkType placemarkType = factory.createPlacemarkType();
+                placemarkType.setName(subject);
+                placemarkType.setDescription("<![CDATA[<a href=\""+uri+"\">"+subject+"</a>]]>");
+                PointType pointType = factory.createPointType();
+                pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f", location.getLongitude(), location.getLatitude()));
+                placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
+
+                TimeStampType timeStampType = factory.createTimeStampType();
+                GregorianCalendar cal = new GregorianCalendar();
+                cal.setTime(date);
+                XMLGregorianCalendar xCal = dtFactory.newXMLGregorianCalendar(cal);
+                timeStampType.setWhen(xCal.toXMLFormat());
+                placemarkType.setAbstractTimePrimitiveGroup(factory.createTimeStamp(timeStampType));
+
+                JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
+                document.getValue().getAbstractFeatureGroup().add(pm);
+            }
+        }      
+        kml.write(outputStream);
+    }
+
+    private boolean match(GeoPt location, float west, float south, float east, float north)
+    {
+        float lat = location.getLatitude();
+        float lon = location.getLongitude();
+        return lon >= west && lat >= south && lon <= east && lat <= north;
+    }
+    private void addFilters(List<Filter> filters, float south, float north)
+    {
+        GeoPt from = new GeoPt(south, (float)-180.0);
+        GeoPt to = new GeoPt(north, (float)180.0);
+        filters.add(new FilterPredicate(LocationProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, from));
+        filters.add(new FilterPredicate(LocationProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, to));
+   }
     public class CacheWriter extends Writer
     {
         private Writer out;

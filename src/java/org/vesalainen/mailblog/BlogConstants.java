@@ -69,6 +69,7 @@ public interface BlogConstants
     static final String KeywordProperty = "Keyword";
     static final String CommentProperty = "Comment";
     static final String UserProperty = "User";
+    static final String LocationProperty = "Location";
     
     static final String RemoveParameter = "remove";
     static final String BlogParameter = "blog";
@@ -94,6 +95,7 @@ public interface BlogConstants
     static final String ActionParameter = "action";
     static final String AuthParameter = "auth";
     static final String PublishParameter = "publish";
+    static final String BoundingBoxParameter = "bbox";
     
     static final String BaseKey = "base";
     
