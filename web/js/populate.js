@@ -16,11 +16,17 @@
  */
 
 var pageStack = new Array();
+var firstPage = null;
 
 $(document).ready(function(){
 
-    $("#blog").load("/blog", function(){
-        $(".hidden").hide();
+    var search = window.location.search;
+    if (!search)
+    {
+        search = "";
+    }
+    $("#blog").load("/blog"+search, function(){
+        afterLoad();
     });
     
     $("#calendar").load("/blog?calendar=true", function(){
@@ -29,8 +35,40 @@ $(document).ready(function(){
     
     $(".keywordSelect").load("/blog?keywords=true");
     
-    $("body").on("click", "img", function(event){        
+    $("body").on("click", "img", function(event)
+   {        
         window.open($(this).attr("src")+"&original=true");
+    });
+
+    $("body").on("click", ".print-all", function(event)
+   {        
+        var win = window.open("/?all");
+        win.print();
+    });
+
+    $("body").on("click", ".add-comment", function(event){        
+        var target = event.target;
+        var prev = $(this).prev();
+        var id = prev.attr("id");
+        var key=id.substring(13);
+        var text = prev.val();
+        $.post("/blog", {blog: key, comment: text }, function(data){
+            if (data)
+            {
+                 window.open(data);
+            }
+            else
+            {
+                afterLoad();
+            }
+        });
+    });
+
+    $("body").on("click", ".delete-comment", function(event){        
+        var id = $(this).attr("id");
+        $.post("/blog", {removecomment: id}, function(data){
+            afterLoad();
+        });
     });
 
     $("body").on("change", ".search", function(event){        
@@ -62,7 +100,7 @@ $(document).ready(function(){
             if (disp != "none")
             {
                 pageStack.length = 0;
-                pageStack.push(id);
+                firstPage = id;
                 $("#blog").load("/blog?cursor="+id, function(){
                     afterLoad();
                 });
@@ -77,7 +115,8 @@ $(document).ready(function(){
         });
     });
 
-    $("body").on("click", ".top", function(event){        
+    $("body").on("click", ".top", function(event){       
+        firstPage = null; 
         $("#blog").load("/blog", function(){
             afterLoad();
         });
@@ -100,9 +139,18 @@ $(document).ready(function(){
         {
             if (pageStack.length == 1)
             {
-                $("#blog").load("/blog", function(){
-                    afterLoad();
-                });
+                if (firstPage)
+                {
+                  $("#blog").load("/blog?cursor="+firstPage, function(){
+                      afterLoad();
+                  });
+                }
+                else
+                {
+                  $("#blog").load("/blog", function(){
+                      afterLoad();
+                  });
+                }
             }
             else
             {
@@ -120,34 +168,30 @@ $(document).ready(function(){
 
 function afterLoad()
 {
+    $(".comments").each(function()
+    {
+        var id = $(this).attr("id");
+        var key=id.substring(9);
+        $("#comments-"+key).load("/blog?comments=true&blog="+key, function(){
+            $(".hidden").hide();
+        });
+    });
     var cursor = $("#nextPage").text();
     if (cursor)
     {
-        $(".backward").each(function()
-        {
-            $(this).attr("disabled", false);
-        });
+        $(".backward").show();
     }
     else
     {
-        $(".backward").each(function()
-        {
-            $(this).attr("disabled", true);
-        });
+        $(".backward").hide();
     }
     if (pageStack.length > 0)
     {
-        $(".forward").each(function()
-        {
-            $(this).attr("disabled", false);
-        });
+        $(".forward").show();
     }
     else
     {
-        $(".forward").each(function()
-        {
-            $(this).attr("disabled", true);
-        });
+        $(".forward").hide();
     }
     $(".hidden").hide();
 }
