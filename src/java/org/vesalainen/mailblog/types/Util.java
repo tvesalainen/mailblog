@@ -54,6 +54,33 @@ public class Util
         }
         return null;
     }
+    /**
+     * @deprecated Not ready!!!
+     * @param request
+     * @return 
+     */
+    public static String getMaidenheadLocator(HttpServletRequest request)
+    {
+        GeoPt coordinate = getCoordinate(request);
+        if (coordinate != null)
+        {
+            int lond = (int) coordinate.getLongitude();
+            int latd = (int) coordinate.getLatitude();
+            int lonm = (int) (60*(coordinate.getLongitude()-lond));
+            int latm = (int) (60*(coordinate.getLatitude()-latd));
+            return new String(
+                    new char[] {
+                        (char)((lond+180)/20+'A'),
+                        (char)((latd+90)/10+'A'),
+                        (char)(((lond+180) % 20)+'0'),
+                        (char)(((latd+90) % 10)+'0'),
+                        (char)((lonm / 5)+'A'),
+                        (char)((2*latm / 5)+'A')
+                    }
+                    );
+        }
+        return null;
+    }
     public static String getRefererParameter(HttpServletRequest request, String parameter)
     {
         String referrer = request.getHeader("referer");

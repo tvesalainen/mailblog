@@ -36,6 +36,7 @@ public interface BlogConstants
     static final String SettingsKind = "Settings";
     static final String KeywordKind = "Settings";
     static final String CommentsKind = "Comments";
+    static final String PlacemarkKind = "Placemarks";
     
     static final String TitleProperty = "Title";
     static final String DescriptionProperty = "Description";

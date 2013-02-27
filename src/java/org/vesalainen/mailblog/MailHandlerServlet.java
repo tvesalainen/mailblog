@@ -23,6 +23,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.GeoPt;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
@@ -50,8 +51,6 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -72,7 +71,6 @@ import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeUtility;
-import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -205,6 +203,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
+        handleSpot(message);
         String[] ripperDate = message.getHeader(BlogRipper+"Date");
         boolean ripping = ripperDate != null && ripperDate.length > 0;
         Multipart multipart = (Multipart) message.getContent();
@@ -673,6 +672,32 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         return updater.start();
     }
 
+    private void handleSpot(MimeMessage message) throws IOException, MessagingException
+    {
+        String spotTime = getSpotHeader(message, "X-SPOT-Time");
+        if (spotTime != null)
+        {
+            String messageID = (String) getHeader(message, "Message-ID");
+            String spotLatitude = getSpotHeader(message, "X-SPOT-Latitude");
+            String spotLongitude = getSpotHeader(message, "X-SPOT-Longitude");
+            String spotMessenger = getSpotHeader(message, "X-SPOT-Messenger");
+            String spotType = getSpotHeader(message, "X-SPOT-Type");
+            Date time = new Date(Long.parseLong(spotTime)*1000);
+            GeoPt geoPt = new GeoPt(Float.parseFloat(spotLatitude), Float.parseFloat(spotLongitude));
+            DS ds = DS.get();
+            ds.addPlacemark(messageID, geoPt, time, spotMessenger, spotType);
+        }
+    }
+
+    private String getSpotHeader(MimeMessage message, String name) throws MessagingException
+    {
+        String[] spotHeader = message.getHeader(name);
+        if (spotHeader != null && spotHeader.length > 0)
+        {
+            return spotHeader[0];
+        }
+        return null;
+    }
     private class BlogAuthor
     {
         private String blogNamespace;

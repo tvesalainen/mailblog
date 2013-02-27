@@ -67,10 +67,14 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import net.opengis.kml.BalloonStyleType;
 import net.opengis.kml.DocumentType;
+import net.opengis.kml.IconStyleType;
+import net.opengis.kml.LinkType;
 import net.opengis.kml.ObjectFactory;
 import net.opengis.kml.PlacemarkType;
 import net.opengis.kml.PointType;
+import net.opengis.kml.StyleType;
 import net.opengis.kml.TimeStampType;
 import org.vesalainen.kml.KML;
 import org.vesalainen.rss.Channel;
@@ -228,7 +232,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
         catch (EntityNotFoundException ex)
         {
-            throw new HttpException(HttpServletResponse.SC_NOT_FOUND, path+" not found");
+            throw new HttpException(HttpServletResponse.SC_NOT_FOUND, path+" not found", ex);
         }
     }
     public void setPage(Entity page)
@@ -774,6 +778,34 @@ public class DS extends CachingDatastoreService implements BlogConstants
         JAXBElement<DocumentType> document = factory.createDocument(factory.createDocumentType());
         kml.getKml().getValue().setAbstractFeatureGroup(document);
         // styles
+        // blog style
+        JAXBElement<StyleType> blogStyle = factory.createStyle(factory.createStyleType());
+        document.getValue().getAbstractStyleSelectorGroup().add(blogStyle);
+        blogStyle.getValue().setId("blog-style");
+        
+        BalloonStyleType balloonStyle = factory.createBalloonStyleType();
+        balloonStyle.setText("$[name]<div>$[description]</div>");
+        blogStyle.getValue().setBalloonStyle(balloonStyle);
+        
+        LinkType icon = factory.createLinkType();
+        icon.setHref("http://maps.google.com/mapfiles/kml/shapes/info.png");
+        IconStyleType iconStyle = factory.createIconStyleType();
+        iconStyle.setIcon(icon);
+        blogStyle.getValue().setIconStyle(iconStyle);
+        // spot style
+        JAXBElement<StyleType> placemarkStyle = factory.createStyle(factory.createStyleType());
+        document.getValue().getAbstractStyleSelectorGroup().add(placemarkStyle);
+        placemarkStyle.getValue().setId("spot-style");
+        
+        BalloonStyleType spotBalloonStyle = factory.createBalloonStyleType();
+        spotBalloonStyle.setText("$[name]<div>$[description]</div>");
+        placemarkStyle.getValue().setBalloonStyle(spotBalloonStyle);
+        
+        LinkType spotIcon = factory.createLinkType();
+        spotIcon.setHref("http://maps.google.com/mapfiles/kml/shapes/info.png");
+        IconStyleType spotIconStyle = factory.createIconStyleType();
+        spotIconStyle.setIcon(spotIcon);
+        placemarkStyle.getValue().setIconStyle(spotIconStyle);
         // blogs
         Query query = new Query(BlogKind);
         List<Filter> filters = new ArrayList<Filter>();
@@ -790,11 +822,14 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 System.err.println(location+" match "+west+", "+south+", "+east+", "+north);
                 String subject = (String) blog.getProperty(SubjectProperty);
                 Date date = (Date) blog.getProperty(DateProperty);
-                URI uri = base.resolve("/index.html?blog="+KeyFactory.keyToString(blog.getKey()));
+                String id = KeyFactory.keyToString(blog.getKey());
+                URI uri = base.resolve("/index.html?blog="+id);
 
                 PlacemarkType placemarkType = factory.createPlacemarkType();
+                placemarkType.setId(id);
                 placemarkType.setName(subject);
-                placemarkType.setDescription("<![CDATA[<a href=\""+uri+"\">"+subject+"</a>]]>");
+                placemarkType.setStyleUrl("#blog-style");
+                placemarkType.setDescription("<a href=\""+uri+"\">"+subject+"</a>");
                 PointType pointType = factory.createPointType();
                 pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f", location.getLongitude(), location.getLatitude()));
                 placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
@@ -826,6 +861,17 @@ public class DS extends CachingDatastoreService implements BlogConstants
         filters.add(new FilterPredicate(LocationProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, from));
         filters.add(new FilterPredicate(LocationProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, to));
    }
+
+    void addPlacemark(String messageID, GeoPt geoPt, Date time, String spotMessenger, String spotType)
+    {
+        Entity placemark = new Entity(PlacemarkKind, messageID, Root);
+        placemark.setProperty(LocationProperty, geoPt);
+        placemark.setProperty(TimestampProperty, time);
+        placemark.setUnindexedProperty(TitleProperty, spotMessenger);
+        placemark.setUnindexedProperty(DescriptionProperty, spotType);
+        put(placemark);
+    }
+    
     public class CacheWriter extends Writer
     {
         private Writer out;
