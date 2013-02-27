@@ -195,6 +195,11 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
+        // TODO authorization
+        if (handleSpot(message))
+        {
+            return;
+        }
         Email senderEmail = new Email(sender.getAddress());
         Settings settings = ds.getSettingsFor(senderEmail);
         if (settings == null)
@@ -203,7 +208,6 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
-        handleSpot(message);
         String[] ripperDate = message.getHeader(BlogRipper+"Date");
         boolean ripping = ripperDate != null && ripperDate.length > 0;
         Multipart multipart = (Multipart) message.getContent();
@@ -672,7 +676,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         return updater.start();
     }
 
-    private void handleSpot(MimeMessage message) throws IOException, MessagingException
+    private boolean handleSpot(MimeMessage message) throws IOException, MessagingException
     {
         String spotTime = getSpotHeader(message, "X-SPOT-Time");
         if (spotTime != null)
@@ -686,7 +690,9 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             GeoPt geoPt = new GeoPt(Float.parseFloat(spotLatitude), Float.parseFloat(spotLongitude));
             DS ds = DS.get();
             ds.addPlacemark(messageID, geoPt, time, spotMessenger, spotType);
+            return true;
         }
+        return false;
     }
 
     private String getSpotHeader(MimeMessage message, String name) throws MessagingException
