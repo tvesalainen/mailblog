@@ -187,17 +187,17 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             return;
         }
         log("Message-ID="+messageID);
+        // TODO authorization
+        if (handleSpot(message))
+        {
+            return;
+        }
         InternetAddress sender = (InternetAddress) message.getSender();
         log("sender="+sender);
         if (sender == null)
         {
             log("Sender missing");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
-        // TODO authorization
-        if (handleSpot(message))
-        {
             return;
         }
         Email senderEmail = new Email(sender.getAddress());

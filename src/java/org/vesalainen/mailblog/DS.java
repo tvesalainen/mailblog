@@ -795,7 +795,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         // spot style
         JAXBElement<StyleType> placemarkStyle = factory.createStyle(factory.createStyleType());
         document.getValue().getAbstractStyleSelectorGroup().add(placemarkStyle);
-        placemarkStyle.getValue().setId("spot-style");
+        placemarkStyle.getValue().setId("placemark-style");
         
         BalloonStyleType spotBalloonStyle = factory.createBalloonStyleType();
         spotBalloonStyle.setText("$[name]<div>$[description]</div>");
@@ -807,14 +807,14 @@ public class DS extends CachingDatastoreService implements BlogConstants
         spotIconStyle.setIcon(spotIcon);
         placemarkStyle.getValue().setIconStyle(spotIconStyle);
         // blogs
-        Query query = new Query(BlogKind);
-        List<Filter> filters = new ArrayList<Filter>();
-        filters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
-        addFilters(filters, south, north);
-        query.setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters));
+        Query blogQuery = new Query(BlogKind);
+        List<Filter> blogFilters = new ArrayList<Filter>();
+        blogFilters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
+        addFilters(blogFilters, south, north);
+        blogQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, blogFilters));
         //query.addSort(DateProperty, Query.SortDirection.DESCENDING);
-        PreparedQuery prepared = prepare(query);
-        for (Entity blog : prepared.asIterable(FetchOptions.Builder.withDefaults()))
+        PreparedQuery blogPrepared = prepare(blogQuery);
+        for (Entity blog : blogPrepared.asIterable(FetchOptions.Builder.withDefaults()))
         {
             GeoPt location = (GeoPt) blog.getProperty(LocationProperty);
             if (match(location, west, south, east, north))
@@ -844,7 +844,45 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
                 document.getValue().getAbstractFeatureGroup().add(pm);
             }
+        }   
+        // placemarks
+        Query placemarkQuery = new Query(PlacemarkKind);
+        List<Filter> placemarkFilters = new ArrayList<Filter>();
+        addFilters(placemarkFilters, south, north);
+        placemarkQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, placemarkFilters));
+        PreparedQuery placemarkPrepared = prepare(placemarkQuery);
+        for (Entity placemark : placemarkPrepared.asIterable(FetchOptions.Builder.withDefaults()))
+        {
+            GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
+            if (match(location, west, south, east, north))
+            {
+                System.err.println(location+" match "+west+", "+south+", "+east+", "+north);
+                String title = (String) placemark.getProperty(TitleProperty);
+                String description = (String) placemark.getProperty(DescriptionProperty);
+                Date date = (Date) placemark.getProperty(TimestampProperty);
+                String id = KeyFactory.keyToString(placemark.getKey());
+
+                PlacemarkType placemarkType = factory.createPlacemarkType();
+                placemarkType.setId(id);
+                placemarkType.setName(title);
+                placemarkType.setStyleUrl("#placemark-style");
+                placemarkType.setDescription(description);
+                PointType pointType = factory.createPointType();
+                pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f", location.getLongitude(), location.getLatitude()));
+                placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
+
+                TimeStampType timeStampType = factory.createTimeStampType();
+                GregorianCalendar cal = new GregorianCalendar();
+                cal.setTime(date);
+                XMLGregorianCalendar xCal = dtFactory.newXMLGregorianCalendar(cal);
+                timeStampType.setWhen(xCal.toXMLFormat());
+                placemarkType.setAbstractTimePrimitiveGroup(factory.createTimeStamp(timeStampType));
+
+                JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
+                document.getValue().getAbstractFeatureGroup().add(pm);
+            }
         }      
+        
         kml.write(outputStream);
     }
 
