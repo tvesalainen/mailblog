@@ -43,10 +43,10 @@ import java.util.Map;
  */
 public class CachingDatastoreService implements DatastoreService, BlogConstants
 {
-    public static Key Root = KeyFactory.createKey(RootKind, 1);
+    public Key Root = KeyFactory.createKey(RootKind, 1);
     protected DatastoreService datastore;
     protected MemcacheService cache;
-    private static long version;
+    private long version;
     private Key entityGroupKey;
 
     protected CachingDatastoreService()

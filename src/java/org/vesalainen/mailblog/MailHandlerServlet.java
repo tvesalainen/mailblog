@@ -681,7 +681,6 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         String spotTime = getSpotHeader(message, "X-SPOT-Time");
         if (spotTime != null)
         {
-            String messageID = (String) getHeader(message, "Message-ID");
             String spotLatitude = getSpotHeader(message, "X-SPOT-Latitude");
             String spotLongitude = getSpotHeader(message, "X-SPOT-Longitude");
             String spotMessenger = getSpotHeader(message, "X-SPOT-Messenger");
@@ -689,7 +688,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             Date time = new Date(Long.parseLong(spotTime)*1000);
             GeoPt geoPt = new GeoPt(Float.parseFloat(spotLatitude), Float.parseFloat(spotLongitude));
             DS ds = DS.get();
-            ds.addPlacemark(messageID, geoPt, time, spotMessenger, spotType);
+            ds.addPlacemark(time, geoPt, spotMessenger, spotType);
             return true;
         }
         return false;

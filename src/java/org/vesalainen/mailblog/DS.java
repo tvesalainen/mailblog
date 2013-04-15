@@ -17,6 +17,7 @@
 
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
@@ -58,6 +59,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -86,13 +88,22 @@ import org.vesalainen.rss.RSS;
  */
 public class DS extends CachingDatastoreService implements BlogConstants
 {
+    private static Map<String,DS> nsMap = new HashMap<>();
+    
     private DS()
     {
     }
 
     public static DS get()
     {
-        return new DS();
+        String ns = NamespaceManager.get();
+        DS ds = nsMap.get(ns);
+        if (ds == null)
+        {
+            ds = new DS();
+            nsMap.put(ns, ds);
+        }
+        return ds;
     }
     public static String getBlogDigest(Entity blog)
     {
@@ -898,15 +909,15 @@ public class DS extends CachingDatastoreService implements BlogConstants
         GeoPt to = new GeoPt(north, (float)180.0);
         filters.add(new FilterPredicate(LocationProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, from));
         filters.add(new FilterPredicate(LocationProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, to));
-   }
+    }
 
-    void addPlacemark(String messageID, GeoPt geoPt, Date time, String spotMessenger, String spotType)
+    void addPlacemark(Date time, GeoPt geoPt, String title, String description)
     {
-        Entity placemark = new Entity(PlacemarkKind, messageID, Root);
+        Entity placemark = new Entity(PlacemarkKind, time.getTime(), Root);
         placemark.setProperty(LocationProperty, geoPt);
         placemark.setProperty(TimestampProperty, time);
-        placemark.setUnindexedProperty(TitleProperty, spotMessenger);
-        placemark.setUnindexedProperty(DescriptionProperty, spotType);
+        placemark.setUnindexedProperty(TitleProperty, title);
+        placemark.setUnindexedProperty(DescriptionProperty, description);
         put(placemark);
     }
     

@@ -196,7 +196,8 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
         }
         else
         {
-            return KeyFactory.createKey(DS.Root, kind, name);
+            DS ds = DS.get();
+            return KeyFactory.createKey(ds.Root, kind, name);
         }
     }
 
