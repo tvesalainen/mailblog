@@ -19,7 +19,9 @@ package org.vesalainen.mailblog;
 
 import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.datastore.Cursor;
+import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Email;
+import com.google.appengine.api.datastore.Entities;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.FetchOptions;
@@ -90,21 +92,56 @@ public class DS extends CachingDatastoreService implements BlogConstants
 {
     private static Map<String,DS> nsMap = new HashMap<>();
     
-    private DS()
+    private String namespace;
+    
+    private DS(String namespace)
     {
+        this.namespace = namespace;
     }
 
     public static DS get()
     {
         String ns = NamespaceManager.get();
+        if (ns == null)
+        {
+            ns = "";
+        }
         DS ds = nsMap.get(ns);
         if (ds == null)
         {
-            ds = new DS();
+            ds = new DS(ns);
             nsMap.put(ns, ds);
         }
         return ds;
     }
+
+    public String getNamespace()
+    {
+        return namespace;
+    }
+    
+    public String createNamespaceSelect()
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<select name=\"namespace\" class=\"namespaceSelect\">");
+        Query query = new Query(Entities.NAMESPACE_METADATA_KIND);
+        PreparedQuery prepared = prepare(query);
+        for (Entity entity : prepared.asIterable())
+        {
+            String ns = Entities.getNamespaceFromNamespaceKey(entity.getKey());
+            if (Objects.equal(namespace, ns))
+            {
+                sb.append("<option selected value=\"" + ns + "\">" + ns + "</option>");
+            }
+            else
+            {
+                sb.append("<option value=\"" + ns + "\">" + ns + "</option>");
+            }
+        }
+        sb.append("</select>");
+        return sb.toString();
+    }
+
     public static String getBlogDigest(Entity blog)
     {
         try

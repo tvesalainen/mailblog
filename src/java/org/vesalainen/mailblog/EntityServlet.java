@@ -111,6 +111,7 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
 
     protected String getInputTable(Entity entity)
     {
+        DS ds = DS.get();
         StringBuilder sb = new StringBuilder();
         sb.append("<input type=\"hidden\" name=\"" + Key + "\" value=\"" + KeyFactory.keyToString(entity.getKey()) + "\"/>");
         sb.append("<div><table>");

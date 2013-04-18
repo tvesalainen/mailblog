@@ -33,17 +33,18 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class NamespaceFilter implements Filter
 {
+
     private FilterConfig filterConfig = null;
-    
+
     public NamespaceFilter()
     {
-    }    
-    
+    }
+
     /**
      * Init method for this filter
      */
     public void init(FilterConfig filterConfig)
-    {        
+    {
         this.filterConfig = filterConfig;
         if (filterConfig != null)
         {
@@ -66,18 +67,57 @@ public class NamespaceFilter implements Filter
     {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
-        if (NamespaceManager.get() == null)
+        String namespace = request.getParameter("namespace");
+        if (namespace != null)
         {
-            NamespaceManager.set(NamespaceManager.getGoogleAppsNamespace());
-            log("namespace set to "+NamespaceManager.get());
+            NamespaceManager.set(namespace);
+            log("namespace set to " + NamespaceManager.get() + " from parameter");
         }
         else
         {
-            log("namespace was "+NamespaceManager.get());
+            namespace = getNamespaceFromReferer(request);
+            if (namespace != null)
+            {
+                NamespaceManager.set(namespace);
+                log("namespace set to " + NamespaceManager.get() + " from referer");
+            }
+            else
+            {
+                if (NamespaceManager.get() == null)
+                {
+                    NamespaceManager.set(NamespaceManager.getGoogleAppsNamespace());
+                    log("namespace set to " + NamespaceManager.get() + " from domain");
+                }
+                else
+                {
+                    log("namespace was " + NamespaceManager.get());
+                }
+            }
         }
         chain.doFilter(request, response);
     }
 
+    private String getNamespaceFromReferer(HttpServletRequest request)
+    {
+        String referer = request.getHeader("referer");
+        if (referer != null)
+        {
+            int i1 = referer.indexOf("namespace=");
+            if (i1 != -1)
+            {
+                int i2 = referer.indexOf("&", i1);
+                if (i2 != -1)
+                {
+                    return referer.substring(i1 + 10, i2);
+                }
+                else
+                {
+                    return referer.substring(i1 + 10);
+                }
+            }
+        }
+        return null;
+    }
     /**
      * Return the filter configuration object for this filter.
      */
@@ -100,13 +140,11 @@ public class NamespaceFilter implements Filter
      * Destroy method for this filter
      */
     public void destroy()
-    {        
+    {
     }
 
-    
     public void log(String msg)
     {
-        filterConfig.getServletContext().log(msg);        
+        filterConfig.getServletContext().log(msg);
     }
-
 }

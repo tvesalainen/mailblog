@@ -224,6 +224,14 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                 {
                     sendMail(request, blogAuthor, blog, publishImmediately);
                 }
+                else
+                {
+                    log("not sending email because ripping");
+                }
+            }
+            else
+            {
+                log("no html body");
             }
             List<Future<HTTPResponse>> futureList = new ArrayList<Future<HTTPResponse>>();
             for (BodyPart bodyPart : bodyPartList)

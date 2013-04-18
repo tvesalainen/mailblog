@@ -16,6 +16,12 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.Entities;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -44,7 +50,9 @@ public class NamespacesServlet extends HttpServlet
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        
+        DS ds = DS.get();
+        response.setContentType("text/html ;charset=utf-8");
+        response.getWriter().write(ds.createNamespaceSelect());
     }
 
     /**
