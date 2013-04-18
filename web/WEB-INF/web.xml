@@ -58,6 +58,10 @@
         <servlet-name>NamespacesServlet</servlet-name>
         <servlet-class>org.vesalainen.mailblog.NamespacesServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>FileUploadServlet</servlet-name>
+        <servlet-class>org.vesalainen.mailblog.FileUploadServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>RemoteApiServlet</servlet-name>
         <url-pattern>/remote_api</url-pattern>
@@ -105,6 +109,10 @@
     <servlet-mapping>
         <servlet-name>NamespacesServlet</servlet-name>
         <url-pattern>/namespaces</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>FileUploadServlet</servlet-name>
+        <url-pattern>/admin/settings/fileupload/*</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

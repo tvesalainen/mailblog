@@ -16,6 +16,9 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Text;
@@ -33,7 +36,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ContentServlet extends HttpServlet implements BlogConstants
 {
-
+    private BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
     /**
      * Handles the HTTP
      * <code>GET</code> method.
@@ -82,14 +85,32 @@ public class ContentServlet extends HttpServlet implements BlogConstants
                 response.setHeader("ETag", eTag);
                 response.setContentType(mimeType);
                 Text text = (Text) page.getProperty(PageProperty);
-                String content = text.getValue();
-                if (content == null)
+                if (text != null)
                 {
-                    log("page is empty"+pathInfo);
-                    response.sendError(HttpServletResponse.SC_CONFLICT);
-                    return;
+                    String content = text.getValue();
+                    if (content == null)
+                    {
+                        log("Text found but page is empty"+pathInfo);
+                        response.sendError(HttpServletResponse.SC_CONFLICT);
+                        return;
+                    }
+                    response.getWriter().write(content);
                 }
-                response.getWriter().write(content);
+                else
+                {
+                    BlobKey blobKey = (BlobKey) page.getProperty(FileProperty);
+                    if (blobKey != null)
+                    {
+                        blobstoreService.serve(blobKey, response);
+                        return;
+                    }
+                    else
+                    {
+                        log("Text or BlobKey not found "+pathInfo);
+                        response.sendError(HttpServletResponse.SC_CONFLICT);
+                        return;
+                    }
+                }
                 return;
             }
             catch (HttpException ex)
