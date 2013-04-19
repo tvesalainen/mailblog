@@ -23,9 +23,11 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Text;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Date;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,22 +56,22 @@ public class ContentServlet extends HttpServlet implements BlogConstants
         log("pathInfo="+pathInfo);
         if (pathInfo != null)
         {
-            try
+            if ("/".equals(pathInfo))
             {
-                if ("/".equals(pathInfo))
-                {
-                    pathInfo = "/index.html";
-                }
-                DS ds = DS.get();
-                Entity page = ds.getPageEntity(pathInfo.substring(1));
-                ServletContext servletContext = getServletContext();
-                String mimeType = servletContext.getMimeType(pathInfo);
-                if (mimeType == null)
-                {
-                    log("mimetype not found "+pathInfo);
-                    response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
-                    return;
-                }
+                pathInfo = "/index.html";
+            }
+            ServletContext servletContext = getServletContext();
+            String mimeType = servletContext.getMimeType(pathInfo);
+            if (mimeType == null)
+            {
+                log("mimetype not found "+pathInfo);
+                response.sendError(HttpServletResponse.SC_UNSUPPORTED_MEDIA_TYPE);
+                return;
+            }
+            DS ds = DS.get();
+            Entity page = ds.getPageEntity(pathInfo.substring(1));
+            if (page != null)
+            {
                 Date timestamp = (Date) page.getProperty(TimestampProperty);
                 if (timestamp == null)
                 {
@@ -111,13 +113,29 @@ public class ContentServlet extends HttpServlet implements BlogConstants
                         return;
                     }
                 }
-                return;
             }
-            catch (HttpException ex)
+            else
             {
-                log("", ex);
-                ex.sendError(response);
+                InputStream is = getServletContext().getResourceAsStream(pathInfo);
+                if (is != null)
+                {
+                    ServletOutputStream os = response.getOutputStream();
+                    byte[] buf = new byte[4096];
+                    int rc = is.read(buf);
+                    while (rc != -1)
+                    {
+                        os.write(buf, 0, rc);
+                        rc = is.read(buf);
+                    }
+                }
+                else
+                {
+                    log("Not found from file resources "+pathInfo);
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
             }
+            return;
         }
         else
         {

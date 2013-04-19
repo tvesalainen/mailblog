@@ -16,6 +16,7 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
@@ -52,6 +53,11 @@ public class FileUploadServlet extends HttpServlet implements BlogConstants
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
+        String namespace = NamespaceManager.get();
+        if (namespace == null)
+        {
+            namespace = "";
+        }
         response.setContentType("text/html ;charset=utf-8");
         PrintWriter pw = response.getWriter();
         pw.print("<html>");
@@ -59,7 +65,7 @@ public class FileUploadServlet extends HttpServlet implements BlogConstants
         pw.print("<title>Upload Test</title>");
         pw.print("</head>");
         pw.print("<body>");
-        pw.print("<form action=" + blobstoreService.createUploadUrl("/admin/settings/fileupload") + " method=\"post\" enctype=\"multipart/form-data\">");
+        pw.print("<form action=" + blobstoreService.createUploadUrl("/admin/settings/fileupload?namespace="+namespace) + " method=\"post\" enctype=\"multipart/form-data\">");
         pw.print("<input type=\"text\" name=\"filename\">");
         pw.print("<input type=\"file\" name=\"myFile\">");
         pw.print("<input type=\"submit\" value=\"Submit\">");

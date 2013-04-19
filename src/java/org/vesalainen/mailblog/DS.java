@@ -272,7 +272,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
         return sb.toString();
     }
-    public Entity getPageEntity(String path) throws HttpException
+    public Entity getPageEntity(String path)
     {
         try
         {
@@ -280,7 +280,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
         catch (EntityNotFoundException ex)
         {
-            throw new HttpException(HttpServletResponse.SC_NOT_FOUND, path+" not found", ex);
+            return null;
         }
     }
     public void setPage(Entity page)
