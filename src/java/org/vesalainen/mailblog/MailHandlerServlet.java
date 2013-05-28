@@ -370,11 +370,19 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             }
             Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, OriginalSizeProperty, request);
             futures.add(res);
+            if (contentType.startsWith("application/vnd.google-earth.kml+xml") || filename.endsWith(".kml"))
+            {
+                log("KML not yet supported");
+            }        
+            if (contentType.startsWith("application/vnd.google-earth.kmz") || filename.endsWith(".kmz"))
+            {
+                log("KMZ not yet supported");
+            }        
+            if (contentType.startsWith("application/X-jsr179-location-nmea") || filename.endsWith(".nmea"))
+            {
+                log("NMEA not yet supported");
+            }        
         }
-        if (contentType.startsWith("application/X-jsr179-location-nmea"))
-        {
-            log("NMEA not yet supported");
-        }        
         return futures;
     }
 
