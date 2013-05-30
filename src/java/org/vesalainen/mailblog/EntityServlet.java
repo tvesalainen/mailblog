@@ -17,7 +17,6 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
@@ -367,7 +366,7 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
             return this;
         }
 
-        protected Object newInstance(String str)
+        protected Object newInstance(String str) throws HttpException
         {
             return type.newInstance(str);
         }

@@ -28,6 +28,7 @@
         <mkdir dir="build/WEB-INF"/>
         <mkdir dir="build/WEB-INF/lib"/>
         <mkdir dir="build/WEB-INF/classes"/>
+        <mkdir dir="generated-files"/>
 
         <javac srcdir="src"
            destdir="build/WEB-INF/classes"
@@ -38,9 +39,14 @@
            classpath="${java.classpath}"
            encoding="utf-8"
         >
+            <compilerarg value="-d"/>
+            <compilerarg path="build/WEB-INF/classes"/>
+            <compilerarg value="-s"/>
+            <compilerarg path="generated-files"/>
         </javac>
         <copy todir="build/WEB-INF/classes">
             <fileset dir="src" includes="**/*.properties" />
+            <fileset dir="generated-files" includes="**/*.html" />
         </copy>
         <copy todir="build">
             <fileset dir="web"/>
@@ -48,6 +54,7 @@
         <copy file="${appengine.api.jar}" todir="build/WEB-INF/lib"/>
         <copy file="${kml22.jar}" todir="build/WEB-INF/lib"/>
         <copy file="${rss.jar}" todir="build/WEB-INF/lib"/>
+        <copy file="${javalpg.jar}" todir="build/WEB-INF/lib"/>
     </target>
 <!--
     First deployment from your host generates a token. Deployment prompts you
@@ -72,6 +79,7 @@
     <target name="clean" depends="init"
           description="Cleans all by removing build and dist directories">
         <delete dir="build" />
+        <delete dir="generated-files"/>
         <delete dir="dist" />
     </target>
     <target name="init-vanhatblogit">

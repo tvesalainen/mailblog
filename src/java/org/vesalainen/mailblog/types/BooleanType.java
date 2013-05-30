@@ -45,7 +45,7 @@ public class BooleanType extends PropertyType<Boolean>
     {
         if (value != null && !value.isEmpty())
         {
-            return new Boolean(true);
+            return Boolean.valueOf(value);
         }
         return null;
     }

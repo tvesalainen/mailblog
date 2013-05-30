@@ -105,19 +105,17 @@ $(document).ready(function(){
             }
         });
         var action = $(target).attr("action");
-        $.post(action, $(target).serialize(), function(data, textStatus, jqXHR)
-        {
-            if (textStatus != "success")
-            {
-                alert(textStatus);
-            }
-            else
-            {
-                var key = $(target).find("[name='key']").val();
-                $(target).find(".fields").load(action+"?key="+key);
-                $(target).find(".select").load(action+"?select=true");
-             }
-        });
+        $.post(action, $(target).serialize())
+            .done(function(data, textStatus, jqXHR)
+                {
+                    var key = $(target).find("[name='key']").val();
+                    $(target).find(".fields").load(action+"?key="+key);
+                    $(target).find(".select").load(action+"?select=true");
+                })
+            .fail(function(jqXHR, textStatus, errorThrown)
+                {
+                    alert("Submit failed");
+                });
     });
 
     $("form").submit(function() 

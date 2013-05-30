@@ -20,6 +20,7 @@ package org.vesalainen.mailblog.types;
 import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.vesalainen.mailblog.HttpException;
 
 /**
  * @author Timo Vesalainen
@@ -36,7 +37,7 @@ public class CollectionType extends PropertyType<Collection>
     }
     
     @Override
-    public Collection newInstance(String value)
+    public Collection newInstance(String value) throws HttpException
     {
         if (value != null)
         {

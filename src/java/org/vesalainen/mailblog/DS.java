@@ -81,6 +81,7 @@ import net.opengis.kml.PointType;
 import net.opengis.kml.StyleType;
 import net.opengis.kml.TimeStampType;
 import org.vesalainen.kml.KML;
+import org.vesalainen.kml.KMZ;
 import org.vesalainen.rss.Channel;
 import org.vesalainen.rss.Item;
 import org.vesalainen.rss.RSS;
@@ -820,11 +821,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
         {
             throw new IOException();
         }
-        KML kml = new KML();
-        ObjectFactory factory = kml.getFactory();
-        DatatypeFactory dtFactory = kml.getDtFactory();
+        KMZ kmz = new KMZ();
+        ObjectFactory factory = kmz.getFactory();
+        DatatypeFactory dtFactory = kmz.getDtFactory();
         JAXBElement<DocumentType> document = factory.createDocument(factory.createDocumentType());
-        kml.getKml().getValue().setAbstractFeatureGroup(document);
+        kmz.getKml().getValue().setAbstractFeatureGroup(document);
         // styles
         // blog style
         JAXBElement<StyleType> blogStyle = factory.createStyle(factory.createStyleType());
@@ -931,7 +932,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             }
         }      
         
-        kml.write(outputStream);
+        kmz.write(outputStream);
     }
 
     private boolean match(GeoPt location, float west, float south, float east, float north)
@@ -956,6 +957,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
         placemark.setUnindexedProperty(TitleProperty, title);
         placemark.setUnindexedProperty(DescriptionProperty, description);
         put(placemark);
+    }
+    
+    public Entity createPlacemark()
+    {
+        return new Entity(PlacemarkKind, Root);
     }
     
     public class CacheWriter extends Writer

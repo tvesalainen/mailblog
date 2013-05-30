@@ -64,6 +64,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -75,6 +77,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBException;
+import org.vesalainen.kml.KML;
+import org.vesalainen.kml.KMZ;
 import org.vesalainen.mailblog.exif.ExifParser;
 
 /**
@@ -222,7 +227,10 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                 Entity blog = createBlog(blogKey, message, htmlBody, publishImmediately);
                 if (!ripping)
                 {
-                    sendMail(request, blogAuthor, blog, publishImmediately);
+                    if (blog != null)
+                    {
+                        sendMail(request, blogAuthor, blog, publishImmediately);
+                    }
                 }
                 else
                 {
@@ -337,17 +345,14 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         if (content instanceof InputStream)
         {
             String filename = bodyPart.getFileName();
-            String[] cids = bodyPart.getHeader("Content-ID");
-            if (cids == null || cids.length == 0)
-            {
-                log("attachment filename="+filename+" doesn't have a Content-ID");
-                return null;
-            }
-            String cid = cids[0];
             byte[] bytes = getBytes(bodyPart);
             String digestString = DS.getDigest(bytes);
-            Entity metadata = createMetadata(digestString, filename, contentType, bytes);
-            replaceBlogRef(blogKey, cid, digestString);
+            createMetadata(digestString, filename, contentType, bytes);
+            String[] cids = bodyPart.getHeader("Content-ID");
+            if (cids != null && cids.length > 0)
+            {
+                replaceBlogRef(blogKey, cids[0], digestString);
+            }
             if (contentType.startsWith("image/"))
             {
                 Image image = ImagesServiceFactory.makeImage(bytes);
@@ -372,11 +377,31 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             futures.add(res);
             if (contentType.startsWith("application/vnd.google-earth.kml+xml") || filename.endsWith(".kml"))
             {
-                log("KML not yet supported");
+                try
+                {
+                    InputStream is = (InputStream) content;
+                    KML kml = new KML(is);
+                    PlacemarkUpdater pu = new PlacemarkUpdater(ds, kml);
+                    pu.visit(kml, null);
+                }
+                catch (JAXBException ex)
+                {
+                    log("reading kml failed", ex);
+                }
             }        
             if (contentType.startsWith("application/vnd.google-earth.kmz") || filename.endsWith(".kmz"))
             {
-                log("KMZ not yet supported");
+                try
+                {
+                    InputStream is = (InputStream) content;
+                    KMZ kmz = new KMZ(is);
+                    PlacemarkUpdater pu = new PlacemarkUpdater(ds, kmz);
+                    pu.visit(kmz, null);
+                }
+                catch (JAXBException ex)
+                {
+                    log("reading kmz failed", ex);
+                }
             }        
             if (contentType.startsWith("application/X-jsr179-location-nmea") || filename.endsWith(".nmea"))
             {
@@ -599,6 +624,11 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             {
                 try
                 {
+                    String subject = (String) getHeader(message, SubjectProperty);
+                    if (subject == null || subject.isEmpty())
+                    {
+                        return null;
+                    }
                     DS ds = DS.get();
                     Entity blog;
                     try
@@ -609,7 +639,6 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     {
                         blog = new Entity(blogKey);
                     }
-                    String subject = (String) getHeader(message, SubjectProperty);
                     int idx = subject.indexOf('{');
                     if (idx != -1)
                     {

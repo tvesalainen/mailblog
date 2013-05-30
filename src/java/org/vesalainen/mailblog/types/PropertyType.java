@@ -30,13 +30,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
+import org.vesalainen.mailblog.HttpException;
 
 /**
  * @author Timo Vesalainen
  */
 public abstract class PropertyType<T> 
 {
-    public abstract T newInstance(String value);
+    public abstract T newInstance(String value) throws HttpException;
     public abstract String getString(Object obj);
     public String getDefaultInputType()
     {
