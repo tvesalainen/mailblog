@@ -72,6 +72,10 @@ public interface BlogConstants
     static final String UserProperty = "User";
     static final String LocationProperty = "Location";
     static final String FileProperty = "File";
+    // Maidenhead properties
+    static final String FieldProperty = "Field";
+    static final String SquareProperty = "Square";
+    static final String SubsquareProperty = "Subsquare";
     
     static final String RemoveParameter = "remove";
     static final String BlogParameter = "blog";
