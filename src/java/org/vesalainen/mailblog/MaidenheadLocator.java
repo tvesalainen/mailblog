@@ -1,3 +1,5 @@
+package org.vesalainen.mailblog;
+
 /*
  * Copyright (C) 2013 Timo Vesalainen
  *
@@ -14,14 +16,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.vesalainen.mailblog;
 
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.GeoPt;
-import com.google.appengine.api.datastore.Query;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -29,149 +25,201 @@ import java.util.TreeSet;
  * @author Timo Vesalainen
  * @see <a href="http://en.wikipedia.org/wiki/Maidenhead_Locator_System">Maidenhead Locator System</a>
  */
-public class MaidenheadLocator implements BlogConstants
+public class MaidenheadLocator
 {
-    private static final float FieldStepLon = 360 / 18;
-    private static final float SquareStepLon = FieldStepLon / 10;
-    private static final float SubsquareStepLon = SquareStepLon / 24;
-    private static final float FieldStepLat = 180 / 18;
-    private static final float SquareStepLat = FieldStepLat / 10;
-    private static final float SubsquareStepLat = SquareStepLat / 24;
-    private static final int LIMIT = 30;
-    private String value;
+    private char latField;
+    private char latSquare;
+    private char latSubsquare;
+    private char lonField;
+    private char lonSquare;
+    private char lonSubsquare;
     public enum LocatorLevel {Field, Square, Subsquare };
 
     private MaidenheadLocator(String value)
     {
-        this.value = value;
+        assert value != null;
+        assert value.length() == 6;
+        this.lonField = value.charAt(0);
+        this.latField = value.charAt(1);
+        this.lonSquare = value.charAt(2);
+        this.latSquare = value.charAt(3);
+        this.lonSubsquare = value.charAt(4);
+        this.latSubsquare = value.charAt(5);
     }
     
-    public MaidenheadLocator(GeoPt location)
-    {
-        this(location.getLatitude(), location.getLongitude());
-    }
-
     public MaidenheadLocator(double latitude, double longitude)
     {
-        value = getMaidenheadLocator(latitude, longitude);
-        
-    }
-
-    public static String getMaidenheadLocator(double latitude, double longitude)
-    {
         latitude += 90;
-        char latField = (char) ('A' + (latitude / 10));
-        char latSquare = (char) ('0' + latitude % 10);
-        char latSubsquare = (char) ('A' + (latitude % 1) * 24);
+        latField = (char) ('A' + (latitude / 10));
+        latSquare = (char) ('0' + latitude % 10);
+        latSubsquare = (char) ('A' + (latitude % 1) * 24);
         
         longitude += 180;
         longitude /= 2;
-        char lonField = (char) ('A' + (longitude / 10));
-        char lonSquare = (char) ('0' + longitude % 10);
-        char lonSubsquare = (char) ('A' + (longitude % 1) * 24);
-        
-        return new String(new char[] {lonField, latField, lonSquare, latSquare, lonSubsquare, latSubsquare});
+        lonField = (char) ('A' + (longitude / 10));
+        lonSquare = (char) ('0' + longitude % 10);
+        lonSubsquare = (char) ('A' + (longitude % 1) * 24);
     }
-    /**
-     * Set Location property to entity. Maidenhead properties are added with following rules.
-     * If level is Field: Field, Square and Subsquare.
-     * If level is Square: Square and Subsquare.
-     * If level is Subsquare: Subsquare.
-     * @param entity
-     * @param location
-     * @param level 
-     */
-    public static void setLocation(Entity entity, GeoPt location, LocatorLevel level)
+
+    public void addLongitude(LocatorLevel level)
     {
-        setLocation(entity, location, level.ordinal());
-    }
-    public static void setLocation(Entity entity, GeoPt location, int level)
-    {
-        MaidenheadLocator ml = new MaidenheadLocator(location);
-        if (level <= LocatorLevel.Field.ordinal())
+        switch (level)
         {
-            entity.setProperty(FieldProperty, ml.getField());
-        }
-        if (level <= LocatorLevel.Square.ordinal())
-        {
-            entity.setProperty(SquareProperty, ml.getSquare());
-        }
-        if (level <= LocatorLevel.Subsquare.ordinal())
-        {
-            entity.setProperty(SubsquareProperty, ml.getSubsquare());
-        }
-    }
-    
-    public static void addFilters(List<Query.Filter> filters, float west, float south, float east, float north)
-    {
-        int subsquareCountBetween = subsquareCountBetween(west, south, east, north);
-        if (subsquareCountBetween < LIMIT)
-        {
-            Set<String> subsquaresBetween = subsquaresBetween(west, south, east, north);
-            filters.add(new Query.FilterPredicate(FieldProperty, Query.FilterOperator.IN, subsquaresBetween));
-        }
-        else
-        {
-            int squareCountBetween = squareCountBetween(west, south, east, north);
-            if (squareCountBetween < LIMIT)
-            {
-                Set<String> squaresBetween = squaresBetween(west, south, east, north);
-                filters.add(new Query.FilterPredicate(FieldProperty, Query.FilterOperator.IN, squaresBetween));
-            }
-            else
-            {
-                int fieldCountBetween = fieldCountBetween(west, south, east, north);
-                if (fieldCountBetween < LIMIT)
+            case Field:
+                if (lonField == 'R')
                 {
-                    Set<String> fieldsBetween = fieldsBetween(west, south, east, north);
-                    filters.add(new Query.FilterPredicate(FieldProperty, Query.FilterOperator.IN, fieldsBetween));
+                    throw new IllegalArgumentException("cannot add R");
+                }
+                lonField++;
+                break;
+            case Square:
+                if (lonSquare == '9')
+                {
+                    addLongitude(LocatorLevel.Field);
+                    lonSquare = '0';
                 }
                 else
                 {
-                    MaidenheadLocator sw = new MaidenheadLocator(south, west);
-                    MaidenheadLocator ne = new MaidenheadLocator(north, east);
-                    filters.add(new Query.FilterPredicate(FieldProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, sw.getField()));
-                    filters.add(new Query.FilterPredicate(FieldProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, ne.getField()));
+                    lonSquare++;
                 }
-            }
+                break;
+            case Subsquare:
+                if (lonSubsquare == 'X')
+                {
+                    addLongitude(LocatorLevel.Square);
+                    lonSubsquare = 'A';
+                }
+                else
+                {
+                    lonSubsquare++;
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("unknown "+level);
         }
     }
-
+    
+    public void addLatitude(LocatorLevel level)
+    {
+        switch (level)
+        {
+            case Field:
+                if (latField == 'R')
+                {
+                    throw new IllegalArgumentException("cannot add R");
+                }
+                latField++;
+                break;
+            case Square:
+                if (latSquare == '9')
+                {
+                    addLatitude(LocatorLevel.Field);
+                    latSquare = '0';
+                }
+                else
+                {
+                    latSquare++;
+                }
+                break;
+            case Subsquare:
+                if (latSubsquare == 'X')
+                {
+                    addLatitude(LocatorLevel.Square);
+                    latSubsquare = 'A';
+                }
+                else
+                {
+                    latSubsquare++;
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("unknown "+level);
+        }
+    }
+    
     public static int fieldCountBetween(float west, float south, float east, float north)
     {
-        return fieldCountBetweenLon(west,east)*fieldCountBetweenLat(south,north);
-    }
-    public static int fieldCountBetweenLon(float c1, float c2)
-    {
-        return (int) ((Math.abs(c1-c2)/FieldStepLon)+1);
-    }
-    public static int fieldCountBetweenLat(float c1, float c2)
-    {
-        return (int) ((Math.abs(c1-c2)/FieldStepLat)+1);
+        if (west > east || south > north)
+        {
+            throw new IllegalArgumentException(west+" > "+east+" || "+south+" > "+north);
+        }
+        MaidenheadLocator sw = new MaidenheadLocator(south, west);
+        MaidenheadLocator ne = new MaidenheadLocator(north, east);
+        return (ne.latField-sw.latField+1)*(ne.lonField-sw.lonField+1);
     }
     public static int squareCountBetween(float west, float south, float east, float north)
     {
-        return squareCountBetweenLon(west,east)*squareCountBetweenLat(south,north);
+        if (west > east || south > north)
+        {
+            throw new IllegalArgumentException(west+" > "+east+" || "+south+" > "+north);
+        }
+        MaidenheadLocator sw = new MaidenheadLocator(south, west);
+        MaidenheadLocator ne = new MaidenheadLocator(north, east);
+        return squareCountBetweenLat(sw, ne)*squareCountBetweenLon(sw, ne);
     }
-    public static int squareCountBetweenLon(float c1, float c2)
+    private static int squareCountBetweenLat(MaidenheadLocator sw, MaidenheadLocator ne)
     {
-        return (int) ((Math.abs(c1-c2)/SquareStepLon)+1);
+        int count = 0;
+        char swLatField = sw.latField;
+        char neLatField = ne.latField;
+        if (swLatField == neLatField)
+        {
+            return ne.latSquare - sw.latSquare + 1;
+        }
+        count += '9' - sw.latSquare + 1;
+        count += (neLatField - (swLatField+1))*10;
+        count += ne.latSquare - '0' + 1;
+        return count;
     }
-    public static int squareCountBetweenLat(float c1, float c2)
+    private static int squareCountBetweenLon(MaidenheadLocator sw, MaidenheadLocator ne)
     {
-        return (int) ((Math.abs(c1-c2)/SquareStepLat)+1);
+        int count = 0;
+        char swLonField = sw.lonField;
+        char neLonField = ne.lonField;
+        if (swLonField == neLonField)
+        {
+            return ne.lonSquare - sw.lonSquare + 1;
+        }
+        count += '9' - sw.lonSquare + 1;
+        count += (neLonField - (swLonField+1))*10;
+        count += ne.lonSquare - '0' + 1;
+        return count;
     }
     public static int subsquareCountBetween(float west, float south, float east, float north)
     {
-        return subsquareCountBetweenLon(west,east)*subsquareCountBetweenLat(south,north);
+        if (west > east || south > north)
+        {
+            throw new IllegalArgumentException(west+" > "+east+" || "+south+" > "+north);
+        }
+        MaidenheadLocator sw = new MaidenheadLocator(south, west);
+        MaidenheadLocator ne = new MaidenheadLocator(north, east);
+        return subsquareCountBetweenLon(sw,ne)*subsquareCountBetweenLat(sw,ne);
     }
-    public static int subsquareCountBetweenLon(float c1, float c2)
+    private static int subsquareCountBetweenLat(MaidenheadLocator sw, MaidenheadLocator ne)
     {
-        return (int) ((Math.abs(c1-c2)/SubsquareStepLon)+1);
+        int count = 0;
+        int squareCountBetweenLat = squareCountBetweenLat(sw, ne);
+        if (squareCountBetweenLat == 1)
+        {
+            return ne.latSubsquare - sw.latSubsquare + 1;
+        }
+        count += 'X' - sw.latSubsquare + 1;
+        count += (squareCountBetweenLat - 2)*24;
+        count += ne.latSubsquare - 'A' + 1;
+        return count;
     }
-    public static int subsquareCountBetweenLat(float c1, float c2)
+    private static int subsquareCountBetweenLon(MaidenheadLocator sw, MaidenheadLocator ne)
     {
-        return (int) ((Math.abs(c1-c2)/SubsquareStepLat)+1);
+        int count = 0;
+        int squareCountBetweenLon = squareCountBetweenLon(sw, ne);
+        if (squareCountBetweenLon == 1)
+        {
+            return ne.lonSubsquare - sw.lonSubsquare + 1;
+        }
+        count += 'X' - sw.lonSubsquare + 1;
+        count += (squareCountBetweenLon - 2)*24;
+        count += ne.lonSubsquare - 'A' + 1;
+        return count;
     }
     public static Set<String> fieldsBetween(float west, float south, float east, float north)
     {
@@ -179,12 +227,14 @@ public class MaidenheadLocator implements BlogConstants
         {
             throw new IllegalArgumentException(west+" > "+east+" || "+south+" > "+north);
         }
+        MaidenheadLocator sw = new MaidenheadLocator(south, west);
+        MaidenheadLocator ne = new MaidenheadLocator(north, east);
         Set<String> set = new TreeSet<>();
-        for (float lon = west;lon<=east;lon +=FieldStepLon)
+        for (char latf=sw.latField;latf<=ne.latField;latf++)
         {
-            for (float lat = south;lat <= north;lat += FieldStepLat)
+            for (char lonf=sw.lonField;lonf<=ne.lonField;lonf++)
             {
-                set.add(getMaidenheadLocator(lat, lon).substring(0, 2));
+                set.add(new String(new char[] {lonf, latf}));
             }
         }
         return set;
@@ -195,13 +245,23 @@ public class MaidenheadLocator implements BlogConstants
         {
             throw new IllegalArgumentException(west+" > "+east+" || "+south+" > "+north);
         }
+        MaidenheadLocator sw = new MaidenheadLocator(south, west);
+        MaidenheadLocator ne = new MaidenheadLocator(north, east);
         Set<String> set = new TreeSet<>();
-        for (float lon = west;lon<=east;lon +=SquareStepLon)
+        int squareCountBetweenLon = MaidenheadLocator.squareCountBetweenLon(sw, ne);
+        int squareCountBetweenLat = MaidenheadLocator.squareCountBetweenLat(sw, ne);
+        char initLatField = sw.latField;
+        char initLatSquare = sw.latSquare;
+        for (int lon = 0;lon < squareCountBetweenLon; lon++)
         {
-            for (float lat = south;lat <= north;lat += SquareStepLat)
+            sw.latField = initLatField;
+            sw.latSquare = initLatSquare;
+            for (int lat = 0;lat < squareCountBetweenLat;lat++)
             {
-                set.add(getMaidenheadLocator(lat, lon).substring(0, 4));
+                set.add(sw.getSquare());
+                sw.addLatitude(LocatorLevel.Square);
             }
+            sw.addLongitude(LocatorLevel.Square);
         }
         return set;
     }
@@ -211,45 +271,71 @@ public class MaidenheadLocator implements BlogConstants
         {
             throw new IllegalArgumentException(west+" > "+east+" || "+south+" > "+north);
         }
+        MaidenheadLocator sw = new MaidenheadLocator(south, west);
+        MaidenheadLocator ne = new MaidenheadLocator(north, east);
         Set<String> set = new TreeSet<>();
-        for (float lon = west;lon<=east;lon +=SubsquareStepLon)
+        int subsquareCountBetweenLon = MaidenheadLocator.subsquareCountBetweenLon(sw, ne);
+        int subsquareCountBetweenLat = MaidenheadLocator.subsquareCountBetweenLat(sw, ne);
+        char initLatField = sw.latField;
+        char initLatSquare = sw.latSquare;
+        char initLatSubsquare = sw.latSubsquare;
+        for (int lon = 0;lon < subsquareCountBetweenLon; lon++)
         {
-            for (float lat = south;lat <= north;lat += SubsquareStepLat)
+            sw.latField = initLatField;
+            sw.latSquare = initLatSquare;
+            sw.latSubsquare = initLatSubsquare;
+            for (int lat = 0;lat < subsquareCountBetweenLat;lat++)
             {
-                set.add(getMaidenheadLocator(lat, lon));
+                set.add(sw.getSubsquare());
+                sw.addLatitude(LocatorLevel.Subsquare);
             }
+            sw.addLongitude(LocatorLevel.Subsquare);
         }
         return set;
     }
     public String getField()
     {
-        return value.substring(0, 2);
+        return new String(new char[] {lonField, latField});
     }
     
     public String getSquare()
     {
-        return value.substring(0, 4);
+        return new String(new char[] {lonField, latField, lonSquare, latSquare});
     }
     
     public String getSubsquare()
     {
-        return value;
+        return new String(new char[] {lonField, latField, lonSquare, latSquare, lonSubsquare, latSubsquare});
     }
 
     @Override
     public String toString()
     {
-        return value;
+        return getSubsquare();
     }
 
     public static void main(String[] args)
     {
         try
         {
-            System.err.println(MaidenheadLocator.fieldCountBetween(-23.64533645010307F,21.60106994204968F,-9.760809816680036F,32.5324557504879F));
-            Set<String> fieldsBetween = MaidenheadLocator.fieldsBetween(-23.64533645010307F,21.60106994204968F,-9.760809816680036F,32.5324557504879F);
+            float west = -23.64533645010307F;
+            float east = 21.60106994204968F;
+            float south = -9.760809816680036F;
+            float north = 32.5324557504879F;
+            MaidenheadLocator sw = new MaidenheadLocator(south, west);
+            MaidenheadLocator ne = new MaidenheadLocator(north, east);
+            System.err.println("fields="+MaidenheadLocator.fieldCountBetween(west, south, east, north));
+            System.err.println("sw="+sw);
+            System.err.println("ne="+ne);
+            Set<String> fieldsBetween = MaidenheadLocator.fieldsBetween(west, south, east, north);
             System.err.println(fieldsBetween.size());
             System.err.println(fieldsBetween);
+            Set<String> squaresBetween = MaidenheadLocator.squaresBetween(west, south, east, north);
+            System.err.println(squaresBetween.size());
+            System.err.println(squaresBetween);
+            Set<String> subsquaresBetween = MaidenheadLocator.subsquaresBetween(west, south, east, north);
+            System.err.println(subsquaresBetween.size());
+            System.err.println(subsquaresBetween);
         }
         catch (Exception ex)
         {

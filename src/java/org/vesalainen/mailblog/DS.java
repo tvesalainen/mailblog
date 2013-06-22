@@ -861,7 +861,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         Query blogQuery = new Query(BlogKind);
         List<Filter> blogFilters = new ArrayList<>();
         blogFilters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
-        MaidenheadLocator.addFilters(blogFilters, west, south, east, north);
+        MaidenheadLocator2.addFilters(blogFilters, west, south, east, north);
         blogQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, blogFilters));
         PreparedQuery blogPrepared = prepare(blogQuery);
         for (Entity blog : blogPrepared.asIterable(FetchOptions.Builder.withDefaults()))
@@ -922,7 +922,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
     {
         Query placemarkQuery = new Query(PlacemarkKind);
         List<Filter> placemarkFilters = new ArrayList<Filter>();
-        MaidenheadLocator.addFilters(placemarkFilters, west, south, east, north);
+        MaidenheadLocator2.addFilters(placemarkFilters, west, south, east, north);
         if (placemarkFilters.size() == 1)
         {
             placemarkQuery.setFilter(placemarkFilters.get(0));
@@ -1150,7 +1150,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
     private void doAddPlacemark(Date time, GeoPt geoPt, String title, String description)
     {
         Entity placemark = new Entity(PlacemarkKind, time.getTime(), Root);
-        MaidenheadLocator.setLocation(placemark, geoPt, MaidenheadLocator.LocatorLevel.Field);
+        MaidenheadLocator2.setLocation(placemark, geoPt, MaidenheadLocator2.LocatorLevel.Field);
         placemark.setProperty(CoordinatesProperty, geoPt);
         placemark.setProperty(TimestampProperty, time);
         placemark.setUnindexedProperty(TitleProperty, title);

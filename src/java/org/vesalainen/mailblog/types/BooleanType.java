@@ -43,11 +43,14 @@ public class BooleanType extends PropertyType<Boolean>
     @Override
     public Boolean newInstance(String value)
     {
-        if (value != null && !value.isEmpty())
+        if (value != null)
         {
-            return Boolean.valueOf(value);
+            return Boolean.TRUE;
         }
-        return null;
+        else
+        {
+            return Boolean.FALSE;
+        }
     }
 
     @Override

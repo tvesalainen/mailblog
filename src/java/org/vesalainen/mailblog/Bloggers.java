@@ -63,7 +63,7 @@ public class Bloggers implements BlogConstants
     public void update(HttpServletRequest req)
     {
         DatastoreService datastore = DS.get();
-        Set<Key> newBloggers = new HashSet<Key>();
+        Set<Key> newBloggers = new HashSet<>();
         String[] emails = req.getParameterValues(Blogger);
         if (emails != null)
         {
@@ -75,7 +75,7 @@ public class Bloggers implements BlogConstants
                 }
             }
         }
-        Set<Key> removedBloggers = new HashSet<Key>();
+        Set<Key> removedBloggers = new HashSet<>();
         for (Entity entity : getBloggers())
         {
             Key key = entity.getKey();

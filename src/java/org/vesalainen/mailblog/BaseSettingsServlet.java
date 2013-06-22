@@ -75,6 +75,8 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
                 .setMandatory();
         addProperty(FixPicProperty)
                 .setType(Boolean.class);
+        addProperty(CommonPlacemarksProperty)
+                .setType(Boolean.class);
     }
 
     @Override

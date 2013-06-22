@@ -18,7 +18,6 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Transaction;
 import javax.servlet.http.HttpServletRequest;
@@ -65,6 +64,7 @@ public abstract class SettingsServlet extends EntityServlet
         {
             if (tr.isActive())
             {
+                log("rollbacked");
                 tr.rollback();
             }
         }
