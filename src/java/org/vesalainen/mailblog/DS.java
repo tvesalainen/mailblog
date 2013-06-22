@@ -74,11 +74,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import net.opengis.kml.BalloonStyleType;
 import net.opengis.kml.DocumentType;
 import net.opengis.kml.IconStyleType;
+import net.opengis.kml.LineStringType;
 import net.opengis.kml.LinkType;
 import net.opengis.kml.ObjectFactory;
 import net.opengis.kml.PlacemarkType;
 import net.opengis.kml.PointType;
 import net.opengis.kml.StyleType;
+import net.opengis.kml.TimeSpanType;
 import net.opengis.kml.TimeStampType;
 import org.vesalainen.kml.KML;
 import org.vesalainen.kml.KMZ;
@@ -857,113 +859,349 @@ public class DS extends CachingDatastoreService implements BlogConstants
         placemarkStyle.getValue().setIconStyle(spotIconStyle);
         // blogs
         Query blogQuery = new Query(BlogKind);
-        List<Filter> blogFilters = new ArrayList<Filter>();
+        List<Filter> blogFilters = new ArrayList<>();
         blogFilters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
-        addFilters(blogFilters, south, north);
+        MaidenheadLocator.addFilters(blogFilters, west, south, east, north);
         blogQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, blogFilters));
-        //query.addSort(DateProperty, Query.SortDirection.DESCENDING);
         PreparedQuery blogPrepared = prepare(blogQuery);
         for (Entity blog : blogPrepared.asIterable(FetchOptions.Builder.withDefaults()))
         {
-            GeoPt location = (GeoPt) blog.getProperty(LocationProperty);
-            if (match(location, west, south, east, north))
-            {
-                System.err.println(location+" match "+west+", "+south+", "+east+", "+north);
-                String subject = (String) blog.getProperty(SubjectProperty);
-                Date date = (Date) blog.getProperty(DateProperty);
-                String id = KeyFactory.keyToString(blog.getKey());
-                URI uri = base.resolve("/index.html?blog="+id);
+            PlacemarkType placemarkType = factory.createPlacemarkType();
 
-                PlacemarkType placemarkType = factory.createPlacemarkType();
-                placemarkType.setId(id);
-                placemarkType.setName(subject);
-                placemarkType.setStyleUrl("#blog-style");
-                placemarkType.setDescription("<a href=\""+uri+"\">"+subject+"</a>");
-                PointType pointType = factory.createPointType();
-                pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f", location.getLongitude(), location.getLatitude()));
-                placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
-
-                TimeStampType timeStampType = factory.createTimeStampType();
-                GregorianCalendar cal = new GregorianCalendar();
-                cal.setTime(date);
-                XMLGregorianCalendar xCal = dtFactory.newXMLGregorianCalendar(cal);
-                timeStampType.setWhen(xCal.toXMLFormat());
-                placemarkType.setAbstractTimePrimitiveGroup(factory.createTimeStamp(timeStampType));
-
-                JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
-                document.getValue().getAbstractFeatureGroup().add(pm);
-            }
+            populateBlog(placemarkType, blog, base);
+            populate(placemarkType, blog, factory, dtFactory);
+            
+            JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
+            document.getValue().getAbstractFeatureGroup().add(pm);
         }   
         // placemarks
-        Query placemarkQuery = new Query(PlacemarkKind);
-        List<Filter> placemarkFilters = new ArrayList<Filter>();
-        addFilters(placemarkFilters, south, north);
-        placemarkQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, placemarkFilters));
-        PreparedQuery placemarkPrepared = prepare(placemarkQuery);
-        for (Entity placemark : placemarkPrepared.asIterable(FetchOptions.Builder.withDefaults()))
+        for (Entity placemark : fetchPlacemarks(west, south, east, north))
         {
-            GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
-            if (match(location, west, south, east, north))
+            System.err.println(placemark);
+            PlacemarkType placemarkType = factory.createPlacemarkType();
+            Entity blog = findBlogFor(placemark);
+            if (blog != null)
             {
-                System.err.println(location+" match "+west+", "+south+", "+east+", "+north);
-                String title = (String) placemark.getProperty(TitleProperty);
-                String description = (String) placemark.getProperty(DescriptionProperty);
-                Date date = (Date) placemark.getProperty(TimestampProperty);
-                String id = KeyFactory.keyToString(placemark.getKey());
-
-                PlacemarkType placemarkType = factory.createPlacemarkType();
-                placemarkType.setId(id);
-                placemarkType.setName(title);
-                placemarkType.setStyleUrl("#placemark-style");
-                placemarkType.setDescription(description);
-                PointType pointType = factory.createPointType();
-                pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f", location.getLongitude(), location.getLatitude()));
-                placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
-
-                TimeStampType timeStampType = factory.createTimeStampType();
-                GregorianCalendar cal = new GregorianCalendar();
-                cal.setTime(date);
-                XMLGregorianCalendar xCal = dtFactory.newXMLGregorianCalendar(cal);
-                timeStampType.setWhen(xCal.toXMLFormat());
-                placemarkType.setAbstractTimePrimitiveGroup(factory.createTimeStamp(timeStampType));
-
-                JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
-                document.getValue().getAbstractFeatureGroup().add(pm);
+                populateBlog(placemarkType, blog, base);
             }
+            else
+            {
+                populatePlacemark(placemarkType, placemark);
+            }
+            populate(placemarkType, placemark, factory, dtFactory);
+            
+            JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
+            document.getValue().getAbstractFeatureGroup().add(pm);
         }      
-        
+        System.err.println("write");
         kmz.write(outputStream);
     }
 
-    private boolean match(GeoPt location, float west, float south, float east, float north)
+    private List<Entity> fetchPlacemarks(float west, float south, float east, float north)
     {
-        float lat = location.getLatitude();
-        float lon = location.getLongitude();
-        return lon >= west && lat >= south && lon <= east && lat <= north;
+        Settings settings = getSettings();
+        if (settings.isCommonPlacemarks())
+        {
+            String namespace = NamespaceManager.get();
+            try
+            {
+                NamespaceManager.set("");
+                return doFetchPlacemarks(west, south, east, north);
+            }
+            finally
+            {
+                NamespaceManager.set(namespace);
+            }
+        }
+        else
+        {
+            return doFetchPlacemarks(west, south, east, north);
+        }
     }
-    private void addFilters(List<Filter> filters, float south, float north)
+    private List<Entity> doFetchPlacemarks(float west, float south, float east, float north)
     {
-        GeoPt from = new GeoPt(south, (float)-180.0);
-        GeoPt to = new GeoPt(north, (float)180.0);
-        filters.add(new FilterPredicate(LocationProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, from));
-        filters.add(new FilterPredicate(LocationProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, to));
+        Query placemarkQuery = new Query(PlacemarkKind);
+        List<Filter> placemarkFilters = new ArrayList<Filter>();
+        MaidenheadLocator.addFilters(placemarkFilters, west, south, east, north);
+        if (placemarkFilters.size() == 1)
+        {
+            placemarkQuery.setFilter(placemarkFilters.get(0));
+        }
+        else
+        {
+            placemarkQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, placemarkFilters));
+        }
+        System.err.println(placemarkQuery);
+        PreparedQuery placemarkPrepared = prepare(placemarkQuery);
+        return placemarkPrepared.asList(FetchOptions.Builder.withDefaults());
     }
+    private Entity findBlogFor(Entity placemark)
+    {
+        Query blogQuery = new Query(BlogKind);
+        List<Filter> blogFilters = new ArrayList<Filter>();
+        blogFilters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
+        List<Date> timestamp = getTimestamp(placemark);
+        if (timestamp.isEmpty())
+        {
+            return null;
+        }
+        else
+        {
+            if (timestamp.size() == 1)
+            {
+                blogFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, addHours(timestamp.get(0), -12)));
+                blogFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, addHours(timestamp.get(0), 12)));
+            }
+            else
+            {
+                blogFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, timestamp.get(0)));
+                blogFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, timestamp.get(1)));
+            }
+        }
+        blogQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, blogFilters));
+        System.err.println(blogQuery);
+        PreparedQuery blogPrepared = prepare(blogQuery);
+        Entity blog = null;
+        for (Entity b : blogPrepared.asIterable(FetchOptions.Builder.withDefaults()))
+        {
+            if (blog == null)
+            {
+                blog = b;
+            }
+            else
+            {
+                if (timeDiff(placemark, blog) > timeDiff(placemark, b))
+                {
+                    blog = b;
+                }
+            }
+        }
+        return blog;
+    }
+    private long timeDiff(Entity e1, Entity e2)
+    {
+        List<Date> ts1 = getTimestamp(e1);
+        if (ts1 == null || ts1.isEmpty())
+        {
+            return Long.MAX_VALUE;
+        }
+        List<Date> ts2 = getTimestamp(e2);
+        if (ts2 == null || ts2.isEmpty())
+        {
+            return Long.MAX_VALUE;
+        }
+        // TODO this is too simple for timespans
+        long result = Long.MAX_VALUE;
+        for (Date d1 : ts1)
+        {
+            for (Date d2 : ts2)
+            {
+                result = Math.min(result, Math.abs(d1.getTime() - d2.getTime()));
+            }
+        }
+        return result;
+    }
+    private Date addHours(Date date, int hours)
+    {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.HOUR_OF_DAY, hours);
+        return cal.getTime();
+    }
+    private void populateBlog(PlacemarkType placemarkType, Entity blog, URI base)
+    {
+        String subject = (String) blog.getProperty(SubjectProperty);
+        String id = KeyFactory.keyToString(blog.getKey());
+        URI uri = base.resolve("/index.html?blog="+id);
+        placemarkType.setName(subject);
+        placemarkType.setStyleUrl("#blog-style");
+        placemarkType.setDescription("<a href=\""+uri+"\">"+subject+"</a>");
+    }
+    
+    private void populatePlacemark(PlacemarkType placemarkType, Entity placemark)
+    {
+        placemarkType.setStyleUrl("#placemark-style");
+        String title = (String) placemark.getProperty(TitleProperty);
+        placemarkType.setName(title);
+        String description = (String) placemark.getProperty(DescriptionProperty);
+        placemarkType.setDescription(description);
+    }
+    
+    private void populate(PlacemarkType placemarkType, Entity entity, ObjectFactory factory, DatatypeFactory dtFactory)
+    {
+        String id = KeyFactory.keyToString(entity.getKey());
 
-    void addPlacemark(Date time, GeoPt geoPt, String title, String description)
+        placemarkType.setId(id);
+        
+        List<GeoPt> coordinates = getCoordinates(entity);
+        if (!coordinates.isEmpty())
+        {
+            if (coordinates.size() == 1)
+            {
+                GeoPt location = coordinates.get(0);
+                PointType pointType = factory.createPointType();
+                pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
+                placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
+            }
+            else
+            {
+                LineStringType lineStringType = factory.createLineStringType();
+                lineStringType.getCoordinates().add(getCoordinatesString(coordinates));
+                placemarkType.setAbstractGeometryGroup(factory.createLineString(lineStringType));
+            }
+        }
+        
+        List<Date> timestamp = getTimestamp(entity);
+        if (!timestamp.isEmpty())
+        {
+            if (timestamp.size() == 1)
+            {
+                TimeStampType timeStampType = factory.createTimeStampType();
+                GregorianCalendar cal = new GregorianCalendar();
+                cal.setTime(timestamp.get(0));
+                XMLGregorianCalendar xCal = dtFactory.newXMLGregorianCalendar(cal);
+                timeStampType.setWhen(xCal.toXMLFormat());
+                placemarkType.setAbstractTimePrimitiveGroup(factory.createTimeStamp(timeStampType));
+            }
+            else
+            {
+                TimeSpanType timeSpanType = factory.createTimeSpanType();
+                if (timestamp.get(0).getTime() > 0)
+                {
+                    GregorianCalendar begin = new GregorianCalendar();
+                    begin.setTime(timestamp.get(0));
+                    XMLGregorianCalendar xBegin = dtFactory.newXMLGregorianCalendar(begin);
+                    timeSpanType.setBegin(xBegin.toXMLFormat());
+                }
+                if (timestamp.get(1).getTime() < Long.MAX_VALUE)
+                {
+                    GregorianCalendar end = new GregorianCalendar();
+                    end.setTime(timestamp.get(1));
+                    XMLGregorianCalendar xEnd = dtFactory.newXMLGregorianCalendar(end);
+                    timeSpanType.setEnd(xEnd.toXMLFormat());
+                }
+            }
+            
+
+        }
+    }
+    private List<GeoPt> getCoordinates(Entity entity)
+    {
+        Object ob = entity.getProperty(CoordinatesProperty);
+        if (ob == null)
+        {
+            return Collections.EMPTY_LIST;
+        }
+        if (ob instanceof GeoPt)
+        {
+            GeoPt loc = (GeoPt) ob;
+            return Collections.singletonList(loc);
+        }
+        return (List<GeoPt>) ob;
+    }
+    private List<Date> getTimestamp(Entity entity)
+    {
+        Object ob = entity.getProperty(TimestampProperty);
+        if (ob == null)
+        {
+            return Collections.EMPTY_LIST;
+        }
+        if (ob instanceof Date)
+        {
+            Date date = (Date) ob;
+            return Collections.singletonList(date);
+        }
+        return (List<Date>) ob;
+    }
+    private String getCoordinatesString(Collection<GeoPt> coordinates)
+    {
+        StringBuilder sb = new StringBuilder();
+        for (GeoPt location : coordinates)
+        {
+            if (sb.length() > 0)
+            {
+                sb.append(' ');
+            }
+            sb.append(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
+        }
+        return sb.toString();
+    }
+    public void addPlacemark(Date time, GeoPt geoPt, String title, String description)
+    {
+        Settings settings = getSettings();
+        if (settings.isCommonPlacemarks())
+        {
+            String namespace = NamespaceManager.get();
+            try
+            {
+                NamespaceManager.set("");
+                doAddPlacemark(time, geoPt, title, description);
+            }
+            finally
+            {
+                NamespaceManager.set(namespace);
+            }
+        }
+        else
+        {
+            doAddPlacemark(time, geoPt, title, description);
+        }
+    }
+    private void doAddPlacemark(Date time, GeoPt geoPt, String title, String description)
     {
         Entity placemark = new Entity(PlacemarkKind, time.getTime(), Root);
-        placemark.setProperty(LocationProperty, geoPt);
+        MaidenheadLocator.setLocation(placemark, geoPt, MaidenheadLocator.LocatorLevel.Field);
+        placemark.setProperty(CoordinatesProperty, geoPt);
         placemark.setProperty(TimestampProperty, time);
         placemark.setUnindexedProperty(TitleProperty, title);
         placemark.setUnindexedProperty(DescriptionProperty, description);
         put(placemark);
     }
     
-    public Entity createPlacemark()
+    public void addPlacemark(Entity placemark)
     {
-        return new Entity(PlacemarkKind, Root);
+        Settings settings = getSettings();
+        if (settings.isCommonPlacemarks())
+        {
+            String namespace = NamespaceManager.get();
+            try
+            {
+                NamespaceManager.set("");
+                put(placemark);
+            }
+            finally
+            {
+                NamespaceManager.set(namespace);
+            }
+        }
+        else
+        {
+            put(placemark);
+        }
     }
     
+    public Entity createPlacemark()
+    {
+        Settings settings = getSettings();
+        if (settings.isCommonPlacemarks())
+        {
+            String namespace = NamespaceManager.get();
+            try
+            {
+                NamespaceManager.set("");
+                return new Entity(PlacemarkKind, Root);
+            }
+            finally
+            {
+                NamespaceManager.set(namespace);
+            }
+        }
+        else
+        {
+            return new Entity(PlacemarkKind, Root);
+        }
+    }
+
     public class CacheWriter extends Writer
     {
         private Writer out;

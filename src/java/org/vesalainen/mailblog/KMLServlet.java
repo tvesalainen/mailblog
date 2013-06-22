@@ -17,6 +17,7 @@
 
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.NamespaceManager;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -56,6 +57,7 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                 float north = Float.parseFloat(ss[3]);
                 response.setContentType("application/vnd.google-earth.kmz");
                 response.setCharacterEncoding("utf-8");
+                log("updateKml");
                 ds.updateKml(west, south, east, north, base, response.getOutputStream());
             }
             else
@@ -68,11 +70,12 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                 LinkType link = kml.createLink();
                 link.setRefreshMode(RefreshModeEnumType.ON_CHANGE);
                 link.setViewRefreshMode(ViewRefreshModeEnumType.ON_STOP);
-                link.setHref(request.getRequestURL().toString());
+                link.setHref(request.getRequestURL().toString()+"?"+NamespaceParameter+"="+NamespaceManager.get());
                 link.setViewFormat(BoundingBoxParameter+"=[bboxWest],[bboxSouth],[bboxEast],[bboxNorth]");
                 networkLink.getValue().setLink(link);
                 kml.set(networkLink);
                 kml.write(cw);
+                log("networkLink");
                 cw.ready();
             }
         }

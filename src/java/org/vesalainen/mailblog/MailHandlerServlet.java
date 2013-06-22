@@ -64,8 +64,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -80,6 +78,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 import org.vesalainen.kml.KML;
 import org.vesalainen.kml.KMZ;
+import org.vesalainen.mailblog.MaidenheadLocator.LocatorLevel;
 import org.vesalainen.mailblog.exif.ExifParser;
 
 /**
@@ -372,16 +371,16 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, shrinken.getImageData(), WebSizeProperty, request);
                     futures.add(res);
                 }
+                Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, OriginalSizeProperty, request);
+                futures.add(res);
             }
-            Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, OriginalSizeProperty, request);
-            futures.add(res);
             if (contentType.startsWith("application/vnd.google-earth.kml+xml") || filename.endsWith(".kml"))
             {
                 try
                 {
                     InputStream is = (InputStream) content;
                     KML kml = new KML(is);
-                    PlacemarkUpdater pu = new PlacemarkUpdater(ds, kml);
+                    PlacemarkUpdater pu = new PlacemarkUpdater(ds, kml, LocatorLevel.Field);
                     pu.visit(kml, null);
                 }
                 catch (JAXBException ex)
@@ -395,7 +394,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                 {
                     InputStream is = (InputStream) content;
                     KMZ kmz = new KMZ(is);
-                    PlacemarkUpdater pu = new PlacemarkUpdater(ds, kmz);
+                    PlacemarkUpdater pu = new PlacemarkUpdater(ds, kmz, LocatorLevel.Field);
                     pu.visit(kmz, null);
                 }
                 catch (JAXBException ex)
@@ -625,7 +624,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                 try
                 {
                     String subject = (String) getHeader(message, SubjectProperty);
-                    if (subject == null || subject.isEmpty())
+                    if (subject == null || subject.length() < 2)
                     {
                         return null;
                     }

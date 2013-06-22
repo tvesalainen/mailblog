@@ -61,6 +61,8 @@ public class BloggerSettingsServlet extends SettingsServlet implements BlogConst
                 .setType(Long.class);
         addProperty(FixPicProperty)
                 .setType(Boolean.class);
+        addProperty(CommonPlacemarksProperty)
+                .setType(Boolean.class);
     }
 
     @Override

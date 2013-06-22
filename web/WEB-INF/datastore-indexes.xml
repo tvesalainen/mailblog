@@ -8,6 +8,22 @@
         <property name="Publish" direction="asc"/>
         <property name="Location" direction="asc"/>
     </datastore-index>    
+    <datastore-index kind="Blog" ancestor="false" source="manual">
+        <property name="Publish" direction="asc"/>
+        <property name="Timestamp" direction="asc"/>
+    </datastore-index>    
+    <datastore-index kind="Blog" ancestor="false" source="manual">
+        <property name="Publish" direction="asc"/>
+        <property name="Field" direction="asc"/>
+    </datastore-index>    
+    <datastore-index kind="Blog" ancestor="false" source="manual">
+        <property name="Publish" direction="asc"/>
+        <property name="Square" direction="asc"/>
+    </datastore-index>    
+    <datastore-index kind="Blog" ancestor="false" source="manual">
+        <property name="Publish" direction="asc"/>
+        <property name="Subsquare" direction="asc"/>
+    </datastore-index>    
     <datastore-index kind="Comments" ancestor="true" source="manual">
         <property name="Timestamp" direction="desc"/>
     </datastore-index>

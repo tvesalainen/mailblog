@@ -55,7 +55,7 @@ public class BlogEditServlet extends EntityServlet implements BlogConstants
                 .setType(HashSet.class, String.class)
                 .setAttribute("size", "80")
                 .setIndexed(true);
-        addProperty(LocationProperty)
+        addProperty(CoordinatesProperty)
                 .setIndexed(true)
                 .setType(GeoPt.class)
                 .setAttribute("size", "40");

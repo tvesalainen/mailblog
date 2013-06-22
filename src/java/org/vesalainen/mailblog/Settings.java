@@ -132,6 +132,11 @@ public class Settings implements BlogConstants, Serializable
         Boolean b = (Boolean) map.get(FixPicProperty);
         return b != null ? b: false;
     }
+    public boolean isCommonPlacemarks()
+    {
+        Boolean b = (Boolean) map.get(CommonPlacemarksProperty);
+        return b != null ? b: false;
+    }
     public int getPicMaxHeight()
     {
         Long l = (Long) Objects.nonNull(map.get(PicMaxHeightProperty));
