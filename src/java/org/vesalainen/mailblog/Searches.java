@@ -49,19 +49,19 @@ public class Searches implements BlogConstants
 
     static void saveBlog(Entity blog)
     {
-        DS ds = DS.get();
-        Settings settings = ds.getSettings();
-        Locale locale = settings.getLocale();
         Boolean publish = (Boolean) blog.getProperty(PublishProperty);
-        String subject = (String) blog.getProperty(SubjectProperty);
-        Email sender = (Email) blog.getProperty(SenderProperty);
-        Text html = (Text) blog.getProperty(HtmlProperty);
-        Date date = (Date) blog.getProperty(DateProperty);
-        Set<String> keywords = (Set) blog.getProperty(KeywordsProperty);
-        Document.Builder builder = Document.newBuilder();
-        builder.setId(KeyFactory.keyToString(blog.getKey()));
         if (publish != null && publish)
         {
+            DS ds = DS.get();
+            Settings settings = ds.getSettings();
+            Locale locale = settings.getLocale();
+            String subject = (String) blog.getProperty(SubjectProperty);
+            Email sender = (Email) blog.getProperty(SenderProperty);
+            Text html = (Text) blog.getProperty(HtmlProperty);
+            Date date = (Date) blog.getProperty(DateProperty);
+            Set<String> keywords = (Set) blog.getProperty(KeywordsProperty);
+            Document.Builder builder = Document.newBuilder();
+            builder.setId(KeyFactory.keyToString(blog.getKey()));
             builder.setLocale(locale);
             builder.addField(Field.newBuilder()
                     .setName(SubjectProperty)
@@ -84,11 +84,11 @@ public class Searches implements BlogConstants
                             .setAtom(kw));
                 }
             }
+            Document document = builder.build();
+            SearchService searchService = SearchServiceFactory.getSearchService();
+            Index index = searchService.getIndex(IndexSpec.newBuilder().setName(BlogIndex));        
+            index.put(document);
         }
-        Document document = builder.build();
-        SearchService searchService = SearchServiceFactory.getSearchService();
-        Index index = searchService.getIndex(IndexSpec.newBuilder().setName(BlogIndex));        
-        index.put(document);
     }
 
     public static void getBlogListFromSearch(BlogCursor bc, URL base, CacheWriter sb) throws HttpException, IOException
