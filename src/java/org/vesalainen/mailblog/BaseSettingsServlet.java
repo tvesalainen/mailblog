@@ -19,6 +19,7 @@ package org.vesalainen.mailblog;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -77,6 +78,10 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
                 .setType(Boolean.class);
         addProperty(CommonPlacemarksProperty)
                 .setType(Boolean.class);
+        addProperty(BlogIconProperty)
+                .setType(Link.class);
+        addProperty(PlacemarkIconProperty)
+                .setType(Link.class);
     }
 
     @Override

@@ -73,6 +73,8 @@ public interface BlogConstants
     static final String CoordinatesProperty = "Location";
     static final String FileProperty = "File";
     static final String CommonPlacemarksProperty = "CommonPlacemarks";
+    static final String BlogIconProperty = "BlogIcon";
+    static final String PlacemarkIconProperty = "PlacemarkIcon";
     // Maidenhead properties
     static final String FieldProperty = "Field";
     static final String SquareProperty = "Square";

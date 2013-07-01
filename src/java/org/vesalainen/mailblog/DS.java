@@ -848,7 +848,8 @@ public class DS extends CachingDatastoreService implements BlogConstants
         blogStyle.getValue().setBalloonStyle(balloonStyle);
         
         LinkType icon = factory.createLinkType();
-        icon.setHref("http://maps.google.com/mapfiles/kml/shapes/info.png");
+        Settings settings = getSettings();
+        icon.setHref(settings.getBlogIcon());
         IconStyleType iconStyle = factory.createIconStyleType();
         iconStyle.setIcon(icon);
         blogStyle.getValue().setIconStyle(iconStyle);
@@ -862,7 +863,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         placemarkStyle.getValue().setBalloonStyle(spotBalloonStyle);
         
         LinkType spotIcon = factory.createLinkType();
-        spotIcon.setHref("http://maps.google.com/mapfiles/kml/shapes/info.png");
+        spotIcon.setHref(settings.getPlacemarkIcon());
         IconStyleType spotIconStyle = factory.createIconStyleType();
         spotIconStyle.setIcon(spotIcon);
         placemarkStyle.getValue().setIconStyle(spotIconStyle);

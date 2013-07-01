@@ -21,6 +21,7 @@ import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
 import java.io.Serializable;
@@ -153,10 +154,37 @@ public class Settings implements BlogConstants, Serializable
         return l.intValue();
     }
 
+    private static final String DefaultIcon = "http://maps.google.com/mapfiles/kml/shapes/info.png";
+    public String getBlogIcon()
+    {
+        Link link = (Link) map.get(BlogIconProperty);
+        if (link != null)
+        {
+            return link.getValue();
+        }
+        else
+        {
+            return DefaultIcon;
+        }
+    }
+
+    public String getPlacemarkIcon()
+    {
+        Link link = (Link) map.get(PlacemarkIconProperty);
+        if (link != null)
+        {
+            return link.getValue();
+        }
+        else
+        {
+            return DefaultIcon;
+        }
+    }
+    
     @Override
     public String toString()
     {
         return "Settings{" + "map=" + map + '}';
     }
-    
+
 }
