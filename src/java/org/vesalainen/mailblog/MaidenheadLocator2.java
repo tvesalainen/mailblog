@@ -122,7 +122,7 @@ public class MaidenheadLocator2 extends MaidenheadLocator implements BlogConstan
         if (subsquareCountBetween < LIMIT)
         {
             Set<String> subsquaresBetween = subsquaresBetween(bb);
-            filters.add(new Query.FilterPredicate(FieldProperty, Query.FilterOperator.IN, subsquaresBetween));
+            filters.add(new Query.FilterPredicate(SubsquareProperty, Query.FilterOperator.IN, subsquaresBetween));
         }
         else
         {
@@ -130,7 +130,7 @@ public class MaidenheadLocator2 extends MaidenheadLocator implements BlogConstan
             if (squareCountBetween < LIMIT)
             {
                 Set<String> squaresBetween = squaresBetween(bb);
-                filters.add(new Query.FilterPredicate(FieldProperty, Query.FilterOperator.IN, squaresBetween));
+                filters.add(new Query.FilterPredicate(SquareProperty, Query.FilterOperator.IN, squaresBetween));
             }
             else
             {

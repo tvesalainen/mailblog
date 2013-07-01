@@ -61,7 +61,7 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                 KML kml = new KML();
                 JAXBElement<NetworkLinkType> networkLink = kml.createNetworkLink();
                 networkLink.getValue().setRefreshVisibility(Boolean.TRUE);
-                networkLink.getValue().setFlyToView(Boolean.TRUE);
+                networkLink.getValue().setFlyToView(Boolean.FALSE);
                 LinkType link = kml.createLink();
                 link.setRefreshMode(RefreshModeEnumType.ON_CHANGE);
                 link.setViewRefreshMode(ViewRefreshModeEnumType.ON_STOP);

@@ -20,12 +20,14 @@ package org.vesalainen.mailblog;
 
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author Timo Vesalainen
  * @see <a href="http://en.wikipedia.org/wiki/Maidenhead_Locator_System">Maidenhead Locator System</a>
  */
-public class MaidenheadLocator
+public class MaidenheadLocator implements Cloneable
 {
     private char latField;
     private char latSquare;
@@ -59,6 +61,12 @@ public class MaidenheadLocator
         lonField = (char) ('A' + (longitude / 10));
         lonSquare = (char) ('0' + longitude % 10);
         lonSubsquare = (char) ('A' + (longitude % 1) * 24);
+    }
+
+    @Override
+    protected MaidenheadLocator clone() throws CloneNotSupportedException
+    {
+        return (MaidenheadLocator) super.clone();
     }
 
     public void addLongitude(LocatorLevel level)
@@ -233,7 +241,15 @@ public class MaidenheadLocator
     public static Set<String> squaresBetween(MaidenheadLocator[] bb)
     {
         check(bb);
-        MaidenheadLocator sw = bb[0];
+        MaidenheadLocator sw;
+        try
+        {
+            sw = bb[0].clone();
+        }
+        catch (CloneNotSupportedException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
         MaidenheadLocator ne = bb[1];
         Set<String> set = new TreeSet<>();
         int squareCountBetweenLon = MaidenheadLocator.squareCountBetweenLon(sw, ne);
@@ -256,7 +272,15 @@ public class MaidenheadLocator
     public static Set<String> subsquaresBetween(MaidenheadLocator[] bb)
     {
         check(bb);
-        MaidenheadLocator sw = bb[0];
+        MaidenheadLocator sw;
+        try
+        {
+            sw = bb[0].clone();
+        }
+        catch (CloneNotSupportedException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
         MaidenheadLocator ne = bb[1];
         Set<String> set = new TreeSet<>();
         int subsquareCountBetweenLon = MaidenheadLocator.subsquareCountBetweenLon(sw, ne);

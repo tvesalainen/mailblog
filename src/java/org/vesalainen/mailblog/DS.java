@@ -959,13 +959,13 @@ public class DS extends CachingDatastoreService implements BlogConstants
         {
             if (timestamp.size() == 1)
             {
-                blogFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, addHours(timestamp.get(0), -12)));
-                blogFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, addHours(timestamp.get(0), 12)));
+                blogFilters.add(new FilterPredicate(DateProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, addHours(timestamp.get(0), -12)));
+                blogFilters.add(new FilterPredicate(DateProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, addHours(timestamp.get(0), 12)));
             }
             else
             {
-                blogFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, timestamp.get(0)));
-                blogFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, timestamp.get(1)));
+                blogFilters.add(new FilterPredicate(DateProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, timestamp.get(0)));
+                blogFilters.add(new FilterPredicate(DateProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, timestamp.get(1)));
             }
         }
         blogQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, blogFilters));
