@@ -152,4 +152,11 @@ public class Settings implements BlogConstants, Serializable
         Long l = (Long) Objects.nonNull(map.get(ShowCountProperty));
         return l.intValue();
     }
+
+    @Override
+    public String toString()
+    {
+        return "Settings{" + "map=" + map + '}';
+    }
+    
 }

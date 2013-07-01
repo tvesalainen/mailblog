@@ -99,7 +99,7 @@ public class BloggerSettingsServlet extends SettingsServlet implements BlogConst
         DS ds = DS.get();
         UserService userService = UserServiceFactory.getUserService();
         User user = userService.getCurrentUser();
-        Key baseKey = KeyFactory.createKey(ds.Root, kind, BaseKey);
+        Key baseKey = KeyFactory.createKey(DS.getRootKey(), kind, BaseKey);
         Key key = KeyFactory.createKey(baseKey, kind, user.getEmail());
         String keyString = req.getParameter(Key);
         if (keyString != null)

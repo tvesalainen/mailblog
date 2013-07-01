@@ -643,7 +643,10 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     {
                         Set<String> keywords = getKeywords(subject.substring(idx+1));
                         subject = subject.substring(0, idx-1).trim();
-                        blog.setProperty(KeywordsProperty, keywords);
+                        if (!keywords.isEmpty())
+                        {
+                            blog.setProperty(KeywordsProperty, keywords);
+                        }
                     }
                     blog.setProperty(SubjectProperty, subject);
                     blog.setProperty(PublishProperty, publishImmediately);
@@ -677,7 +680,10 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         String[] ss = str.split(" ");
         for (String s : ss)
         {
-            set.add(s);
+            if (!s.isEmpty())
+            {
+                set.add(s);
+            }
         }
         return set;
     }

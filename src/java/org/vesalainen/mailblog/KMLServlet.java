@@ -47,18 +47,13 @@ public class KMLServlet extends HttpServlet implements BlogConstants
         URL base = getBase(request);
         if (!ds.serveFromCache(request, response))
         {
-            String bbox = request.getParameter(BoundingBoxParameter);
-            if (bbox != null)
+            MaidenheadLocator2[] bb = MaidenheadLocator2.getBoundingBox(request);
+            if (bb != null)
             {
-                String[] ss = bbox.split(",");
-                float west = Float.parseFloat(ss[0]);
-                float south = Float.parseFloat(ss[1]);
-                float east = Float.parseFloat(ss[2]);
-                float north = Float.parseFloat(ss[3]);
-                response.setContentType("application/vnd.google-earth.kmz");
-                response.setCharacterEncoding("utf-8");
+                DS.CacheOutputStream cos = ds.createCacheOutputStream(request, response, "application/vnd.google-earth.kmz", "utf-8", false);
                 log("updateKml");
-                ds.updateKml(west, south, east, north, base, response.getOutputStream());
+                ds.updateKml(bb, base, cos);
+                cos.ready();
             }
             else
             {

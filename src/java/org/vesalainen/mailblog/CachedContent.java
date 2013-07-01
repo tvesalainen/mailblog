@@ -19,7 +19,7 @@ package org.vesalainen.mailblog;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Date;
+import java.io.UnsupportedEncodingException;
 import javax.servlet.http.HttpServletResponse;
 
 /**
@@ -28,13 +28,17 @@ import javax.servlet.http.HttpServletResponse;
 public class CachedContent implements Serializable 
 {
     private static final long serialVersionUID = 1L;
-    private String content;
+    private byte[] content;
     private String contentType;
     private String charset;
     private String eTag;
     private boolean isPrivate;
 
-    public CachedContent(String content, String contentType, String charset, String eTag, boolean isPrivate)
+    public CachedContent(String content, String contentType, String charset, String eTag, boolean isPrivate) throws UnsupportedEncodingException
+    {
+        this(content.getBytes(charset), contentType, charset, eTag, isPrivate);
+    }
+    public CachedContent(byte[] content, String contentType, String charset, String eTag, boolean isPrivate)
     {
         this.content = content;
         this.contentType = contentType;
@@ -56,7 +60,7 @@ public class CachedContent implements Serializable
         {
             res.setHeader("Cache-Control", "public");
         }
-        res.getWriter().write(content);
+        res.getOutputStream().write(content);
     }
 
 }

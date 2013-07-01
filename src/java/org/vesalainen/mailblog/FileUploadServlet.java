@@ -95,7 +95,7 @@ public class FileUploadServlet extends HttpServlet implements BlogConstants
             if (blobKeys.size() == 1)
             {
                 DS ds = DS.get();
-                Entity page = new Entity(PageKind, filename, ds.Root);
+                Entity page = new Entity(PageKind, filename, DS.getRootKey());
                 page.setProperty(FileProperty, blobKeys.get(0));
                 page.setProperty(TimestampProperty, new Date());
                 ds.put(page);

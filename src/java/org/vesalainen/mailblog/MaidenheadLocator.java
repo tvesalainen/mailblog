@@ -137,24 +137,21 @@ public class MaidenheadLocator
         }
     }
     
-    public static int fieldCountBetween(float west, float south, float east, float north)
+    public static void check(MaidenheadLocator[] bb)
     {
-        if (west > east || south > north)
-        {
-            throw new IllegalArgumentException(west+" > "+east+" || "+south+" > "+north);
-        }
-        MaidenheadLocator sw = new MaidenheadLocator(south, west);
-        MaidenheadLocator ne = new MaidenheadLocator(north, east);
+    }
+    public static int fieldCountBetween(MaidenheadLocator[] bb)
+    {
+        check(bb);
+        MaidenheadLocator sw = bb[0];
+        MaidenheadLocator ne = bb[1];
         return (ne.latField-sw.latField+1)*(ne.lonField-sw.lonField+1);
     }
-    public static int squareCountBetween(float west, float south, float east, float north)
+    public static int squareCountBetween(MaidenheadLocator[] bb)
     {
-        if (west > east || south > north)
-        {
-            throw new IllegalArgumentException(west+" > "+east+" || "+south+" > "+north);
-        }
-        MaidenheadLocator sw = new MaidenheadLocator(south, west);
-        MaidenheadLocator ne = new MaidenheadLocator(north, east);
+        check(bb);
+        MaidenheadLocator sw = bb[0];
+        MaidenheadLocator ne = bb[1];
         return squareCountBetweenLat(sw, ne)*squareCountBetweenLon(sw, ne);
     }
     private static int squareCountBetweenLat(MaidenheadLocator sw, MaidenheadLocator ne)
@@ -185,14 +182,11 @@ public class MaidenheadLocator
         count += ne.lonSquare - '0' + 1;
         return count;
     }
-    public static int subsquareCountBetween(float west, float south, float east, float north)
+    public static int subsquareCountBetween(MaidenheadLocator[] bb)
     {
-        if (west > east || south > north)
-        {
-            throw new IllegalArgumentException(west+" > "+east+" || "+south+" > "+north);
-        }
-        MaidenheadLocator sw = new MaidenheadLocator(south, west);
-        MaidenheadLocator ne = new MaidenheadLocator(north, east);
+        check(bb);
+        MaidenheadLocator sw = bb[0];
+        MaidenheadLocator ne = bb[1];
         return subsquareCountBetweenLon(sw,ne)*subsquareCountBetweenLat(sw,ne);
     }
     private static int subsquareCountBetweenLat(MaidenheadLocator sw, MaidenheadLocator ne)
@@ -221,14 +215,11 @@ public class MaidenheadLocator
         count += ne.lonSubsquare - 'A' + 1;
         return count;
     }
-    public static Set<String> fieldsBetween(float west, float south, float east, float north)
+    public static Set<String> fieldsBetween(MaidenheadLocator[] bb)
     {
-        if (west > east || south > north)
-        {
-            throw new IllegalArgumentException(west+" > "+east+" || "+south+" > "+north);
-        }
-        MaidenheadLocator sw = new MaidenheadLocator(south, west);
-        MaidenheadLocator ne = new MaidenheadLocator(north, east);
+        check(bb);
+        MaidenheadLocator sw = bb[0];
+        MaidenheadLocator ne = bb[1];
         Set<String> set = new TreeSet<>();
         for (char latf=sw.latField;latf<=ne.latField;latf++)
         {
@@ -239,14 +230,11 @@ public class MaidenheadLocator
         }
         return set;
     }
-    public static Set<String> squaresBetween(float west, float south, float east, float north)
+    public static Set<String> squaresBetween(MaidenheadLocator[] bb)
     {
-        if (west > east || south > north)
-        {
-            throw new IllegalArgumentException(west+" > "+east+" || "+south+" > "+north);
-        }
-        MaidenheadLocator sw = new MaidenheadLocator(south, west);
-        MaidenheadLocator ne = new MaidenheadLocator(north, east);
+        check(bb);
+        MaidenheadLocator sw = bb[0];
+        MaidenheadLocator ne = bb[1];
         Set<String> set = new TreeSet<>();
         int squareCountBetweenLon = MaidenheadLocator.squareCountBetweenLon(sw, ne);
         int squareCountBetweenLat = MaidenheadLocator.squareCountBetweenLat(sw, ne);
@@ -265,14 +253,11 @@ public class MaidenheadLocator
         }
         return set;
     }
-    public static Set<String> subsquaresBetween(float west, float south, float east, float north)
+    public static Set<String> subsquaresBetween(MaidenheadLocator[] bb)
     {
-        if (west > east || south > north)
-        {
-            throw new IllegalArgumentException(west+" > "+east+" || "+south+" > "+north);
-        }
-        MaidenheadLocator sw = new MaidenheadLocator(south, west);
-        MaidenheadLocator ne = new MaidenheadLocator(north, east);
+        check(bb);
+        MaidenheadLocator sw = bb[0];
+        MaidenheadLocator ne = bb[1];
         Set<String> set = new TreeSet<>();
         int subsquareCountBetweenLon = MaidenheadLocator.subsquareCountBetweenLon(sw, ne);
         int subsquareCountBetweenLat = MaidenheadLocator.subsquareCountBetweenLat(sw, ne);
@@ -314,32 +299,4 @@ public class MaidenheadLocator
         return getSubsquare();
     }
 
-    public static void main(String[] args)
-    {
-        try
-        {
-            float west = -23.64533645010307F;
-            float east = 21.60106994204968F;
-            float south = -9.760809816680036F;
-            float north = 32.5324557504879F;
-            MaidenheadLocator sw = new MaidenheadLocator(south, west);
-            MaidenheadLocator ne = new MaidenheadLocator(north, east);
-            System.err.println("fields="+MaidenheadLocator.fieldCountBetween(west, south, east, north));
-            System.err.println("sw="+sw);
-            System.err.println("ne="+ne);
-            Set<String> fieldsBetween = MaidenheadLocator.fieldsBetween(west, south, east, north);
-            System.err.println(fieldsBetween.size());
-            System.err.println(fieldsBetween);
-            Set<String> squaresBetween = MaidenheadLocator.squaresBetween(west, south, east, north);
-            System.err.println(squaresBetween.size());
-            System.err.println(squaresBetween);
-            Set<String> subsquaresBetween = MaidenheadLocator.subsquaresBetween(west, south, east, north);
-            System.err.println(subsquaresBetween.size());
-            System.err.println(subsquaresBetween);
-        }
-        catch (Exception ex)
-        {
-            ex.printStackTrace();
-        }
-    }
 }

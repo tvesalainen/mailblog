@@ -127,7 +127,7 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
     protected Key getKey(HttpServletRequest req) throws HttpException
     {
         DS ds = DS.get();
-        Key key = KeyFactory.createKey(ds.Root, kind, BaseKey);
+        Key key = KeyFactory.createKey(DS.getRootKey(), kind, BaseKey);
         String keyString = req.getParameter(Key);
         if (keyString != null)
         {

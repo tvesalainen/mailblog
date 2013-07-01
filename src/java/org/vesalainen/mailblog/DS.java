@@ -19,7 +19,6 @@ package org.vesalainen.mailblog;
 
 import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entities;
 import com.google.appengine.api.datastore.Entity;
@@ -40,6 +39,7 @@ import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
 import com.google.appengine.api.users.User;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -82,7 +82,6 @@ import net.opengis.kml.PointType;
 import net.opengis.kml.StyleType;
 import net.opengis.kml.TimeSpanType;
 import net.opengis.kml.TimeStampType;
-import org.vesalainen.kml.KML;
 import org.vesalainen.kml.KMZ;
 import org.vesalainen.rss.Channel;
 import org.vesalainen.rss.Item;
@@ -231,6 +230,12 @@ public class DS extends CachingDatastoreService implements BlogConstants
         response.setCharacterEncoding(charset);
         return new CacheWriter(request, response, isPrivate);
     }
+    public CacheOutputStream createCacheOutputStream(HttpServletRequest request, HttpServletResponse response, String contentType, String charset, boolean isPrivate) throws IOException
+    {
+        response.setContentType(contentType);
+        response.setCharacterEncoding(charset);
+        return new CacheOutputStream(request, response, isPrivate);
+    }
     public boolean serveFromCache(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
         String ifNoneMatch = request.getHeader("If-None-Match");
@@ -257,6 +262,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
     }
     public String getCacheKey(HttpServletRequest request)
     {
+        String cacheKey = MaidenheadLocator2.getCacheKey(request);
+        if (cacheKey != null)
+        {
+            return cacheKey;
+        }
         StringBuilder sb = new StringBuilder();
         String ServletPath = request.getServletPath();
         if (ServletPath != null)
@@ -279,7 +289,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
     {
         try
         {
-            return get(KeyFactory.createKey(Root, PageKind, path));
+            return get(KeyFactory.createKey(getRootKey(), PageKind, path));
         }
         catch (EntityNotFoundException ex)
         {
@@ -308,9 +318,9 @@ public class DS extends CachingDatastoreService implements BlogConstants
     }
     public Key getBlogKey(String messageId)
     {
-        Key root = KeyFactory.createKey(RootKind, 1);
-        return KeyFactory.createKey(root, BlogKind, messageId);
+        return KeyFactory.createKey(getRootKey(), BlogKind, messageId);
     }
+    
     public Entity getBlogFromMessageId(String messageId)
     {
         Key key =  getBlogKey(messageId);
@@ -325,8 +335,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
     }
     public Key getMetadataKey(String sha1)
     {
-        Key root = KeyFactory.createKey(RootKind, 1);
-        return KeyFactory.createKey(root, MetadataKind, sha1);
+        return KeyFactory.createKey(getRootKey(), MetadataKind, sha1);
     }
     public Entity getMetadata(String sha1)
     {
@@ -665,7 +674,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
     {
         try
         {
-            Key key = KeyFactory.createKey(Root, SettingsKind, BaseKey);
+            Key key = KeyFactory.createKey(getRootKey(), SettingsKind, BaseKey);
             Entity entity = get(key);
             if (entity != null)
             {
@@ -685,7 +694,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
     {
         try
         {
-            Key parent = KeyFactory.createKey(Root, SettingsKind, BaseKey);
+            Key parent = KeyFactory.createKey(getRootKey(), SettingsKind, BaseKey);
             Key key = KeyFactory.createKey(parent, SettingsKind, email.getEmail());
             Entity entity = get(key);
             if (entity != null)
@@ -750,7 +759,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             {
                 for (String kw : kwSet)
                 {
-                    if (!kw.isEmpty())
+                    if (kw != null && !kw.isEmpty())
                     {
                         Integer count = map.get(kw);
                         if (count == null)
@@ -812,7 +821,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
     }
 
-    public void updateKml(float west, float south, float east, float north, URL reqUrl, OutputStream outputStream) throws IOException
+    public void updateKml(MaidenheadLocator2[] bb, URL reqUrl, CacheOutputStream outputStream) throws IOException
     {
         URI base;
         try
@@ -861,7 +870,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         Query blogQuery = new Query(BlogKind);
         List<Filter> blogFilters = new ArrayList<>();
         blogFilters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
-        MaidenheadLocator2.addFilters(blogFilters, west, south, east, north);
+        MaidenheadLocator2.addFilters(blogFilters, bb);
         blogQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, blogFilters));
         PreparedQuery blogPrepared = prepare(blogQuery);
         for (Entity blog : blogPrepared.asIterable(FetchOptions.Builder.withDefaults()))
@@ -875,7 +884,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             document.getValue().getAbstractFeatureGroup().add(pm);
         }   
         // placemarks
-        for (Entity placemark : fetchPlacemarks(west, south, east, north))
+        for (Entity placemark : fetchPlacemarks(bb))
         {
             System.err.println(placemark);
             PlacemarkType placemarkType = factory.createPlacemarkType();
@@ -893,11 +902,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
             JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
             document.getValue().getAbstractFeatureGroup().add(pm);
         }      
-        System.err.println("write");
         kmz.write(outputStream);
+        outputStream.flush();
     }
 
-    private List<Entity> fetchPlacemarks(float west, float south, float east, float north)
+    private List<Entity> fetchPlacemarks(MaidenheadLocator2[] bb)
     {
         Settings settings = getSettings();
         if (settings.isCommonPlacemarks())
@@ -905,8 +914,8 @@ public class DS extends CachingDatastoreService implements BlogConstants
             String namespace = NamespaceManager.get();
             try
             {
-                NamespaceManager.set("");
-                return doFetchPlacemarks(west, south, east, north);
+                NamespaceManager.set(null);
+                return doFetchPlacemarks(bb);
             }
             finally
             {
@@ -915,14 +924,14 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
         else
         {
-            return doFetchPlacemarks(west, south, east, north);
+            return doFetchPlacemarks(bb);
         }
     }
-    private List<Entity> doFetchPlacemarks(float west, float south, float east, float north)
+    private List<Entity> doFetchPlacemarks(MaidenheadLocator2[] bb)
     {
         Query placemarkQuery = new Query(PlacemarkKind);
         List<Filter> placemarkFilters = new ArrayList<Filter>();
-        MaidenheadLocator2.addFilters(placemarkFilters, west, south, east, north);
+        MaidenheadLocator2.addFilters(placemarkFilters, bb);
         if (placemarkFilters.size() == 1)
         {
             placemarkQuery.setFilter(placemarkFilters.get(0));
@@ -1129,12 +1138,14 @@ public class DS extends CachingDatastoreService implements BlogConstants
     public void addPlacemark(Date time, GeoPt geoPt, String title, String description)
     {
         Settings settings = getSettings();
+        System.err.println(settings);
         if (settings.isCommonPlacemarks())
         {
+            System.err.println("common");
             String namespace = NamespaceManager.get();
             try
             {
-                NamespaceManager.set("");
+                NamespaceManager.set(null);
                 doAddPlacemark(time, geoPt, title, description);
             }
             finally
@@ -1144,17 +1155,20 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
         else
         {
+            System.err.println("uncommon");
             doAddPlacemark(time, geoPt, title, description);
         }
     }
     private void doAddPlacemark(Date time, GeoPt geoPt, String title, String description)
     {
-        Entity placemark = new Entity(PlacemarkKind, time.getTime(), Root);
+        Entity placemark = new Entity(PlacemarkKind, time.getTime(), getRootKey());
         MaidenheadLocator2.setLocation(placemark, geoPt, MaidenheadLocator2.LocatorLevel.Field);
         placemark.setProperty(CoordinatesProperty, geoPt);
         placemark.setProperty(TimestampProperty, time);
         placemark.setUnindexedProperty(TitleProperty, title);
         placemark.setUnindexedProperty(DescriptionProperty, description);
+        System.err.println(placemark);
+        System.err.println("namespace="+NamespaceManager.get());
         put(placemark);
     }
     
@@ -1166,7 +1180,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             String namespace = NamespaceManager.get();
             try
             {
-                NamespaceManager.set("");
+                NamespaceManager.set(null);
                 put(placemark);
             }
             finally
@@ -1189,7 +1203,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             try
             {
                 NamespaceManager.set("");
-                return new Entity(PlacemarkKind, Root);
+                return new Entity(PlacemarkKind, getRootKey());
             }
             finally
             {
@@ -1198,7 +1212,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
         else
         {
-            return new Entity(PlacemarkKind, Root);
+            return new Entity(PlacemarkKind, getRootKey());
         }
     }
 
@@ -1234,7 +1248,15 @@ public class DS extends CachingDatastoreService implements BlogConstants
             if (!isPrivate)
             {
                 String content = stringWriter.toString();
-                CachedContent cachedContent = new CachedContent(content, response.getContentType(), response.getCharacterEncoding(), eTag, isPrivate);
+                CachedContent cachedContent;
+                try
+                {
+                    cachedContent = new CachedContent(content, response.getContentType(), response.getCharacterEncoding(), eTag, isPrivate);
+                }
+                catch (UnsupportedEncodingException ex)
+                {
+                    throw new IllegalArgumentException(ex);
+                }
                 cache.put(cacheKey, cachedContent);
             }
         }
@@ -1256,6 +1278,51 @@ public class DS extends CachingDatastoreService implements BlogConstants
         {
         }
 
+    }
+    public class CacheOutputStream extends OutputStream
+    {
+        private OutputStream out;
+        private ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        private HttpServletResponse response;
+        private String eTag;
+        private String cacheKey;
+        private boolean isPrivate;
+
+        private CacheOutputStream(HttpServletRequest request, HttpServletResponse response, boolean isPrivate) throws IOException
+        {
+            out = response.getOutputStream();
+            this.cacheKey = getCacheKey(request);
+            this.response = response;
+            this.eTag = getETag();
+            this.isPrivate = isPrivate;
+            response.setHeader("ETag", eTag);
+            if (isPrivate)
+            {
+                response.setHeader("Cache-Control", "private");
+            }
+            else
+            {
+                response.setHeader("Cache-Control", "public");
+            }
+        }
+
+        public void ready()
+        {
+            if (!isPrivate)
+            {
+                byte[] content = byteStream.toByteArray();
+                CachedContent cachedContent;
+                cachedContent = new CachedContent(content, response.getContentType(), response.getCharacterEncoding(), eTag, isPrivate);
+                cache.put(cacheKey, cachedContent);
+            }
+        }
+        
+        @Override
+        public void write(int b) throws IOException
+        {
+            out.write(b);
+            byteStream.write(b);
+        }
     }
     private static class NullOutputStream extends OutputStream
     {

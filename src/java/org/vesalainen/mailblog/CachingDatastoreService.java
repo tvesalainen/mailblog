@@ -43,7 +43,6 @@ import java.util.Map;
  */
 public class CachingDatastoreService implements DatastoreService, BlogConstants
 {
-    public Key Root = KeyFactory.createKey(RootKind, 1);
     protected DatastoreService datastore;
     protected MemcacheService cache;
     private long version;
@@ -53,9 +52,14 @@ public class CachingDatastoreService implements DatastoreService, BlogConstants
     {
         this.datastore = DatastoreServiceFactory.getDatastoreService();
         this.cache = MemcacheServiceFactory.getMemcacheService();
-        this.entityGroupKey = Entities.createEntityGroupKey(Root);
+        this.entityGroupKey = Entities.createEntityGroupKey(getRootKey());
     }
 
+    public static Key getRootKey()
+    {
+        return KeyFactory.createKey(RootKind, 1);
+    }
+    
     private void checkEntities(Iterable<Entity> itrbl)
     {
         for (Entity entity : itrbl)

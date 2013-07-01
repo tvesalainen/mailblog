@@ -21,6 +21,7 @@ import com.google.appengine.api.datastore.GeoPt;
 import com.google.appengine.api.datastore.Query;
 import java.util.List;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Timo Vesalainen
@@ -69,34 +70,80 @@ public class MaidenheadLocator2 extends MaidenheadLocator implements BlogConstan
         }
     }
     
-    public static void addFilters(List<Query.Filter> filters, float west, float south, float east, float north)
+    public static String getCacheKey(HttpServletRequest request)
     {
-        int subsquareCountBetween = subsquareCountBetween(west, south, east, north);
+        MaidenheadLocator2[] bb = getBoundingBox(request);
+        if (bb != null)
+        {
+            assert bb.length == 2;
+            if (!bb[0].getField().equals(bb[1].getField()))
+            {
+                return bb[0].getField()+bb[1].getField();
+            }
+            else
+            {
+                if (!bb[0].getSquare().equals(bb[1].getSquare()))
+                {
+                    return bb[0].getSquare()+bb[1].getSquare();
+                }
+                else
+                {
+                    return bb[0].getSubsquare()+bb[1].getSubsquare();
+                }
+            }
+        }
+        else
+        {
+            return null;
+        }
+    }
+    public static MaidenheadLocator2[] getBoundingBox(HttpServletRequest request)
+    {
+        String bbox = request.getParameter(BoundingBoxParameter);
+        if (bbox != null)
+        {
+            String[] ss = bbox.split(",");
+            float west = Float.parseFloat(ss[0]);
+            float south = Float.parseFloat(ss[1]);
+            float east = Float.parseFloat(ss[2]);
+            float north = Float.parseFloat(ss[3]);
+            MaidenheadLocator2 sw = new MaidenheadLocator2(south, west);
+            MaidenheadLocator2 ne = new MaidenheadLocator2(north, east);
+            return new MaidenheadLocator2[] {sw, ne};
+        }
+        else
+        {
+            return null;
+        }
+    }
+    public static void addFilters(List<Query.Filter> filters, MaidenheadLocator2[] bb)
+    {
+        int subsquareCountBetween = subsquareCountBetween(bb);
         if (subsquareCountBetween < LIMIT)
         {
-            Set<String> subsquaresBetween = subsquaresBetween(west, south, east, north);
+            Set<String> subsquaresBetween = subsquaresBetween(bb);
             filters.add(new Query.FilterPredicate(FieldProperty, Query.FilterOperator.IN, subsquaresBetween));
         }
         else
         {
-            int squareCountBetween = squareCountBetween(west, south, east, north);
+            int squareCountBetween = squareCountBetween(bb);
             if (squareCountBetween < LIMIT)
             {
-                Set<String> squaresBetween = squaresBetween(west, south, east, north);
+                Set<String> squaresBetween = squaresBetween(bb);
                 filters.add(new Query.FilterPredicate(FieldProperty, Query.FilterOperator.IN, squaresBetween));
             }
             else
             {
-                int fieldCountBetween = fieldCountBetween(west, south, east, north);
+                int fieldCountBetween = fieldCountBetween(bb);
                 if (fieldCountBetween < LIMIT)
                 {
-                    Set<String> fieldsBetween = fieldsBetween(west, south, east, north);
+                    Set<String> fieldsBetween = fieldsBetween(bb);
                     filters.add(new Query.FilterPredicate(FieldProperty, Query.FilterOperator.IN, fieldsBetween));
                 }
                 else
                 {
-                    MaidenheadLocator2 sw = new MaidenheadLocator2(south, west);
-                    MaidenheadLocator2 ne = new MaidenheadLocator2(north, east);
+                    MaidenheadLocator2 sw = bb[0];
+                    MaidenheadLocator2 ne = bb[1];
                     filters.add(new Query.FilterPredicate(FieldProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, sw.getField()));
                     filters.add(new Query.FilterPredicate(FieldProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, ne.getField()));
                 }
