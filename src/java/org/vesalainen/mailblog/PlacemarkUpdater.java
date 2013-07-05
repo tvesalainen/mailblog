@@ -136,22 +136,11 @@ public class PlacemarkUpdater extends FeatureVisitor<Entity> implements BlogCons
             if (coordinates.size() > 1)
             {
                 ctx.setProperty(CoordinatesProperty, coordinates);
-                MaidenheadLocator2.setLocation(ctx, center(coordinates), level.ordinal()+1);
+                MaidenheadLocator2.setLocation(ctx, DS.center(coordinates), level.ordinal()+1);
             }
         }
     }
 
-    private GeoPt center(Collection<GeoPt> list)
-    {
-        float lat = 0;
-        float lon = 0;
-        for (GeoPt pt : list)
-        {
-            lat += pt.getLatitude();
-            lon += pt.getLongitude();
-        }
-        return new GeoPt(lat/list.size(), lon/list.size());
-    }
     @Override
     protected Entity startOf(DocumentType document, Entity ctx)
     {

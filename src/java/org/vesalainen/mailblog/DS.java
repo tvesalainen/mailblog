@@ -887,17 +887,8 @@ public class DS extends CachingDatastoreService implements BlogConstants
         // placemarks
         for (Entity placemark : fetchPlacemarks(bb))
         {
-            System.err.println(placemark);
             PlacemarkType placemarkType = factory.createPlacemarkType();
-            Entity blog = findBlogFor(placemark);
-            if (blog != null)
-            {
-                populateBlog(placemarkType, blog, base);
-            }
-            else
-            {
-                populatePlacemark(placemarkType, placemark);
-            }
+            populatePlacemark(placemarkType, placemark);
             populate(placemarkType, placemark, factory, dtFactory);
             
             JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
@@ -945,10 +936,10 @@ public class DS extends CachingDatastoreService implements BlogConstants
         PreparedQuery placemarkPrepared = prepare(placemarkQuery);
         return placemarkPrepared.asList(FetchOptions.Builder.withDefaults());
     }
-    private Entity findBlogFor(Entity placemark)
+    public Entity findBlogFor(Entity placemark)
     {
         Query blogQuery = new Query(BlogKind);
-        List<Filter> blogFilters = new ArrayList<Filter>();
+        List<Filter> blogFilters = new ArrayList<>();
         blogFilters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
         List<Date> timestamp = getTimestamp(placemark);
         if (timestamp.isEmpty())
@@ -965,7 +956,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             else
             {
                 blogFilters.add(new FilterPredicate(DateProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, timestamp.get(0)));
-                blogFilters.add(new FilterPredicate(DateProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, timestamp.get(1)));
+                blogFilters.add(new FilterPredicate(DateProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, timestamp.get(timestamp.size()-1)));
             }
         }
         blogQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, blogFilters));
@@ -988,6 +979,48 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
         return blog;
     }
+    public Entity findPlacemarkFor(Entity blog)
+    {
+        Query placemarkQuery = new Query(PlacemarkKind);
+        List<Filter> placemarkFilters = new ArrayList<>();
+        List<Date> timestamp = getTimestamp(blog);
+        if (timestamp.isEmpty())
+        {
+            return null;
+        }
+        else
+        {
+            if (timestamp.size() == 1)
+            {
+                placemarkFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, addHours(timestamp.get(0), -12)));
+                placemarkFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, addHours(timestamp.get(0), 12)));
+            }
+            else
+            {
+                placemarkFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, timestamp.get(0)));
+                placemarkFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, timestamp.get(timestamp.size()-1)));
+            }
+        }
+        placemarkQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, placemarkFilters));
+        System.err.println(placemarkQuery);
+        PreparedQuery placemarkPrepared = prepare(placemarkQuery);
+        Entity placemark = null;
+        for (Entity b : placemarkPrepared.asIterable(FetchOptions.Builder.withDefaults()))
+        {
+            if (placemark == null)
+            {
+                placemark = b;
+            }
+            else
+            {
+                if (timeDiff(placemark, placemark) > timeDiff(placemark, b))
+                {
+                    placemark = b;
+                }
+            }
+        }
+        return placemark;
+    }
     private long timeDiff(Entity e1, Entity e2)
     {
         List<Date> ts1 = getTimestamp(e1);
@@ -1000,16 +1033,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
         {
             return Long.MAX_VALUE;
         }
-        // TODO this is too simple for timespans
-        long result = Long.MAX_VALUE;
-        for (Date d1 : ts1)
-        {
-            for (Date d2 : ts2)
-            {
-                result = Math.min(result, Math.abs(d1.getTime() - d2.getTime()));
-            }
-        }
-        return result;
+        return Math.abs(center(ts1) - center(ts2));
+    }
+    private long center(List<Date> ts)
+    {
+        return (ts.get(0).getTime() + ts.get(ts.size()-1).getTime()) / 2;
     }
     private Date addHours(Date date, int hours)
     {
@@ -1095,7 +1123,19 @@ public class DS extends CachingDatastoreService implements BlogConstants
 
         }
     }
-    private List<GeoPt> getCoordinates(Entity entity)
+    public static GeoPt center(Collection<GeoPt> list)
+    {
+        float lat = 0;
+        float lon = 0;
+        for (GeoPt pt : list)
+        {
+            lat += pt.getLatitude();
+            lon += pt.getLongitude();
+        }
+        return new GeoPt(lat/list.size(), lon/list.size());
+    }
+     
+    public List<GeoPt> getCoordinates(Entity entity)
     {
         Object ob = entity.getProperty(CoordinatesProperty);
         if (ob == null)
@@ -1138,16 +1178,16 @@ public class DS extends CachingDatastoreService implements BlogConstants
     }
     public void addPlacemark(Date time, GeoPt geoPt, String title, String description)
     {
+        Entity placemark = null;
         Settings settings = getSettings();
         System.err.println(settings);
         if (settings.isCommonPlacemarks())
         {
-            System.err.println("common");
             String namespace = NamespaceManager.get();
             try
             {
                 NamespaceManager.set(null);
-                doAddPlacemark(time, geoPt, title, description);
+                placemark = doAddPlacemark(time, geoPt, title, description);
             }
             finally
             {
@@ -1156,11 +1196,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
         else
         {
-            System.err.println("uncommon");
-            doAddPlacemark(time, geoPt, title, description);
+            placemark = doAddPlacemark(time, geoPt, title, description);
         }
+        updateBlogCoordinate(placemark);
     }
-    private void doAddPlacemark(Date time, GeoPt geoPt, String title, String description)
+    private Entity doAddPlacemark(Date time, GeoPt geoPt, String title, String description)
     {
         Entity placemark = new Entity(PlacemarkKind, time.getTime(), getRootKey());
         MaidenheadLocator2.setLocation(placemark, geoPt, MaidenheadLocator2.LocatorLevel.Field);
@@ -1169,8 +1209,8 @@ public class DS extends CachingDatastoreService implements BlogConstants
         placemark.setUnindexedProperty(TitleProperty, title);
         placemark.setUnindexedProperty(DescriptionProperty, description);
         System.err.println(placemark);
-        System.err.println("namespace="+NamespaceManager.get());
         put(placemark);
+        return placemark;
     }
     
     public void addPlacemark(Entity placemark)
@@ -1193,6 +1233,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         {
             put(placemark);
         }
+        updateBlogCoordinate(placemark);
     }
     
     public Entity createPlacemark()
@@ -1217,7 +1258,26 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
     }
 
-    public class CacheWriter extends Writer
+    private void updateBlogCoordinate(Entity placemark)
+    {
+        DS ds = DS.get();
+        Entity blog = ds.findBlogFor(placemark);
+        if (blog != null)
+        {
+            Entity placemarkFor = ds.findPlacemarkFor(blog);
+            if (placemark.equals(placemarkFor))
+            {
+                List<GeoPt> coordinates = ds.getCoordinates(placemark);
+                if (!coordinates.isEmpty())
+                {
+                    blog.setProperty(CoordinatesProperty, DS.center(coordinates));
+                    put(blog);
+                }
+            }
+        }
+    }
+
+   public class CacheWriter extends Writer
     {
         private Writer out;
         private StringWriter stringWriter = new StringWriter();

@@ -655,6 +655,15 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     setProperty(message, DateProperty, blog, true);
                     blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
                     blog.setProperty(TimestampProperty, new Date());
+                    Entity placemark = ds.findPlacemarkFor(blog);
+                    if (placemark != null)
+                    {
+                        List<GeoPt> coordinates = ds.getCoordinates(placemark);
+                        if (!coordinates.isEmpty())
+                        {
+                            blog.setProperty(CoordinatesProperty, DS.center(coordinates));
+                        }
+                    }
                     ds.saveBlog(blog);
                     return blog;
                 }
