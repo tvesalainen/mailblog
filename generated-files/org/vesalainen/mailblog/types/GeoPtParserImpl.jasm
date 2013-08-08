@@ -1,0 +1,2867 @@
+org.vesalainen.bcc.SubClass$Method@77b133bf
+0:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+1:  invokespecial 9 // <init> ()V
+4:  return
+org.vesalainen.bcc.SubClass$Method@574d70ea
+0:  return
+org.vesalainen.bcc.SubClass$Method@1d303f6d
+0:  return
+org.vesalainen.bcc.SubClass$Method@4a941c13
+0:  return
+org.vesalainen.bcc.SubClass$Method@41bf49a5
+0:  iload_1 // sign
+1:  ireturn
+org.vesalainen.bcc.SubClass$Method@757c115b
+0:  iload_1 // sign
+1:  ireturn
+org.vesalainen.bcc.SubClass$Method@2457a99f
+0:  return
+org.vesalainen.bcc.SubClass$Method@7741185c
+0:  bipush 11
+2:  newarray 10 // int[]
+4:  astore 6 // LocalVariable{type=int[], simpleName=$stateStack}
+6:  bipush 11
+8:  newarray 10 // int[]
+10:  astore 7 // LocalVariable{type=int[], simpleName=$typeStack}
+12:  bipush 20
+14:  anewarray 25 // java/lang/Object
+17:  checkcast 27 // [Ljava/lang/Object;
+20:  astore 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+22:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+24:  iconst_3
+25:  bipush 11
+27:  newarray 10 // int[]
+29:  aastore
+30:  iconst_0
+31:  istore 9 // LocalVariable{type=int, simpleName=$curINT}
+33:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+35:  bipush 12
+37:  bipush 11
+39:  anewarray 25 // java/lang/Object
+42:  aastore
+43:  aconst_null
+44:  astore 10 // LocalVariable{type=java.lang.Object, simpleName=$curDECLARED}
+46:  aconst_null
+47:  astore 11 // LocalVariable{type=java.lang.Throwable, simpleName=$throwable}
+[reset]:
+49:  iconst_m1
+50:  istore_3 // LocalVariable{type=int, simpleName=$token}
+51:  iconst_m1
+52:  istore 4 // LocalVariable{type=int, simpleName=$curTok}
+54:  bipush 8
+56:  istore 5 // LocalVariable{type=int, simpleName=$curType}
+58:  iconst_m1
+59:  istore_2 // LocalVariable{type=int, simpleName=$sp}
+60:  iinc 2 1 // $sp+=1
+63:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+65:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+66:  iconst_1
+67:  iastore
+[start]:
+68:  iload_3 // LocalVariable{type=int, simpleName=$token}
+69:  ifge 75 //[afterShift]
+72:  jsr 620 //[shiftSubroutine]
+[afterShift]:
+75:  jsr 1125 //[updateValueStack]
+78:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+80:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+81:  iaload
+82:  tableswitch // default -> [branch1]
+   // 1 -> [State 1]
+   // 2 -> [State 2]
+   // 3 -> [State 3]
+   // 4 -> [State 4]
+   // 5 -> [State 5]
+   // 6 -> [State 6]
+   // 7 -> [State 7]
+   // 8 -> [State 8]
+   // 9 -> [State 9]
+   // 10 -> [State 10]
+   // 11 -> [State 11]
+   // 12 -> [State 12]
+   // 13 -> [State 13]
+   // 14 -> [State 14]
+   // 15 -> [State 15]
+   // 16 -> [State 16]
+   // 17 -> [State 17]
+   // 18 -> [State 18]
+   // 19 -> [State 19]
+   // 20 -> [State 20]
+[branch1]:
+176:  new 29 // org/vesalainen/bcc/SwitchException
+179:  dup
+180:  invokespecial 30 // <init> ()V
+183:  athrow
+[State 1]:
+184:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+186:  lookupswitch // default -> [State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+   // 9 -> [integer Shift Rule 4-action]
+   // 10 -> [decimal Shift Rule 3-action]
+   // 26 -> [n Shift Rule 13-action]
+   // 27 -> [s Shift Rule 14-action]
+[State 2]:
+228:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+230:  iconst_0
+231:  if_icmpeq 1664 //[Eof reduce Rule 0-action, Rule 0]
+234:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[State 3]:
+237:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+239:  bipush 9
+241:  if_icmpeq 1264 //[integer Shift State 6-action]
+244:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[State 4]:
+247:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+249:  bipush 13
+251:  if_icmpeq 1278 //[',' Shift State 7-action]
+254:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[State 5]:
+257:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+259:  bipush 13
+261:  if_icmpeq 1292 //[',' Shift State 8-action]
+264:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[State 6]:
+267:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+269:  dup
+270:  bipush 6
+272:  if_icmpne 279 //[branch2]
+275:  pop
+276:  goto  1306 //[degreeChar Shift Rule 15-action]
+[branch2]:
+279:  dup
+280:  bipush 9
+282:  if_icmpne 289 //[branch3]
+285:  pop
+286:  goto  1713 //[decimal reduce Rule 16-action, integer reduce Rule 16-action, Rule 16]
+[branch3]:
+289:  dup
+290:  bipush 10
+292:  if_icmpne 299 //[branch4]
+295:  pop
+296:  goto  1713 //[decimal reduce Rule 16-action, integer reduce Rule 16-action, Rule 16]
+[branch4]:
+299:  pop
+300:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[State 7]:
+303:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+305:  tableswitch // default -> [State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+   // 9 -> [integer Shift Rule 4-action]
+   // 10 -> [decimal Shift Rule 3-action]
+[State 8]:
+328:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+330:  tableswitch // default -> [State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+   // 28 -> [w Shift Rule 21-action]
+   // 29 -> [e Shift Rule 22-action]
+[State 9]:
+352:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+354:  tableswitch // default -> [State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+   // 9 -> [integer Shift State 12-action]
+   // 10 -> [decimal Shift State 11-action]
+[State 10]:
+376:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+378:  bipush 9
+380:  if_icmpeq 1367 //[integer Shift State 13-action]
+383:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[State 11]:
+386:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+388:  dup
+389:  bipush 8
+391:  if_icmpne 398 //[branch5]
+394:  pop
+395:  goto  1381 //[secondChar Shift Rule 17-action]
+[branch5]:
+398:  dup
+399:  bipush 13
+401:  if_icmpne 408 //[branch6]
+404:  pop
+405:  goto  1872 //[Eof reduce Rule 18-action, integer reduce Rule 18-action, ',' reduce Rule 18-action, Rule 18]
+[branch6]:
+408:  pop
+409:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[State 12]:
+412:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+414:  tableswitch // default -> [State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+   // 8 -> [secondChar Shift Rule 17-action]
+   // 9 -> [Eof reduce Rule 18-action, integer reduce Rule 18-action, ',' reduce Rule 18-action, Rule 18]
+[State 13]:
+436:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+438:  dup
+439:  bipush 6
+441:  if_icmpne 448 //[branch7]
+444:  pop
+445:  goto  1306 //[degreeChar Shift Rule 15-action]
+[branch7]:
+448:  dup
+449:  bipush 9
+451:  if_icmpne 458 //[branch8]
+454:  pop
+455:  goto  1713 //[decimal reduce Rule 16-action, integer reduce Rule 16-action, Rule 16]
+[branch8]:
+458:  dup
+459:  bipush 10
+461:  if_icmpne 468 //[branch9]
+464:  pop
+465:  goto  1713 //[decimal reduce Rule 16-action, integer reduce Rule 16-action, Rule 16]
+[branch9]:
+468:  pop
+469:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[State 14]:
+472:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+474:  bipush 9
+476:  if_icmpeq 1392 //[integer Shift State 16-action]
+479:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[State 15]:
+482:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+484:  tableswitch // default -> [State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+   // 9 -> [integer Shift State 17-action]
+   // 10 -> [decimal Shift State 18-action]
+[State 16]:
+508:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+510:  dup
+511:  bipush 7
+513:  if_icmpne 520 //[branch10]
+516:  pop
+517:  goto  1434 //[minuteChar Shift Rule 20-action]
+[branch10]:
+520:  dup
+521:  bipush 13
+523:  if_icmpne 530 //[branch11]
+526:  pop
+527:  goto  1921 //[Eof reduce Rule 19-action, ',' reduce Rule 19-action, Rule 19]
+[branch11]:
+530:  pop
+531:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[State 17]:
+534:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+536:  tableswitch // default -> [State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+   // 8 -> [secondChar Shift Rule 17-action]
+   // 9 -> [Eof reduce Rule 18-action, integer reduce Rule 18-action, ',' reduce Rule 18-action, Rule 18]
+[State 18]:
+560:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+562:  dup
+563:  iconst_0
+564:  if_icmpne 571 //[branch12]
+567:  pop
+568:  goto  1872 //[Eof reduce Rule 18-action, integer reduce Rule 18-action, ',' reduce Rule 18-action, Rule 18]
+[branch12]:
+571:  dup
+572:  bipush 8
+574:  if_icmpne 581 //[branch13]
+577:  pop
+578:  goto  1381 //[secondChar Shift Rule 17-action]
+[branch13]:
+581:  pop
+582:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[State 19]:
+585:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+587:  bipush 9
+589:  if_icmpeq 1445 //[integer Shift State 20-action]
+592:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[State 20]:
+595:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+597:  dup
+598:  iconst_0
+599:  if_icmpne 606 //[branch14]
+602:  pop
+603:  goto  1921 //[Eof reduce Rule 19-action, ',' reduce Rule 19-action, Rule 19]
+[branch14]:
+606:  dup
+607:  bipush 7
+609:  if_icmpne 616 //[branch15]
+612:  pop
+613:  goto  1434 //[minuteChar Shift Rule 20-action]
+[branch15]:
+616:  pop
+617:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[shiftSubroutine]:
+620:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[shiftStart]:
+622:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+624:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+625:  iaload
+626:  tableswitch // default -> [branch17]
+   // 1 -> [$input1]
+   // 2 -> [$input2]
+   // 3 -> [$input3]
+   // 4 -> [$input4]
+   // 5 -> [$input4]
+   // 6 -> [$input5]
+   // 7 -> [$input6]
+   // 8 -> [$input7]
+   // 9 -> [$input6]
+   // 10 -> [$input3]
+   // 11 -> [$input8]
+   // 12 -> [$input9]
+   // 13 -> [$input5]
+   // 14 -> [$input3]
+   // 15 -> [$input6]
+   // 16 -> [$input10]
+   // 17 -> [$input9]
+   // 18 -> [$input11]
+   // 19 -> [$input3]
+   // 20 -> [$input12]
+[branch17]:
+720:  new 29 // org/vesalainen/bcc/SwitchException
+723:  dup
+724:  invokespecial 30 // <init> ()V
+727:  athrow
+[$input1]:
+728:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+729:  aload_1 // ElementImpl{name=$inputReader}
+730:  invokespecial 38 // $input1 (Lorg/vesalainen/parser/util/InputReader;)I
+733:  istore_3 // LocalVariable{type=int, simpleName=$token}
+734:  iload_3 // LocalVariable{type=int, simpleName=$token}
+735:  ifge 884 //[branch16]
+738:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[$input2]:
+741:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+742:  aload_1 // ElementImpl{name=$inputReader}
+743:  invokespecial 41 // $input2 (Lorg/vesalainen/parser/util/InputReader;)I
+746:  istore_3 // LocalVariable{type=int, simpleName=$token}
+747:  iload_3 // LocalVariable{type=int, simpleName=$token}
+748:  ifge 884 //[branch16]
+751:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[$input3]:
+754:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+755:  aload_1 // ElementImpl{name=$inputReader}
+756:  invokespecial 44 // $input3 (Lorg/vesalainen/parser/util/InputReader;)I
+759:  istore_3 // LocalVariable{type=int, simpleName=$token}
+760:  iload_3 // LocalVariable{type=int, simpleName=$token}
+761:  ifge 884 //[branch16]
+764:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[$input4]:
+767:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+768:  aload_1 // ElementImpl{name=$inputReader}
+769:  invokespecial 47 // $input4 (Lorg/vesalainen/parser/util/InputReader;)I
+772:  istore_3 // LocalVariable{type=int, simpleName=$token}
+773:  iload_3 // LocalVariable{type=int, simpleName=$token}
+774:  ifge 884 //[branch16]
+777:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[$input5]:
+780:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+781:  aload_1 // ElementImpl{name=$inputReader}
+782:  invokespecial 50 // $input5 (Lorg/vesalainen/parser/util/InputReader;)I
+785:  istore_3 // LocalVariable{type=int, simpleName=$token}
+786:  iload_3 // LocalVariable{type=int, simpleName=$token}
+787:  ifge 884 //[branch16]
+790:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[$input6]:
+793:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+794:  aload_1 // ElementImpl{name=$inputReader}
+795:  invokespecial 53 // $input6 (Lorg/vesalainen/parser/util/InputReader;)I
+798:  istore_3 // LocalVariable{type=int, simpleName=$token}
+799:  iload_3 // LocalVariable{type=int, simpleName=$token}
+800:  ifge 884 //[branch16]
+803:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[$input7]:
+806:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+807:  aload_1 // ElementImpl{name=$inputReader}
+808:  invokespecial 56 // $input7 (Lorg/vesalainen/parser/util/InputReader;)I
+811:  istore_3 // LocalVariable{type=int, simpleName=$token}
+812:  iload_3 // LocalVariable{type=int, simpleName=$token}
+813:  ifge 884 //[branch16]
+816:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[$input8]:
+819:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+820:  aload_1 // ElementImpl{name=$inputReader}
+821:  invokespecial 59 // $input8 (Lorg/vesalainen/parser/util/InputReader;)I
+824:  istore_3 // LocalVariable{type=int, simpleName=$token}
+825:  iload_3 // LocalVariable{type=int, simpleName=$token}
+826:  ifge 884 //[branch16]
+829:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[$input9]:
+832:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+833:  aload_1 // ElementImpl{name=$inputReader}
+834:  invokespecial 62 // $input9 (Lorg/vesalainen/parser/util/InputReader;)I
+837:  istore_3 // LocalVariable{type=int, simpleName=$token}
+838:  iload_3 // LocalVariable{type=int, simpleName=$token}
+839:  ifge 884 //[branch16]
+842:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[$input10]:
+845:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+846:  aload_1 // ElementImpl{name=$inputReader}
+847:  invokespecial 65 // $input10 (Lorg/vesalainen/parser/util/InputReader;)I
+850:  istore_3 // LocalVariable{type=int, simpleName=$token}
+851:  iload_3 // LocalVariable{type=int, simpleName=$token}
+852:  ifge 884 //[branch16]
+855:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[$input11]:
+858:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+859:  aload_1 // ElementImpl{name=$inputReader}
+860:  invokespecial 68 // $input11 (Lorg/vesalainen/parser/util/InputReader;)I
+863:  istore_3 // LocalVariable{type=int, simpleName=$token}
+864:  iload_3 // LocalVariable{type=int, simpleName=$token}
+865:  ifge 884 //[branch16]
+868:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[$input12]:
+871:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+872:  aload_1 // ElementImpl{name=$inputReader}
+873:  invokespecial 71 // $input12 (Lorg/vesalainen/parser/util/InputReader;)I
+876:  istore_3 // LocalVariable{type=int, simpleName=$token}
+877:  iload_3 // LocalVariable{type=int, simpleName=$token}
+878:  ifge 884 //[branch16]
+881:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[branch16]:
+884:  iload_3 // LocalVariable{type=int, simpleName=$token}
+885:  istore 4 // LocalVariable{type=int, simpleName=$curTok}
+887:  iload 4 // LocalVariable{type=int, simpleName=$curTok}
+889:  lookupswitch // default -> [branch19]
+   // 0 -> [$term-',', branch18]
+   // 6 -> [$term-degreeChar]
+   // 7 -> [$term-minuteChar]
+   // 8 -> [$term-secondChar]
+   // 9 -> [$term-integer]
+   // 10 -> [$term-decimal]
+   // 11 -> [$term-whiteSpace]
+   // 13 -> [$term-',', branch18]
+   // 26 -> [$term-n]
+   // 27 -> [$term-s]
+   // 28 -> [$term-w]
+   // 29 -> [$term-e]
+[branch19]:
+996:  new 29 // org/vesalainen/bcc/SwitchException
+999:  dup
+1000:  invokespecial 30 // <init> ()V
+1003:  athrow
+[$term-degreeChar]:
+1004:  bipush 8
+1006:  istore 5 // LocalVariable{type=int, simpleName=$curType}
+1008:  goto  1110 //[$term-',', branch18]
+[$term-minuteChar]:
+1011:  bipush 8
+1013:  istore 5 // LocalVariable{type=int, simpleName=$curType}
+1015:  goto  1110 //[$term-',', branch18]
+[$term-secondChar]:
+1018:  bipush 8
+1020:  istore 5 // LocalVariable{type=int, simpleName=$curType}
+1022:  goto  1110 //[$term-',', branch18]
+[$term-integer]:
+1025:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+1026:  aload_1 // ElementImpl{name=$inputReader}
+1027:  invokevirtual 77 // getString ()Ljava/lang/String;
+1030:  invokevirtual 81 // integer (Ljava/lang/String;)Ljava/lang/Number;
+1033:  astore 10 // LocalVariable{type=java.lang.Object, simpleName=$curDECLARED}
+1035:  bipush 12
+1037:  istore 5 // LocalVariable{type=int, simpleName=$curType}
+1039:  goto  1110 //[$term-',', branch18]
+[$term-decimal]:
+1042:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+1043:  aload_1 // ElementImpl{name=$inputReader}
+1044:  invokevirtual 77 // getString ()Ljava/lang/String;
+1047:  invokevirtual 84 // decimal (Ljava/lang/String;)Ljava/lang/Number;
+1050:  astore 10 // LocalVariable{type=java.lang.Object, simpleName=$curDECLARED}
+1052:  bipush 12
+1054:  istore 5 // LocalVariable{type=int, simpleName=$curType}
+1056:  goto  1110 //[$term-',', branch18]
+[$term-whiteSpace]:
+1059:  bipush 8
+1061:  istore 5 // LocalVariable{type=int, simpleName=$curType}
+1063:  goto  1110 //[$term-',', branch18]
+[$term-n]:
+1066:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+1067:  invokevirtual 87 // reservedWordsD ()V
+1070:  bipush 8
+1072:  istore 5 // LocalVariable{type=int, simpleName=$curType}
+1074:  goto  1110 //[$term-',', branch18]
+[$term-s]:
+1077:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+1078:  invokevirtual 87 // reservedWordsD ()V
+1081:  bipush 8
+1083:  istore 5 // LocalVariable{type=int, simpleName=$curType}
+1085:  goto  1110 //[$term-',', branch18]
+[$term-w]:
+1088:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+1089:  invokevirtual 87 // reservedWordsD ()V
+1092:  bipush 8
+1094:  istore 5 // LocalVariable{type=int, simpleName=$curType}
+1096:  goto  1110 //[$term-',', branch18]
+[$term-e]:
+1099:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+1100:  invokevirtual 87 // reservedWordsD ()V
+1103:  bipush 8
+1105:  istore 5 // LocalVariable{type=int, simpleName=$curType}
+1107:  goto  1110 //[$term-',', branch18]
+[$term-',', branch18]:
+1110:  aload_1 // ElementImpl{name=$inputReader}
+1111:  invokevirtual 90 // clear ()V
+1114:  iload_3 // LocalVariable{type=int, simpleName=$token}
+1115:  bipush 11
+1117:  if_icmpeq 622 //[shiftStart]
+1120:  goto  1123 //[wspContinue]
+[wspContinue]:
+1123:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[updateValueStack]:
+1125:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+1127:  iload 5 // LocalVariable{type=int, simpleName=$curType}
+1129:  dup
+1130:  iconst_3
+1131:  if_icmpne 1138 //[branch21]
+1134:  pop
+1135:  goto  1170 //[INT-cur]
+[branch21]:
+1138:  dup
+1139:  bipush 8
+1141:  if_icmpne 1148 //[branch22]
+1144:  pop
+1145:  goto  1212 //[setCurrent-Void]
+[branch22]:
+1148:  dup
+1149:  bipush 12
+1151:  if_icmpne 1158 //[branch23]
+1154:  pop
+1155:  goto  1191 //[DECLARED-cur]
+[branch23]:
+1158:  pop
+1159:  goto  1162 //[branch20]
+[branch20]:
+1162:  new 29 // org/vesalainen/bcc/SwitchException
+1165:  dup
+1166:  invokespecial 30 // <init> ()V
+1169:  athrow
+[INT-cur]:
+1170:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+1172:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1173:  iload 5 // LocalVariable{type=int, simpleName=$curType}
+1175:  iastore
+1176:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+1178:  iload 5 // LocalVariable{type=int, simpleName=$curType}
+1180:  aaload
+1181:  checkcast 92 // [I
+1184:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1185:  iload 9 // LocalVariable{type=int, simpleName=$curINT}
+1187:  iastore
+1188:  goto  1218 //[setCurrent-Exit]
+[DECLARED-cur]:
+1191:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+1193:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1194:  iload 5 // LocalVariable{type=int, simpleName=$curType}
+1196:  iastore
+1197:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+1199:  iload 5 // LocalVariable{type=int, simpleName=$curType}
+1201:  aaload
+1202:  checkcast 27 // [Ljava/lang/Object;
+1205:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1206:  aload 10 // LocalVariable{type=java.lang.Object, simpleName=$curDECLARED}
+1208:  aastore
+1209:  goto  1218 //[setCurrent-Exit]
+[setCurrent-Void]:
+1212:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+1214:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1215:  bipush 8
+1217:  iastore
+[setCurrent-Exit]:
+1218:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[n Shift Rule 13-action]:
+1220:  iinc 2 1 // $sp+=1
+1223:  jsr 1459 //[Rule 13subroutine]
+1226:  iconst_m1
+1227:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1228:  goto  1484 //[north-goto]
+[s Shift Rule 14-action]:
+1231:  iinc 2 1 // $sp+=1
+1234:  jsr 1503 //[Rule 14subroutine]
+1237:  iconst_m1
+1238:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1239:  goto  1528 //[south-goto]
+[integer Shift Rule 4-action]:
+1242:  iinc 2 1 // $sp+=1
+1245:  jsr 1547 //[Rule 4subroutine]
+1248:  iconst_m1
+1249:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1250:  goto  1588 //[(decimal|integer)-goto]
+[decimal Shift Rule 3-action]:
+1253:  iinc 2 1 // $sp+=1
+1256:  jsr 1623 //[Rule 3subroutine]
+1259:  iconst_m1
+1260:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1261:  goto  1588 //[(decimal|integer)-goto]
+[integer Shift State 6-action]:
+1264:  iinc 2 1 // $sp+=1
+1267:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1269:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1270:  bipush 6
+1272:  iastore
+1273:  iconst_m1
+1274:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1275:  goto  68 //[start]
+[',' Shift State 7-action]:
+1278:  iinc 2 1 // $sp+=1
+1281:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1283:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1284:  bipush 7
+1286:  iastore
+1287:  iconst_m1
+1288:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1289:  goto  68 //[start]
+[',' Shift State 8-action]:
+1292:  iinc 2 1 // $sp+=1
+1295:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1297:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1298:  bipush 8
+1300:  iastore
+1301:  iconst_m1
+1302:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1303:  goto  68 //[start]
+[degreeChar Shift Rule 15-action]:
+1306:  iinc 2 1 // $sp+=1
+1309:  jsr 1670 //[Rule 15subroutine]
+1312:  iconst_m1
+1313:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1314:  goto  1677 //[degreeChar?-goto]
+[e Shift Rule 22-action]:
+1317:  iinc 2 1 // $sp+=1
+1320:  jsr 1719 //[Rule 22subroutine]
+1323:  iconst_m1
+1324:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1325:  goto  1744 //[east-goto]
+[w Shift Rule 21-action]:
+1328:  iinc 2 1 // $sp+=1
+1331:  jsr 1764 //[Rule 21subroutine]
+1334:  iconst_m1
+1335:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1336:  goto  1789 //[west-goto]
+[decimal Shift State 11-action]:
+1339:  iinc 2 1 // $sp+=1
+1342:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1344:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1345:  bipush 11
+1347:  iastore
+1348:  iconst_m1
+1349:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1350:  goto  68 //[start]
+[integer Shift State 12-action]:
+1353:  iinc 2 1 // $sp+=1
+1356:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1358:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1359:  bipush 12
+1361:  iastore
+1362:  iconst_m1
+1363:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1364:  goto  68 //[start]
+[integer Shift State 13-action]:
+1367:  iinc 2 1 // $sp+=1
+1370:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1372:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1373:  bipush 13
+1375:  iastore
+1376:  iconst_m1
+1377:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1378:  goto  68 //[start]
+[secondChar Shift Rule 17-action]:
+1381:  iinc 2 1 // $sp+=1
+1384:  jsr 1809 //[Rule 17subroutine]
+1387:  iconst_m1
+1388:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1389:  goto  1816 //[secondChar?-goto]
+[integer Shift State 16-action]:
+1392:  iinc 2 1 // $sp+=1
+1395:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1397:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1398:  bipush 16
+1400:  iastore
+1401:  iconst_m1
+1402:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1403:  goto  68 //[start]
+[integer Shift State 17-action]:
+1406:  iinc 2 1 // $sp+=1
+1409:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1411:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1412:  bipush 17
+1414:  iastore
+1415:  iconst_m1
+1416:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1417:  goto  68 //[start]
+[decimal Shift State 18-action]:
+1420:  iinc 2 1 // $sp+=1
+1423:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1425:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1426:  bipush 18
+1428:  iastore
+1429:  iconst_m1
+1430:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1431:  goto  68 //[start]
+[minuteChar Shift Rule 20-action]:
+1434:  iinc 2 1 // $sp+=1
+1437:  jsr 1878 //[Rule 20subroutine]
+1440:  iconst_m1
+1441:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1442:  goto  1885 //[minuteChar?-goto]
+[integer Shift State 20-action]:
+1445:  iinc 2 1 // $sp+=1
+1448:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1450:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1451:  bipush 20
+1453:  iastore
+1454:  iconst_m1
+1455:  istore_3 // LocalVariable{type=int, simpleName=$token}
+1456:  goto  68 //[start]
+[Rule 13subroutine]:
+1459:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+1461:  iinc 2 -1 // $sp+=-1
+1464:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+1466:  iconst_3
+1467:  aaload
+1468:  checkcast 92 // [I
+1471:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1472:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+1473:  invokevirtual 96 // north ()I
+1476:  iastore
+1477:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+1479:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1480:  iconst_3
+1481:  iastore
+1482:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[north-goto]:
+1484:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1486:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1487:  iaload
+1488:  iconst_1
+1489:  if_icmpeq 1927 //[Rule 5-goto-action]
+1492:  goto  1495 //[branch24]
+[branch24]:
+1495:  new 29 // org/vesalainen/bcc/SwitchException
+1498:  dup
+1499:  invokespecial 30 // <init> ()V
+1502:  athrow
+[Rule 14subroutine]:
+1503:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+1505:  iinc 2 -1 // $sp+=-1
+1508:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+1510:  iconst_3
+1511:  aaload
+1512:  checkcast 92 // [I
+1515:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1516:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+1517:  invokevirtual 99 // south ()I
+1520:  iastore
+1521:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+1523:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1524:  iconst_3
+1525:  iastore
+1526:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[south-goto]:
+1528:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1530:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1531:  iaload
+1532:  iconst_1
+1533:  if_icmpeq 1936 //[Rule 6-goto-action]
+1536:  goto  1539 //[branch25]
+[branch25]:
+1539:  new 29 // org/vesalainen/bcc/SwitchException
+1542:  dup
+1543:  invokespecial 30 // <init> ()V
+1546:  athrow
+[Rule 4subroutine]:
+1547:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+1549:  iinc 2 -1 // $sp+=-1
+1552:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+1554:  bipush 12
+1556:  aaload
+1557:  checkcast 27 // [Ljava/lang/Object;
+1560:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1561:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+1563:  bipush 12
+1565:  aaload
+1566:  checkcast 27 // [Ljava/lang/Object;
+1569:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1570:  iconst_0
+1571:  iadd
+1572:  aaload
+1573:  checkcast 25 // java/lang/Object
+1576:  invokestatic 105 // get (Ljava/lang/Object;)Ljava/lang/Object;
+1579:  aastore
+1580:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+1582:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1583:  bipush 12
+1585:  iastore
+1586:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[(decimal|integer)-goto]:
+1588:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1590:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1591:  iaload
+1592:  dup
+1593:  iconst_1
+1594:  if_icmpne 1601 //[branch27]
+1597:  pop
+1598:  goto  1945 //[State 4-goto-action]
+[branch27]:
+1601:  dup
+1602:  bipush 7
+1604:  if_icmpne 1611 //[branch28]
+1607:  pop
+1608:  goto  1956 //[Rule 1-goto-action]
+[branch28]:
+1611:  pop
+1612:  goto  1615 //[branch26]
+[branch26]:
+1615:  new 29 // org/vesalainen/bcc/SwitchException
+1618:  dup
+1619:  invokespecial 30 // <init> ()V
+1622:  athrow
+[Rule 3subroutine]:
+1623:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+1625:  iinc 2 -1 // $sp+=-1
+1628:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+1630:  bipush 12
+1632:  aaload
+1633:  checkcast 27 // [Ljava/lang/Object;
+1636:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1637:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+1639:  bipush 12
+1641:  aaload
+1642:  checkcast 27 // [Ljava/lang/Object;
+1645:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1646:  iconst_0
+1647:  iadd
+1648:  aaload
+1649:  checkcast 25 // java/lang/Object
+1652:  invokestatic 105 // get (Ljava/lang/Object;)Ljava/lang/Object;
+1655:  aastore
+1656:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+1658:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1659:  bipush 12
+1661:  iastore
+1662:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[Eof reduce Rule 0-action, Rule 0]:
+1664:  jsr 1965 //[Rule 0subroutine]
+1667:  goto  2775 //[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]
+[Rule 15subroutine]:
+1670:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+1672:  iinc 2 -1 // $sp+=-1
+1675:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[degreeChar?-goto]:
+1677:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1679:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1680:  iaload
+1681:  dup
+1682:  bipush 6
+1684:  if_icmpne 1691 //[branch30]
+1687:  pop
+1688:  goto  1984 //[State 9-goto-action]
+[branch30]:
+1691:  dup
+1692:  bipush 13
+1694:  if_icmpne 1701 //[branch31]
+1697:  pop
+1698:  goto  1996 //[State 15-goto-action]
+[branch31]:
+1701:  pop
+1702:  goto  1705 //[branch29]
+[branch29]:
+1705:  new 29 // org/vesalainen/bcc/SwitchException
+1708:  dup
+1709:  invokespecial 30 // <init> ()V
+1712:  athrow
+[decimal reduce Rule 16-action, integer reduce Rule 16-action, Rule 16]:
+1713:  jsr 2008 //[Rule 16subroutine]
+1716:  goto  1677 //[degreeChar?-goto]
+[Rule 22subroutine]:
+1719:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+1721:  iinc 2 -1 // $sp+=-1
+1724:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+1726:  iconst_3
+1727:  aaload
+1728:  checkcast 92 // [I
+1731:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1732:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+1733:  invokevirtual 108 // east ()I
+1736:  iastore
+1737:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+1739:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1740:  iconst_3
+1741:  iastore
+1742:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[east-goto]:
+1744:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1746:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1747:  iaload
+1748:  bipush 8
+1750:  if_icmpeq 2012 //[Rule 10-goto-action]
+1753:  goto  1756 //[branch32]
+[branch32]:
+1756:  new 29 // org/vesalainen/bcc/SwitchException
+1759:  dup
+1760:  invokespecial 30 // <init> ()V
+1763:  athrow
+[Rule 21subroutine]:
+1764:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+1766:  iinc 2 -1 // $sp+=-1
+1769:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+1771:  iconst_3
+1772:  aaload
+1773:  checkcast 92 // [I
+1776:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1777:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+1778:  invokevirtual 111 // west ()I
+1781:  iastore
+1782:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+1784:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1785:  iconst_3
+1786:  iastore
+1787:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[west-goto]:
+1789:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1791:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1792:  iaload
+1793:  bipush 8
+1795:  if_icmpeq 2021 //[Rule 9-goto-action]
+1798:  goto  1801 //[branch33]
+[branch33]:
+1801:  new 29 // org/vesalainen/bcc/SwitchException
+1804:  dup
+1805:  invokespecial 30 // <init> ()V
+1808:  athrow
+[Rule 17subroutine]:
+1809:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+1811:  iinc 2 -1 // $sp+=-1
+1814:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[secondChar?-goto]:
+1816:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1818:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1819:  iaload
+1820:  lookupswitch // default -> [branch34]
+   // 11 -> [Rule 8-goto-action]
+   // 12 -> [State 14-goto-action]
+   // 17 -> [State 19-goto-action]
+   // 18 -> [Rule 11-goto-action]
+[branch34]:
+1864:  new 29 // org/vesalainen/bcc/SwitchException
+1867:  dup
+1868:  invokespecial 30 // <init> ()V
+1871:  athrow
+[Eof reduce Rule 18-action, integer reduce Rule 18-action, ',' reduce Rule 18-action, Rule 18]:
+1872:  jsr 2072 //[Rule 18subroutine]
+1875:  goto  1816 //[secondChar?-goto]
+[Rule 20subroutine]:
+1878:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+1880:  iinc 2 -1 // $sp+=-1
+1883:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[minuteChar?-goto]:
+1885:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1887:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1888:  iaload
+1889:  dup
+1890:  bipush 16
+1892:  if_icmpne 1899 //[branch36]
+1895:  pop
+1896:  goto  2076 //[Rule 7-goto-action]
+[branch36]:
+1899:  dup
+1900:  bipush 20
+1902:  if_icmpne 1909 //[branch37]
+1905:  pop
+1906:  goto  2085 //[Rule 12-goto-action]
+[branch37]:
+1909:  pop
+1910:  goto  1913 //[branch35]
+[branch35]:
+1913:  new 29 // org/vesalainen/bcc/SwitchException
+1916:  dup
+1917:  invokespecial 30 // <init> ()V
+1920:  athrow
+[Eof reduce Rule 19-action, ',' reduce Rule 19-action, Rule 19]:
+1921:  jsr 2094 //[Rule 19subroutine]
+1924:  goto  1885 //[minuteChar?-goto]
+[Rule 5-goto-action]:
+1927:  iinc 2 1 // $sp+=1
+1930:  jsr 2098 //[Rule 5subroutine]
+1933:  goto  2130 //[ns-goto]
+[Rule 6-goto-action]:
+1936:  iinc 2 1 // $sp+=1
+1939:  jsr 2149 //[Rule 6subroutine]
+1942:  goto  2130 //[ns-goto]
+[State 4-goto-action]:
+1945:  iinc 2 1 // $sp+=1
+1948:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1950:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1951:  iconst_4
+1952:  iastore
+1953:  goto  68 //[start]
+[Rule 1-goto-action]:
+1956:  iinc 2 1 // $sp+=1
+1959:  jsr 2181 //[Rule 1subroutine]
+1962:  goto  2238 //[coordinate-goto]
+[Rule 0subroutine]:
+1965:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+1967:  iinc 2 -1 // $sp+=-1
+1970:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+1972:  bipush 12
+1974:  aaload
+1975:  checkcast 27 // [Ljava/lang/Object;
+1978:  iconst_0
+1979:  aaload
+1980:  checkcast 113 // com/google/appengine/api/datastore/GeoPt
+1983:  areturn
+[State 9-goto-action]:
+1984:  iinc 2 1 // $sp+=1
+1987:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+1989:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+1990:  bipush 9
+1992:  iastore
+1993:  goto  68 //[start]
+[State 15-goto-action]:
+1996:  iinc 2 1 // $sp+=1
+1999:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+2001:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2002:  bipush 15
+2004:  iastore
+2005:  goto  68 //[start]
+[Rule 16subroutine]:
+2008:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2010:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[Rule 10-goto-action]:
+2012:  iinc 2 1 // $sp+=1
+2015:  jsr 2257 //[Rule 10subroutine]
+2018:  goto  2289 //[we-goto]
+[Rule 9-goto-action]:
+2021:  iinc 2 1 // $sp+=1
+2024:  jsr 2309 //[Rule 9subroutine]
+2027:  goto  2289 //[we-goto]
+[Rule 8-goto-action]:
+2030:  iinc 2 1 // $sp+=1
+2033:  jsr 2341 //[Rule 8subroutine]
+2036:  goto  2399 //[latitude-goto]
+[State 14-goto-action]:
+2039:  iinc 2 1 // $sp+=1
+2042:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+2044:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2045:  bipush 14
+2047:  iastore
+2048:  goto  68 //[start]
+[State 19-goto-action]:
+2051:  iinc 2 1 // $sp+=1
+2054:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+2056:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2057:  bipush 19
+2059:  iastore
+2060:  goto  68 //[start]
+[Rule 11-goto-action]:
+2063:  iinc 2 1 // $sp+=1
+2066:  jsr 2418 //[Rule 11subroutine]
+2069:  goto  2476 //[longitude-goto]
+[Rule 18subroutine]:
+2072:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2074:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[Rule 7-goto-action]:
+2076:  iinc 2 1 // $sp+=1
+2079:  jsr 2496 //[Rule 7subroutine]
+2082:  goto  2399 //[latitude-goto]
+[Rule 12-goto-action]:
+2085:  iinc 2 1 // $sp+=1
+2088:  jsr 2569 //[Rule 12subroutine]
+2091:  goto  2476 //[longitude-goto]
+[Rule 19subroutine]:
+2094:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2096:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[Rule 5subroutine]:
+2098:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2100:  iinc 2 -1 // $sp+=-1
+2103:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2105:  iconst_3
+2106:  aaload
+2107:  checkcast 92 // [I
+2110:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2111:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2113:  iconst_3
+2114:  aaload
+2115:  checkcast 92 // [I
+2118:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2119:  iconst_0
+2120:  iadd
+2121:  iaload
+2122:  iastore
+2123:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+2125:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2126:  iconst_3
+2127:  iastore
+2128:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[ns-goto]:
+2130:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+2132:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2133:  iaload
+2134:  iconst_1
+2135:  if_icmpeq 2642 //[State 3-goto-action]
+2138:  goto  2141 //[branch38]
+[branch38]:
+2141:  new 29 // org/vesalainen/bcc/SwitchException
+2144:  dup
+2145:  invokespecial 30 // <init> ()V
+2148:  athrow
+[Rule 6subroutine]:
+2149:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2151:  iinc 2 -1 // $sp+=-1
+2154:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2156:  iconst_3
+2157:  aaload
+2158:  checkcast 92 // [I
+2161:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2162:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2164:  iconst_3
+2165:  aaload
+2166:  checkcast 92 // [I
+2169:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2170:  iconst_0
+2171:  iadd
+2172:  iaload
+2173:  iastore
+2174:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+2176:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2177:  iconst_3
+2178:  iastore
+2179:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[Rule 1subroutine]:
+2181:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2183:  iinc 2 -3 // $sp+=-3
+2186:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2188:  bipush 12
+2190:  aaload
+2191:  checkcast 27 // [Ljava/lang/Object;
+2194:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2195:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+2196:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2198:  bipush 12
+2200:  aaload
+2201:  checkcast 27 // [Ljava/lang/Object;
+2204:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2205:  iconst_0
+2206:  iadd
+2207:  aaload
+2208:  checkcast 115 // java/lang/Number
+2211:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2213:  bipush 12
+2215:  aaload
+2216:  checkcast 27 // [Ljava/lang/Object;
+2219:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2220:  iconst_2
+2221:  iadd
+2222:  aaload
+2223:  checkcast 115 // java/lang/Number
+2226:  invokevirtual 119 // coordinate (Ljava/lang/Number;Ljava/lang/Number;)Lcom/google/appengine/api/datastore/GeoPt;
+2229:  aastore
+2230:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+2232:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2233:  bipush 12
+2235:  iastore
+2236:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[coordinate-goto]:
+2238:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+2240:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2241:  iaload
+2242:  iconst_1
+2243:  if_icmpeq 2653 //[State 2-goto-action]
+2246:  goto  2249 //[branch39]
+[branch39]:
+2249:  new 29 // org/vesalainen/bcc/SwitchException
+2252:  dup
+2253:  invokespecial 30 // <init> ()V
+2256:  athrow
+[Rule 10subroutine]:
+2257:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2259:  iinc 2 -1 // $sp+=-1
+2262:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2264:  iconst_3
+2265:  aaload
+2266:  checkcast 92 // [I
+2269:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2270:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2272:  iconst_3
+2273:  aaload
+2274:  checkcast 92 // [I
+2277:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2278:  iconst_0
+2279:  iadd
+2280:  iaload
+2281:  iastore
+2282:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+2284:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2285:  iconst_3
+2286:  iastore
+2287:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[we-goto]:
+2289:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+2291:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2292:  iaload
+2293:  bipush 8
+2295:  if_icmpeq 2664 //[State 10-goto-action]
+2298:  goto  2301 //[branch40]
+[branch40]:
+2301:  new 29 // org/vesalainen/bcc/SwitchException
+2304:  dup
+2305:  invokespecial 30 // <init> ()V
+2308:  athrow
+[Rule 9subroutine]:
+2309:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2311:  iinc 2 -1 // $sp+=-1
+2314:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2316:  iconst_3
+2317:  aaload
+2318:  checkcast 92 // [I
+2321:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2322:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2324:  iconst_3
+2325:  aaload
+2326:  checkcast 92 // [I
+2329:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2330:  iconst_0
+2331:  iadd
+2332:  iaload
+2333:  iastore
+2334:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+2336:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2337:  iconst_3
+2338:  iastore
+2339:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[Rule 8subroutine]:
+2341:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2343:  iinc 2 -4 // $sp+=-4
+2346:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2348:  bipush 12
+2350:  aaload
+2351:  checkcast 27 // [Ljava/lang/Object;
+2354:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2355:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+2356:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2358:  bipush 12
+2360:  aaload
+2361:  checkcast 27 // [Ljava/lang/Object;
+2364:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2365:  iconst_0
+2366:  iadd
+2367:  aaload
+2368:  checkcast 115 // java/lang/Number
+2371:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2373:  bipush 12
+2375:  aaload
+2376:  checkcast 27 // [Ljava/lang/Object;
+2379:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2380:  iconst_2
+2381:  iadd
+2382:  aaload
+2383:  checkcast 115 // java/lang/Number
+2386:  aload_1 // ElementImpl{name=$inputReader}
+2387:  invokevirtual 123 // latitude (Ljava/lang/Number;Ljava/lang/Number;Lorg/vesalainen/parser/util/InputReader;)Ljava/lang/Number;
+2390:  aastore
+2391:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+2393:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2394:  bipush 12
+2396:  iastore
+2397:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[latitude-goto]:
+2399:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+2401:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2402:  iaload
+2403:  iconst_3
+2404:  if_icmpeq 2676 //[State 5-goto-action]
+2407:  goto  2410 //[branch41]
+[branch41]:
+2410:  new 29 // org/vesalainen/bcc/SwitchException
+2413:  dup
+2414:  invokespecial 30 // <init> ()V
+2417:  athrow
+[Rule 11subroutine]:
+2418:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2420:  iinc 2 -4 // $sp+=-4
+2423:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2425:  bipush 12
+2427:  aaload
+2428:  checkcast 27 // [Ljava/lang/Object;
+2431:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2432:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+2433:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2435:  bipush 12
+2437:  aaload
+2438:  checkcast 27 // [Ljava/lang/Object;
+2441:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2442:  iconst_0
+2443:  iadd
+2444:  aaload
+2445:  checkcast 115 // java/lang/Number
+2448:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2450:  bipush 12
+2452:  aaload
+2453:  checkcast 27 // [Ljava/lang/Object;
+2456:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2457:  iconst_2
+2458:  iadd
+2459:  aaload
+2460:  checkcast 115 // java/lang/Number
+2463:  aload_1 // ElementImpl{name=$inputReader}
+2464:  invokevirtual 126 // longitude (Ljava/lang/Number;Ljava/lang/Number;Lorg/vesalainen/parser/util/InputReader;)Ljava/lang/Number;
+2467:  aastore
+2468:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+2470:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2471:  bipush 12
+2473:  iastore
+2474:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[longitude-goto]:
+2476:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+2478:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2479:  iaload
+2480:  bipush 10
+2482:  if_icmpeq 2687 //[Rule 2-goto-action]
+2485:  goto  2488 //[branch42]
+[branch42]:
+2488:  new 29 // org/vesalainen/bcc/SwitchException
+2491:  dup
+2492:  invokespecial 30 // <init> ()V
+2495:  athrow
+[Rule 7subroutine]:
+2496:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2498:  iinc 2 -6 // $sp+=-6
+2501:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2503:  bipush 12
+2505:  aaload
+2506:  checkcast 27 // [Ljava/lang/Object;
+2509:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2510:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+2511:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2513:  bipush 12
+2515:  aaload
+2516:  checkcast 27 // [Ljava/lang/Object;
+2519:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2520:  iconst_0
+2521:  iadd
+2522:  aaload
+2523:  checkcast 115 // java/lang/Number
+2526:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2528:  bipush 12
+2530:  aaload
+2531:  checkcast 27 // [Ljava/lang/Object;
+2534:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2535:  iconst_2
+2536:  iadd
+2537:  aaload
+2538:  checkcast 115 // java/lang/Number
+2541:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2543:  bipush 12
+2545:  aaload
+2546:  checkcast 27 // [Ljava/lang/Object;
+2549:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2550:  iconst_4
+2551:  iadd
+2552:  aaload
+2553:  checkcast 115 // java/lang/Number
+2556:  aload_1 // ElementImpl{name=$inputReader}
+2557:  invokevirtual 129 // latitude (Ljava/lang/Number;Ljava/lang/Number;Ljava/lang/Number;Lorg/vesalainen/parser/util/InputReader;)Ljava/lang/Number;
+2560:  aastore
+2561:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+2563:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2564:  bipush 12
+2566:  iastore
+2567:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[Rule 12subroutine]:
+2569:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2571:  iinc 2 -6 // $sp+=-6
+2574:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2576:  bipush 12
+2578:  aaload
+2579:  checkcast 27 // [Ljava/lang/Object;
+2582:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2583:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+2584:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2586:  bipush 12
+2588:  aaload
+2589:  checkcast 27 // [Ljava/lang/Object;
+2592:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2593:  iconst_0
+2594:  iadd
+2595:  aaload
+2596:  checkcast 115 // java/lang/Number
+2599:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2601:  bipush 12
+2603:  aaload
+2604:  checkcast 27 // [Ljava/lang/Object;
+2607:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2608:  iconst_2
+2609:  iadd
+2610:  aaload
+2611:  checkcast 115 // java/lang/Number
+2614:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2616:  bipush 12
+2618:  aaload
+2619:  checkcast 27 // [Ljava/lang/Object;
+2622:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2623:  iconst_4
+2624:  iadd
+2625:  aaload
+2626:  checkcast 115 // java/lang/Number
+2629:  aload_1 // ElementImpl{name=$inputReader}
+2630:  invokevirtual 131 // longitude (Ljava/lang/Number;Ljava/lang/Number;Ljava/lang/Number;Lorg/vesalainen/parser/util/InputReader;)Ljava/lang/Number;
+2633:  aastore
+2634:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+2636:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2637:  bipush 12
+2639:  iastore
+2640:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[State 3-goto-action]:
+2642:  iinc 2 1 // $sp+=1
+2645:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+2647:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2648:  iconst_3
+2649:  iastore
+2650:  goto  68 //[start]
+[State 2-goto-action]:
+2653:  iinc 2 1 // $sp+=1
+2656:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+2658:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2659:  iconst_2
+2660:  iastore
+2661:  goto  68 //[start]
+[State 10-goto-action]:
+2664:  iinc 2 1 // $sp+=1
+2667:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+2669:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2670:  bipush 10
+2672:  iastore
+2673:  goto  68 //[start]
+[State 5-goto-action]:
+2676:  iinc 2 1 // $sp+=1
+2679:  aload 6 // LocalVariable{type=int[], simpleName=$stateStack}
+2681:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2682:  iconst_5
+2683:  iastore
+2684:  goto  68 //[start]
+[Rule 2-goto-action]:
+2687:  iinc 2 1 // $sp+=1
+2690:  jsr 2696 //[Rule 2subroutine]
+2693:  goto  2238 //[coordinate-goto]
+[Rule 2subroutine]:
+2696:  astore 12 // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+2698:  iinc 2 -5 // $sp+=-5
+2701:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2703:  bipush 12
+2705:  aaload
+2706:  checkcast 27 // [Ljava/lang/Object;
+2709:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2710:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+2711:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2713:  iconst_3
+2714:  aaload
+2715:  checkcast 92 // [I
+2718:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2719:  iconst_0
+2720:  iadd
+2721:  iaload
+2722:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2724:  bipush 12
+2726:  aaload
+2727:  checkcast 27 // [Ljava/lang/Object;
+2730:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2731:  iconst_1
+2732:  iadd
+2733:  aaload
+2734:  checkcast 115 // java/lang/Number
+2737:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2739:  iconst_3
+2740:  aaload
+2741:  checkcast 92 // [I
+2744:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2745:  iconst_3
+2746:  iadd
+2747:  iaload
+2748:  aload 8 // LocalVariable{type=java.lang.Object[], simpleName=$valueStack}
+2750:  bipush 12
+2752:  aaload
+2753:  checkcast 27 // [Ljava/lang/Object;
+2756:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2757:  iconst_4
+2758:  iadd
+2759:  aaload
+2760:  checkcast 115 // java/lang/Number
+2763:  invokevirtual 134 // coordinate (ILjava/lang/Number;ILjava/lang/Number;)Lcom/google/appengine/api/datastore/GeoPt;
+2766:  aastore
+2767:  aload 7 // LocalVariable{type=int[], simpleName=$typeStack}
+2769:  iload_2 // LocalVariable{type=int, simpleName=$sp}
+2770:  bipush 12
+2772:  iastore
+2773:  ret // LocalVariable{type=ReturnAddress, simpleName=$subroutineReturnAddressName}
+[State 20syntaxError, State 19syntaxError, State 18syntaxError, State 17syntaxError, State 16syntaxError, State 15syntaxError, State 14syntaxError, State 13syntaxError, State 12syntaxError, State 11syntaxError, State 10syntaxError, State 9syntaxError, State 8syntaxError, State 7syntaxError, State 6syntaxError, State 5syntaxError, State 4syntaxError, State 3syntaxError, State 2syntaxError, State 1syntaxError, syntaxError]:
+2775:  aload_1 // ElementImpl{name=$inputReader}
+2776:  invokevirtual 137 // throwSyntaxErrorException ()V
+2779:  goto  49 //[reset]
+[syntaxErrorExceptionHandler]:
+2782:  athrow
+[exceptionHandler]:
+2783:  astore 11 // LocalVariable{type=java.lang.Throwable, simpleName=$throwable}
+2785:  aload_1 // ElementImpl{name=$inputReader}
+2786:  aload 11 // LocalVariable{type=java.lang.Throwable, simpleName=$throwable}
+2788:  invokevirtual 140 // throwSyntaxErrorException (Ljava/lang/Throwable;)V
+2791:  goto  49 //[reset]
+org.vesalainen.bcc.SubClass$Method@52a67d2e
+0:  aload_0 // LocalVariable{type=org.vesalainen.bcc.ClassFile$ClassType@47008bc, simpleName=this}
+1:  new 73 // org/vesalainen/parser/util/InputReader
+4:  dup
+5:  aload_1 // text
+6:  invokespecial 159 // <init> (Ljava/lang/CharSequence;)V
+9:  invokevirtual 161 // $parseCoordinate (Lorg/vesalainen/parser/util/InputReader;)Lcom/google/appengine/api/datastore/GeoPt;
+12:  areturn
+org.vesalainen.bcc.SubClass$Method@30648166
+[start]:
+0:  iconst_m1
+1:  istore_2 // LocalVariable{type=int, simpleName=cc}
+2:  iconst_m1
+3:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+[S0]:
+4:  iconst_m1
+5:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+6:  aload_1 // ElementImpl{name=reader}
+7:  invokevirtual 166 // read ()I
+10:  istore_2 // LocalVariable{type=int, simpleName=cc}
+11:  iload_2 // LocalVariable{type=int, simpleName=cc}
+12:  iflt 365 //[eof]
+15:  iload_2 // LocalVariable{type=int, simpleName=cc}
+16:  lookupswitch // default -> [error]
+   // 9 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 10 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 13 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 32 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 43 -> [S0-+>S2, S0-->S2, S2]
+   // 45 -> [S0-+>S2, S0-->S2, S2]
+   // 48 -> [S0-0-9>S(3), S(3)]
+   // 49 -> [S0-0-9>S(3), S(3)]
+   // 50 -> [S0-0-9>S(3), S(3)]
+   // 51 -> [S0-0-9>S(3), S(3)]
+   // 52 -> [S0-0-9>S(3), S(3)]
+   // 53 -> [S0-0-9>S(3), S(3)]
+   // 54 -> [S0-0-9>S(3), S(3)]
+   // 55 -> [S0-0-9>S(3), S(3)]
+   // 56 -> [S0-0-9>S(3), S(3)]
+   // 57 -> [S0-0-9>S(3), S(3)]
+[S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]:
+156:  bipush 11
+158:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+159:  aload_1 // ElementImpl{name=reader}
+160:  invokevirtual 166 // read ()I
+163:  istore_2 // LocalVariable{type=int, simpleName=cc}
+164:  iload_2 // LocalVariable{type=int, simpleName=cc}
+165:  iflt 365 //[eof]
+168:  iload_2 // LocalVariable{type=int, simpleName=cc}
+169:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 10 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 13 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 32 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+[S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]:
+212:  bipush 11
+214:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+215:  aload_1 // ElementImpl{name=reader}
+216:  invokevirtual 166 // read ()I
+219:  istore_2 // LocalVariable{type=int, simpleName=cc}
+220:  iload_2 // LocalVariable{type=int, simpleName=cc}
+221:  iflt 365 //[eof]
+224:  iload_2 // LocalVariable{type=int, simpleName=cc}
+225:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 10 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 13 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 32 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+[S0-+>S2, S0-->S2, S2]:
+268:  iconst_m1
+269:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+270:  aload_1 // ElementImpl{name=reader}
+271:  invokevirtual 166 // read ()I
+274:  istore_2 // LocalVariable{type=int, simpleName=cc}
+275:  iload_2 // LocalVariable{type=int, simpleName=cc}
+276:  iflt 365 //[eof]
+279:  iload_2 // LocalVariable{type=int, simpleName=cc}
+280:  bipush 48 //'0'
+282:  if_icmplt 348 //[error]
+285:  iload_2 // LocalVariable{type=int, simpleName=cc}
+286:  bipush 58
+288:  if_icmpge 348 //[error]
+291:  goto  294 //[S0-0-9>S(3), S(3)]
+[S0-0-9>S(3), S(3)]:
+294:  bipush 9
+296:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+297:  aload_1 // ElementImpl{name=reader}
+298:  invokevirtual 166 // read ()I
+301:  istore_2 // LocalVariable{type=int, simpleName=cc}
+302:  iload_2 // LocalVariable{type=int, simpleName=cc}
+303:  iflt 365 //[eof]
+306:  iload_2 // LocalVariable{type=int, simpleName=cc}
+307:  bipush 48 //'0'
+309:  if_icmplt 348 //[error]
+312:  iload_2 // LocalVariable{type=int, simpleName=cc}
+313:  bipush 58
+315:  if_icmpge 348 //[error]
+318:  goto  321 //[S(5)]
+[S(5)]:
+321:  bipush 9
+323:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+324:  aload_1 // ElementImpl{name=reader}
+325:  invokevirtual 166 // read ()I
+328:  istore_2 // LocalVariable{type=int, simpleName=cc}
+329:  iload_2 // LocalVariable{type=int, simpleName=cc}
+330:  iflt 365 //[eof]
+333:  iload_2 // LocalVariable{type=int, simpleName=cc}
+334:  bipush 48 //'0'
+336:  if_icmplt 348 //[error]
+339:  iload_2 // LocalVariable{type=int, simpleName=cc}
+340:  bipush 58
+342:  if_icmpge 348 //[error]
+345:  goto  321 //[S(5)]
+[error]:
+348:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+349:  iconst_m1
+350:  if_icmpne 355 //[pushback]
+353:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+354:  ireturn
+[pushback]:
+355:  aload_1 // ElementImpl{name=reader}
+356:  iload_2 // LocalVariable{type=int, simpleName=cc}
+357:  invokevirtual 170 // unread (I)V
+360:  goto  363 //[exit]
+[exit]:
+363:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+364:  ireturn
+[eof]:
+365:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+366:  iconst_m1
+367:  if_icmpne 372 //[eofacc]
+370:  iconst_0
+371:  ireturn
+[eofacc]:
+372:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+373:  ireturn
+org.vesalainen.bcc.SubClass$Method@166b685c
+[start]:
+0:  iconst_m1
+1:  istore_2 // LocalVariable{type=int, simpleName=cc}
+2:  iconst_m1
+3:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+[S0]:
+4:  iconst_m1
+5:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+6:  aload_1 // ElementImpl{name=reader}
+7:  invokevirtual 166 // read ()I
+10:  istore_2 // LocalVariable{type=int, simpleName=cc}
+11:  iload_2 // LocalVariable{type=int, simpleName=cc}
+12:  iflt 233 //[eof]
+15:  iload_2 // LocalVariable{type=int, simpleName=cc}
+16:  lookupswitch // default -> [error]
+   // 9 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 10 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 13 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 32 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 69 -> [S0-E>S(2), S0-e>S(2), S(2)]
+   // 87 -> [S0-w>S(3), S0-W>S(3), S(3)]
+   // 101 -> [S0-E>S(2), S0-e>S(2), S(2)]
+   // 119 -> [S0-w>S(3), S0-W>S(3), S(3)]
+[S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]:
+92:  bipush 11
+94:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+95:  aload_1 // ElementImpl{name=reader}
+96:  invokevirtual 166 // read ()I
+99:  istore_2 // LocalVariable{type=int, simpleName=cc}
+100:  iload_2 // LocalVariable{type=int, simpleName=cc}
+101:  iflt 233 //[eof]
+104:  iload_2 // LocalVariable{type=int, simpleName=cc}
+105:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 10 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 13 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 32 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+[S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]:
+148:  bipush 11
+150:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+151:  aload_1 // ElementImpl{name=reader}
+152:  invokevirtual 166 // read ()I
+155:  istore_2 // LocalVariable{type=int, simpleName=cc}
+156:  iload_2 // LocalVariable{type=int, simpleName=cc}
+157:  iflt 233 //[eof]
+160:  iload_2 // LocalVariable{type=int, simpleName=cc}
+161:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 10 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 13 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 32 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+[S0-E>S(2), S0-e>S(2), S(2)]:
+204:  bipush 29
+206:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+207:  goto  231 //[exit]
+[S0-w>S(3), S0-W>S(3), S(3)]:
+210:  bipush 28
+212:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+213:  goto  231 //[exit]
+[error]:
+216:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+217:  iconst_m1
+218:  if_icmpne 223 //[pushback]
+221:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+222:  ireturn
+[pushback]:
+223:  aload_1 // ElementImpl{name=reader}
+224:  iload_2 // LocalVariable{type=int, simpleName=cc}
+225:  invokevirtual 170 // unread (I)V
+228:  goto  231 //[exit]
+[exit]:
+231:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+232:  ireturn
+[eof]:
+233:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+234:  iconst_m1
+235:  if_icmpne 240 //[eofacc]
+238:  iconst_0
+239:  ireturn
+[eofacc]:
+240:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+241:  ireturn
+org.vesalainen.bcc.SubClass$Method@65907b83
+[start]:
+0:  iconst_m1
+1:  istore_2 // LocalVariable{type=int, simpleName=cc}
+2:  iconst_m1
+3:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+[S0]:
+4:  iconst_m1
+5:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+6:  aload_1 // ElementImpl{name=reader}
+7:  invokevirtual 166 // read ()I
+10:  istore_2 // LocalVariable{type=int, simpleName=cc}
+11:  iload_2 // LocalVariable{type=int, simpleName=cc}
+12:  iflt 203 //[eof]
+15:  iload_2 // LocalVariable{type=int, simpleName=cc}
+16:  lookupswitch // default -> [error]
+   // 9 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 10 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 13 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 32 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 44 -> [S0-,>S(2), S(2)]
+[S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]:
+68:  bipush 11
+70:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+71:  aload_1 // ElementImpl{name=reader}
+72:  invokevirtual 166 // read ()I
+75:  istore_2 // LocalVariable{type=int, simpleName=cc}
+76:  iload_2 // LocalVariable{type=int, simpleName=cc}
+77:  iflt 203 //[eof]
+80:  iload_2 // LocalVariable{type=int, simpleName=cc}
+81:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 10 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 13 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 32 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+[S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]:
+124:  bipush 11
+126:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+127:  aload_1 // ElementImpl{name=reader}
+128:  invokevirtual 166 // read ()I
+131:  istore_2 // LocalVariable{type=int, simpleName=cc}
+132:  iload_2 // LocalVariable{type=int, simpleName=cc}
+133:  iflt 203 //[eof]
+136:  iload_2 // LocalVariable{type=int, simpleName=cc}
+137:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 10 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 13 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 32 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+[S0-,>S(2), S(2)]:
+180:  bipush 13
+182:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+183:  goto  201 //[exit]
+[error]:
+186:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+187:  iconst_m1
+188:  if_icmpne 193 //[pushback]
+191:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+192:  ireturn
+[pushback]:
+193:  aload_1 // ElementImpl{name=reader}
+194:  iload_2 // LocalVariable{type=int, simpleName=cc}
+195:  invokevirtual 170 // unread (I)V
+198:  goto  201 //[exit]
+[exit]:
+201:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+202:  ireturn
+[eof]:
+203:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+204:  iconst_m1
+205:  if_icmpne 210 //[eofacc]
+208:  iconst_0
+209:  ireturn
+[eofacc]:
+210:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+211:  ireturn
+org.vesalainen.bcc.SubClass$Method@709d098c
+[start]:
+0:  iconst_m1
+1:  istore_2 // LocalVariable{type=int, simpleName=cc}
+2:  iconst_m1
+3:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+[S0]:
+4:  iconst_m1
+5:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+6:  aload_1 // ElementImpl{name=reader}
+7:  invokevirtual 166 // read ()I
+10:  istore_2 // LocalVariable{type=int, simpleName=cc}
+11:  iload_2 // LocalVariable{type=int, simpleName=cc}
+12:  iflt 507 //[eof]
+15:  iload_2 // LocalVariable{type=int, simpleName=cc}
+16:  lookupswitch // default -> [error]
+   // 9 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 10 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 13 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 32 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 43 -> [S0-+>S2, S0-->S2, S2]
+   // 45 -> [S0-+>S2, S0-->S2, S2]
+   // 48 -> [S0-0-9>S(3), S(3)]
+   // 49 -> [S0-0-9>S(3), S(3)]
+   // 50 -> [S0-0-9>S(3), S(3)]
+   // 51 -> [S0-0-9>S(3), S(3)]
+   // 52 -> [S0-0-9>S(3), S(3)]
+   // 53 -> [S0-0-9>S(3), S(3)]
+   // 54 -> [S0-0-9>S(3), S(3)]
+   // 55 -> [S0-0-9>S(3), S(3)]
+   // 56 -> [S0-0-9>S(3), S(3)]
+   // 57 -> [S0-0-9>S(3), S(3)]
+   // 78 -> [S0-N>S(4), S0-n>S(4), S(4)]
+   // 83 -> [S0-s>S(5), S0-S>S(5), S(5)]
+   // 110 -> [S0-N>S(4), S0-n>S(4), S(4)]
+   // 115 -> [S0-s>S(5), S0-S>S(5), S(5)]
+[S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]:
+188:  bipush 11
+190:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+191:  aload_1 // ElementImpl{name=reader}
+192:  invokevirtual 166 // read ()I
+195:  istore_2 // LocalVariable{type=int, simpleName=cc}
+196:  iload_2 // LocalVariable{type=int, simpleName=cc}
+197:  iflt 507 //[eof]
+200:  iload_2 // LocalVariable{type=int, simpleName=cc}
+201:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(6), S(1)-0xd>S(6), S(1)- >S(6), S(6)]
+   // 10 -> [S(1)-0x9-0xa>S(6), S(1)-0xd>S(6), S(1)- >S(6), S(6)]
+   // 13 -> [S(1)-0x9-0xa>S(6), S(1)-0xd>S(6), S(1)- >S(6), S(6)]
+   // 32 -> [S(1)-0x9-0xa>S(6), S(1)-0xd>S(6), S(1)- >S(6), S(6)]
+[S(1)-0x9-0xa>S(6), S(1)-0xd>S(6), S(1)- >S(6), S(6)]:
+244:  bipush 11
+246:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+247:  aload_1 // ElementImpl{name=reader}
+248:  invokevirtual 166 // read ()I
+251:  istore_2 // LocalVariable{type=int, simpleName=cc}
+252:  iload_2 // LocalVariable{type=int, simpleName=cc}
+253:  iflt 507 //[eof]
+256:  iload_2 // LocalVariable{type=int, simpleName=cc}
+257:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(6), S(1)-0xd>S(6), S(1)- >S(6), S(6)]
+   // 10 -> [S(1)-0x9-0xa>S(6), S(1)-0xd>S(6), S(1)- >S(6), S(6)]
+   // 13 -> [S(1)-0x9-0xa>S(6), S(1)-0xd>S(6), S(1)- >S(6), S(6)]
+   // 32 -> [S(1)-0x9-0xa>S(6), S(1)-0xd>S(6), S(1)- >S(6), S(6)]
+[S0-+>S2, S0-->S2, S2]:
+300:  iconst_m1
+301:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+302:  aload_1 // ElementImpl{name=reader}
+303:  invokevirtual 166 // read ()I
+306:  istore_2 // LocalVariable{type=int, simpleName=cc}
+307:  iload_2 // LocalVariable{type=int, simpleName=cc}
+308:  iflt 507 //[eof]
+311:  iload_2 // LocalVariable{type=int, simpleName=cc}
+312:  bipush 48 //'0'
+314:  if_icmplt 490 //[error]
+317:  iload_2 // LocalVariable{type=int, simpleName=cc}
+318:  bipush 58
+320:  if_icmpge 490 //[error]
+323:  goto  326 //[S0-0-9>S(3), S(3)]
+[S0-0-9>S(3), S(3)]:
+326:  bipush 9
+328:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+329:  aload_1 // ElementImpl{name=reader}
+330:  invokevirtual 166 // read ()I
+333:  istore_2 // LocalVariable{type=int, simpleName=cc}
+334:  iload_2 // LocalVariable{type=int, simpleName=cc}
+335:  iflt 507 //[eof]
+338:  iload_2 // LocalVariable{type=int, simpleName=cc}
+339:  bipush 48 //'0'
+341:  if_icmplt 353 //[S(3)-0-9>S(8)]
+344:  iload_2 // LocalVariable{type=int, simpleName=cc}
+345:  bipush 58
+347:  if_icmpge 353 //[S(3)-0-9>S(8)]
+350:  goto  442 //[S(8)]
+[S(3)-0-9>S(8)]:
+353:  iload_2 // LocalVariable{type=int, simpleName=cc}
+354:  bipush 46
+356:  if_icmpne 490 //[error]
+359:  goto  362 //[S7]
+[S7]:
+362:  iconst_m1
+363:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+364:  aload_1 // ElementImpl{name=reader}
+365:  invokevirtual 166 // read ()I
+368:  istore_2 // LocalVariable{type=int, simpleName=cc}
+369:  iload_2 // LocalVariable{type=int, simpleName=cc}
+370:  iflt 507 //[eof]
+373:  iload_2 // LocalVariable{type=int, simpleName=cc}
+374:  bipush 48 //'0'
+376:  if_icmplt 490 //[error]
+379:  iload_2 // LocalVariable{type=int, simpleName=cc}
+380:  bipush 58
+382:  if_icmpge 490 //[error]
+385:  goto  388 //[S(9)]
+[S(9)]:
+388:  bipush 10
+390:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+391:  aload_1 // ElementImpl{name=reader}
+392:  invokevirtual 166 // read ()I
+395:  istore_2 // LocalVariable{type=int, simpleName=cc}
+396:  iload_2 // LocalVariable{type=int, simpleName=cc}
+397:  iflt 507 //[eof]
+400:  iload_2 // LocalVariable{type=int, simpleName=cc}
+401:  bipush 48 //'0'
+403:  if_icmplt 490 //[error]
+406:  iload_2 // LocalVariable{type=int, simpleName=cc}
+407:  bipush 58
+409:  if_icmpge 490 //[error]
+412:  goto  415 //[S(10)]
+[S(10)]:
+415:  bipush 10
+417:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+418:  aload_1 // ElementImpl{name=reader}
+419:  invokevirtual 166 // read ()I
+422:  istore_2 // LocalVariable{type=int, simpleName=cc}
+423:  iload_2 // LocalVariable{type=int, simpleName=cc}
+424:  iflt 507 //[eof]
+427:  iload_2 // LocalVariable{type=int, simpleName=cc}
+428:  bipush 48 //'0'
+430:  if_icmplt 490 //[error]
+433:  iload_2 // LocalVariable{type=int, simpleName=cc}
+434:  bipush 58
+436:  if_icmpge 490 //[error]
+439:  goto  415 //[S(10)]
+[S(8)]:
+442:  bipush 9
+444:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+445:  aload_1 // ElementImpl{name=reader}
+446:  invokevirtual 166 // read ()I
+449:  istore_2 // LocalVariable{type=int, simpleName=cc}
+450:  iload_2 // LocalVariable{type=int, simpleName=cc}
+451:  iflt 507 //[eof]
+454:  iload_2 // LocalVariable{type=int, simpleName=cc}
+455:  bipush 48 //'0'
+457:  if_icmplt 469 //[S(8)-0-9>S(8)]
+460:  iload_2 // LocalVariable{type=int, simpleName=cc}
+461:  bipush 58
+463:  if_icmpge 469 //[S(8)-0-9>S(8)]
+466:  goto  442 //[S(8)]
+[S(8)-0-9>S(8)]:
+469:  iload_2 // LocalVariable{type=int, simpleName=cc}
+470:  bipush 46
+472:  if_icmpne 490 //[error]
+475:  goto  362 //[S7]
+[S0-N>S(4), S0-n>S(4), S(4)]:
+478:  bipush 26
+480:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+481:  goto  505 //[exit]
+[S0-s>S(5), S0-S>S(5), S(5)]:
+484:  bipush 27
+486:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+487:  goto  505 //[exit]
+[error]:
+490:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+491:  iconst_m1
+492:  if_icmpne 497 //[pushback]
+495:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+496:  ireturn
+[pushback]:
+497:  aload_1 // ElementImpl{name=reader}
+498:  iload_2 // LocalVariable{type=int, simpleName=cc}
+499:  invokevirtual 170 // unread (I)V
+502:  goto  505 //[exit]
+[exit]:
+505:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+506:  ireturn
+[eof]:
+507:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+508:  iconst_m1
+509:  if_icmpne 514 //[eofacc]
+512:  iconst_0
+513:  ireturn
+[eofacc]:
+514:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+515:  ireturn
+org.vesalainen.bcc.SubClass$Method@55de0016
+[start]:
+0:  iconst_m1
+1:  istore_2 // LocalVariable{type=int, simpleName=cc}
+2:  iconst_m1
+3:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+[S0]:
+4:  iconst_m1
+5:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+6:  aload_1 // ElementImpl{name=reader}
+7:  invokevirtual 166 // read ()I
+10:  istore_2 // LocalVariable{type=int, simpleName=cc}
+11:  iload_2 // LocalVariable{type=int, simpleName=cc}
+12:  iflt 203 //[eof]
+15:  iload_2 // LocalVariable{type=int, simpleName=cc}
+16:  lookupswitch // default -> [error]
+   // 9 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 10 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 13 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 32 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 34 -> [S0-">S(2), S(2)]
+[S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]:
+68:  bipush 11
+70:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+71:  aload_1 // ElementImpl{name=reader}
+72:  invokevirtual 166 // read ()I
+75:  istore_2 // LocalVariable{type=int, simpleName=cc}
+76:  iload_2 // LocalVariable{type=int, simpleName=cc}
+77:  iflt 203 //[eof]
+80:  iload_2 // LocalVariable{type=int, simpleName=cc}
+81:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 10 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 13 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 32 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+[S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]:
+124:  bipush 11
+126:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+127:  aload_1 // ElementImpl{name=reader}
+128:  invokevirtual 166 // read ()I
+131:  istore_2 // LocalVariable{type=int, simpleName=cc}
+132:  iload_2 // LocalVariable{type=int, simpleName=cc}
+133:  iflt 203 //[eof]
+136:  iload_2 // LocalVariable{type=int, simpleName=cc}
+137:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 10 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 13 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 32 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+[S0-">S(2), S(2)]:
+180:  bipush 7
+182:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+183:  goto  201 //[exit]
+[error]:
+186:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+187:  iconst_m1
+188:  if_icmpne 193 //[pushback]
+191:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+192:  ireturn
+[pushback]:
+193:  aload_1 // ElementImpl{name=reader}
+194:  iload_2 // LocalVariable{type=int, simpleName=cc}
+195:  invokevirtual 170 // unread (I)V
+198:  goto  201 //[exit]
+[exit]:
+201:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+202:  ireturn
+[eof]:
+203:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+204:  iconst_m1
+205:  if_icmpne 210 //[eofacc]
+208:  iconst_0
+209:  ireturn
+[eofacc]:
+210:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+211:  ireturn
+org.vesalainen.bcc.SubClass$Method@61d7d064
+[start]:
+0:  iconst_m1
+1:  istore_2 // LocalVariable{type=int, simpleName=cc}
+2:  iconst_m1
+3:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+[S0]:
+4:  iconst_m1
+5:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+6:  aload_1 // ElementImpl{name=reader}
+7:  invokevirtual 166 // read ()I
+10:  istore_2 // LocalVariable{type=int, simpleName=cc}
+11:  iload_2 // LocalVariable{type=int, simpleName=cc}
+12:  iflt 477 //[eof]
+15:  iload_2 // LocalVariable{type=int, simpleName=cc}
+16:  lookupswitch // default -> [error]
+   // 9 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 10 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 13 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 32 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 43 -> [S0-+>S2, S0-->S2, S2]
+   // 45 -> [S0-+>S2, S0-->S2, S2]
+   // 48 -> [S0-0-9>S(3), S(3)]
+   // 49 -> [S0-0-9>S(3), S(3)]
+   // 50 -> [S0-0-9>S(3), S(3)]
+   // 51 -> [S0-0-9>S(3), S(3)]
+   // 52 -> [S0-0-9>S(3), S(3)]
+   // 53 -> [S0-0-9>S(3), S(3)]
+   // 54 -> [S0-0-9>S(3), S(3)]
+   // 55 -> [S0-0-9>S(3), S(3)]
+   // 56 -> [S0-0-9>S(3), S(3)]
+   // 57 -> [S0-0-9>S(3), S(3)]
+   // 176 -> [S0-°>S(4), S(4)]
+[S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]:
+164:  bipush 11
+166:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+167:  aload_1 // ElementImpl{name=reader}
+168:  invokevirtual 166 // read ()I
+171:  istore_2 // LocalVariable{type=int, simpleName=cc}
+172:  iload_2 // LocalVariable{type=int, simpleName=cc}
+173:  iflt 477 //[eof]
+176:  iload_2 // LocalVariable{type=int, simpleName=cc}
+177:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+   // 10 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+   // 13 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+   // 32 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+[S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]:
+220:  bipush 11
+222:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+223:  aload_1 // ElementImpl{name=reader}
+224:  invokevirtual 166 // read ()I
+227:  istore_2 // LocalVariable{type=int, simpleName=cc}
+228:  iload_2 // LocalVariable{type=int, simpleName=cc}
+229:  iflt 477 //[eof]
+232:  iload_2 // LocalVariable{type=int, simpleName=cc}
+233:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+   // 10 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+   // 13 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+   // 32 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+[S0-+>S2, S0-->S2, S2]:
+276:  iconst_m1
+277:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+278:  aload_1 // ElementImpl{name=reader}
+279:  invokevirtual 166 // read ()I
+282:  istore_2 // LocalVariable{type=int, simpleName=cc}
+283:  iload_2 // LocalVariable{type=int, simpleName=cc}
+284:  iflt 477 //[eof]
+287:  iload_2 // LocalVariable{type=int, simpleName=cc}
+288:  bipush 48 //'0'
+290:  if_icmplt 460 //[error]
+293:  iload_2 // LocalVariable{type=int, simpleName=cc}
+294:  bipush 58
+296:  if_icmpge 460 //[error]
+299:  goto  302 //[S0-0-9>S(3), S(3)]
+[S0-0-9>S(3), S(3)]:
+302:  bipush 9
+304:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+305:  aload_1 // ElementImpl{name=reader}
+306:  invokevirtual 166 // read ()I
+309:  istore_2 // LocalVariable{type=int, simpleName=cc}
+310:  iload_2 // LocalVariable{type=int, simpleName=cc}
+311:  iflt 477 //[eof]
+314:  iload_2 // LocalVariable{type=int, simpleName=cc}
+315:  bipush 48 //'0'
+317:  if_icmplt 329 //[S(3)-0-9>S(7)]
+320:  iload_2 // LocalVariable{type=int, simpleName=cc}
+321:  bipush 58
+323:  if_icmpge 329 //[S(3)-0-9>S(7)]
+326:  goto  418 //[S(7)]
+[S(3)-0-9>S(7)]:
+329:  iload_2 // LocalVariable{type=int, simpleName=cc}
+330:  bipush 46
+332:  if_icmpne 460 //[error]
+335:  goto  338 //[S6]
+[S6]:
+338:  iconst_m1
+339:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+340:  aload_1 // ElementImpl{name=reader}
+341:  invokevirtual 166 // read ()I
+344:  istore_2 // LocalVariable{type=int, simpleName=cc}
+345:  iload_2 // LocalVariable{type=int, simpleName=cc}
+346:  iflt 477 //[eof]
+349:  iload_2 // LocalVariable{type=int, simpleName=cc}
+350:  bipush 48 //'0'
+352:  if_icmplt 460 //[error]
+355:  iload_2 // LocalVariable{type=int, simpleName=cc}
+356:  bipush 58
+358:  if_icmpge 460 //[error]
+361:  goto  364 //[S(8)]
+[S(8)]:
+364:  bipush 10
+366:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+367:  aload_1 // ElementImpl{name=reader}
+368:  invokevirtual 166 // read ()I
+371:  istore_2 // LocalVariable{type=int, simpleName=cc}
+372:  iload_2 // LocalVariable{type=int, simpleName=cc}
+373:  iflt 477 //[eof]
+376:  iload_2 // LocalVariable{type=int, simpleName=cc}
+377:  bipush 48 //'0'
+379:  if_icmplt 460 //[error]
+382:  iload_2 // LocalVariable{type=int, simpleName=cc}
+383:  bipush 58
+385:  if_icmpge 460 //[error]
+388:  goto  391 //[S(9)]
+[S(9)]:
+391:  bipush 10
+393:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+394:  aload_1 // ElementImpl{name=reader}
+395:  invokevirtual 166 // read ()I
+398:  istore_2 // LocalVariable{type=int, simpleName=cc}
+399:  iload_2 // LocalVariable{type=int, simpleName=cc}
+400:  iflt 477 //[eof]
+403:  iload_2 // LocalVariable{type=int, simpleName=cc}
+404:  bipush 48 //'0'
+406:  if_icmplt 460 //[error]
+409:  iload_2 // LocalVariable{type=int, simpleName=cc}
+410:  bipush 58
+412:  if_icmpge 460 //[error]
+415:  goto  391 //[S(9)]
+[S(7)]:
+418:  bipush 9
+420:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+421:  aload_1 // ElementImpl{name=reader}
+422:  invokevirtual 166 // read ()I
+425:  istore_2 // LocalVariable{type=int, simpleName=cc}
+426:  iload_2 // LocalVariable{type=int, simpleName=cc}
+427:  iflt 477 //[eof]
+430:  iload_2 // LocalVariable{type=int, simpleName=cc}
+431:  bipush 48 //'0'
+433:  if_icmplt 445 //[S(7)-0-9>S(7)]
+436:  iload_2 // LocalVariable{type=int, simpleName=cc}
+437:  bipush 58
+439:  if_icmpge 445 //[S(7)-0-9>S(7)]
+442:  goto  418 //[S(7)]
+[S(7)-0-9>S(7)]:
+445:  iload_2 // LocalVariable{type=int, simpleName=cc}
+446:  bipush 46
+448:  if_icmpne 460 //[error]
+451:  goto  338 //[S6]
+[S0-°>S(4), S(4)]:
+454:  bipush 6
+456:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+457:  goto  475 //[exit]
+[error]:
+460:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+461:  iconst_m1
+462:  if_icmpne 467 //[pushback]
+465:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+466:  ireturn
+[pushback]:
+467:  aload_1 // ElementImpl{name=reader}
+468:  iload_2 // LocalVariable{type=int, simpleName=cc}
+469:  invokevirtual 170 // unread (I)V
+472:  goto  475 //[exit]
+[exit]:
+475:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+476:  ireturn
+[eof]:
+477:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+478:  iconst_m1
+479:  if_icmpne 484 //[eofacc]
+482:  iconst_0
+483:  ireturn
+[eofacc]:
+484:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+485:  ireturn
+org.vesalainen.bcc.SubClass$Method@1fb2876b
+[start]:
+0:  iconst_m1
+1:  istore_2 // LocalVariable{type=int, simpleName=cc}
+2:  iconst_m1
+3:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+[S0]:
+4:  iconst_m1
+5:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+6:  aload_1 // ElementImpl{name=reader}
+7:  invokevirtual 166 // read ()I
+10:  istore_2 // LocalVariable{type=int, simpleName=cc}
+11:  iload_2 // LocalVariable{type=int, simpleName=cc}
+12:  iflt 217 //[eof]
+15:  iload_2 // LocalVariable{type=int, simpleName=cc}
+16:  lookupswitch // default -> [error]
+   // 9 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 10 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 13 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 32 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 39 -> [S0-'>S(2), S(2)]
+   // 44 -> [S0-,>S(3), S(3)]
+[S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]:
+76:  bipush 11
+78:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+79:  aload_1 // ElementImpl{name=reader}
+80:  invokevirtual 166 // read ()I
+83:  istore_2 // LocalVariable{type=int, simpleName=cc}
+84:  iload_2 // LocalVariable{type=int, simpleName=cc}
+85:  iflt 217 //[eof]
+88:  iload_2 // LocalVariable{type=int, simpleName=cc}
+89:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 10 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 13 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 32 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+[S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]:
+132:  bipush 11
+134:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+135:  aload_1 // ElementImpl{name=reader}
+136:  invokevirtual 166 // read ()I
+139:  istore_2 // LocalVariable{type=int, simpleName=cc}
+140:  iload_2 // LocalVariable{type=int, simpleName=cc}
+141:  iflt 217 //[eof]
+144:  iload_2 // LocalVariable{type=int, simpleName=cc}
+145:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 10 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 13 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 32 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+[S0-'>S(2), S(2)]:
+188:  bipush 8
+190:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+191:  goto  215 //[exit]
+[S0-,>S(3), S(3)]:
+194:  bipush 13
+196:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+197:  goto  215 //[exit]
+[error]:
+200:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+201:  iconst_m1
+202:  if_icmpne 207 //[pushback]
+205:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+206:  ireturn
+[pushback]:
+207:  aload_1 // ElementImpl{name=reader}
+208:  iload_2 // LocalVariable{type=int, simpleName=cc}
+209:  invokevirtual 170 // unread (I)V
+212:  goto  215 //[exit]
+[exit]:
+215:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+216:  ireturn
+[eof]:
+217:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+218:  iconst_m1
+219:  if_icmpne 224 //[eofacc]
+222:  iconst_0
+223:  ireturn
+[eofacc]:
+224:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+225:  ireturn
+org.vesalainen.bcc.SubClass$Method@1d8920f
+[start]:
+0:  iconst_m1
+1:  istore_2 // LocalVariable{type=int, simpleName=cc}
+2:  iconst_m1
+3:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+[S0]:
+4:  iconst_m1
+5:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+6:  aload_1 // ElementImpl{name=reader}
+7:  invokevirtual 166 // read ()I
+10:  istore_2 // LocalVariable{type=int, simpleName=cc}
+11:  iload_2 // LocalVariable{type=int, simpleName=cc}
+12:  iflt 217 //[eof]
+15:  iload_2 // LocalVariable{type=int, simpleName=cc}
+16:  lookupswitch // default -> [error]
+   // 9 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 10 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 13 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 32 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 34 -> [S0-">S(2), S(2)]
+   // 44 -> [S0-,>S(3), S(3)]
+[S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]:
+76:  bipush 11
+78:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+79:  aload_1 // ElementImpl{name=reader}
+80:  invokevirtual 166 // read ()I
+83:  istore_2 // LocalVariable{type=int, simpleName=cc}
+84:  iload_2 // LocalVariable{type=int, simpleName=cc}
+85:  iflt 217 //[eof]
+88:  iload_2 // LocalVariable{type=int, simpleName=cc}
+89:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 10 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 13 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 32 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+[S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]:
+132:  bipush 11
+134:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+135:  aload_1 // ElementImpl{name=reader}
+136:  invokevirtual 166 // read ()I
+139:  istore_2 // LocalVariable{type=int, simpleName=cc}
+140:  iload_2 // LocalVariable{type=int, simpleName=cc}
+141:  iflt 217 //[eof]
+144:  iload_2 // LocalVariable{type=int, simpleName=cc}
+145:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 10 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 13 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 32 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+[S0-">S(2), S(2)]:
+188:  bipush 7
+190:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+191:  goto  215 //[exit]
+[S0-,>S(3), S(3)]:
+194:  bipush 13
+196:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+197:  goto  215 //[exit]
+[error]:
+200:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+201:  iconst_m1
+202:  if_icmpne 207 //[pushback]
+205:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+206:  ireturn
+[pushback]:
+207:  aload_1 // ElementImpl{name=reader}
+208:  iload_2 // LocalVariable{type=int, simpleName=cc}
+209:  invokevirtual 170 // unread (I)V
+212:  goto  215 //[exit]
+[exit]:
+215:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+216:  ireturn
+[eof]:
+217:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+218:  iconst_m1
+219:  if_icmpne 224 //[eofacc]
+222:  iconst_0
+223:  ireturn
+[eofacc]:
+224:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+225:  ireturn
+org.vesalainen.bcc.SubClass$Method@315d17bb
+[start]:
+0:  iconst_m1
+1:  istore_2 // LocalVariable{type=int, simpleName=cc}
+2:  iconst_m1
+3:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+[S0]:
+4:  iconst_m1
+5:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+6:  aload_1 // ElementImpl{name=reader}
+7:  invokevirtual 166 // read ()I
+10:  istore_2 // LocalVariable{type=int, simpleName=cc}
+11:  iload_2 // LocalVariable{type=int, simpleName=cc}
+12:  iflt 379 //[eof]
+15:  iload_2 // LocalVariable{type=int, simpleName=cc}
+16:  lookupswitch // default -> [error]
+   // 9 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 10 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 13 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 32 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 39 -> [S0-'>S(2), S(2)]
+   // 43 -> [S0-+>S3, S0-->S3, S3]
+   // 45 -> [S0-+>S3, S0-->S3, S3]
+   // 48 -> [S0-0-9>S(4), S(4)]
+   // 49 -> [S0-0-9>S(4), S(4)]
+   // 50 -> [S0-0-9>S(4), S(4)]
+   // 51 -> [S0-0-9>S(4), S(4)]
+   // 52 -> [S0-0-9>S(4), S(4)]
+   // 53 -> [S0-0-9>S(4), S(4)]
+   // 54 -> [S0-0-9>S(4), S(4)]
+   // 55 -> [S0-0-9>S(4), S(4)]
+   // 56 -> [S0-0-9>S(4), S(4)]
+   // 57 -> [S0-0-9>S(4), S(4)]
+[S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]:
+164:  bipush 11
+166:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+167:  aload_1 // ElementImpl{name=reader}
+168:  invokevirtual 166 // read ()I
+171:  istore_2 // LocalVariable{type=int, simpleName=cc}
+172:  iload_2 // LocalVariable{type=int, simpleName=cc}
+173:  iflt 379 //[eof]
+176:  iload_2 // LocalVariable{type=int, simpleName=cc}
+177:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+   // 10 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+   // 13 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+   // 32 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+[S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]:
+220:  bipush 11
+222:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+223:  aload_1 // ElementImpl{name=reader}
+224:  invokevirtual 166 // read ()I
+227:  istore_2 // LocalVariable{type=int, simpleName=cc}
+228:  iload_2 // LocalVariable{type=int, simpleName=cc}
+229:  iflt 379 //[eof]
+232:  iload_2 // LocalVariable{type=int, simpleName=cc}
+233:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+   // 10 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+   // 13 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+   // 32 -> [S(1)-0x9-0xa>S(5), S(1)-0xd>S(5), S(1)- >S(5), S(5)]
+[S0-'>S(2), S(2)]:
+276:  bipush 8
+278:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+279:  goto  377 //[exit]
+[S0-+>S3, S0-->S3, S3]:
+282:  iconst_m1
+283:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+284:  aload_1 // ElementImpl{name=reader}
+285:  invokevirtual 166 // read ()I
+288:  istore_2 // LocalVariable{type=int, simpleName=cc}
+289:  iload_2 // LocalVariable{type=int, simpleName=cc}
+290:  iflt 379 //[eof]
+293:  iload_2 // LocalVariable{type=int, simpleName=cc}
+294:  bipush 48 //'0'
+296:  if_icmplt 362 //[error]
+299:  iload_2 // LocalVariable{type=int, simpleName=cc}
+300:  bipush 58
+302:  if_icmpge 362 //[error]
+305:  goto  308 //[S0-0-9>S(4), S(4)]
+[S0-0-9>S(4), S(4)]:
+308:  bipush 9
+310:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+311:  aload_1 // ElementImpl{name=reader}
+312:  invokevirtual 166 // read ()I
+315:  istore_2 // LocalVariable{type=int, simpleName=cc}
+316:  iload_2 // LocalVariable{type=int, simpleName=cc}
+317:  iflt 379 //[eof]
+320:  iload_2 // LocalVariable{type=int, simpleName=cc}
+321:  bipush 48 //'0'
+323:  if_icmplt 362 //[error]
+326:  iload_2 // LocalVariable{type=int, simpleName=cc}
+327:  bipush 58
+329:  if_icmpge 362 //[error]
+332:  goto  335 //[S(6)]
+[S(6)]:
+335:  bipush 9
+337:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+338:  aload_1 // ElementImpl{name=reader}
+339:  invokevirtual 166 // read ()I
+342:  istore_2 // LocalVariable{type=int, simpleName=cc}
+343:  iload_2 // LocalVariable{type=int, simpleName=cc}
+344:  iflt 379 //[eof]
+347:  iload_2 // LocalVariable{type=int, simpleName=cc}
+348:  bipush 48 //'0'
+350:  if_icmplt 362 //[error]
+353:  iload_2 // LocalVariable{type=int, simpleName=cc}
+354:  bipush 58
+356:  if_icmpge 362 //[error]
+359:  goto  335 //[S(6)]
+[error]:
+362:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+363:  iconst_m1
+364:  if_icmpne 369 //[pushback]
+367:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+368:  ireturn
+[pushback]:
+369:  aload_1 // ElementImpl{name=reader}
+370:  iload_2 // LocalVariable{type=int, simpleName=cc}
+371:  invokevirtual 170 // unread (I)V
+374:  goto  377 //[exit]
+[exit]:
+377:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+378:  ireturn
+[eof]:
+379:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+380:  iconst_m1
+381:  if_icmpne 386 //[eofacc]
+384:  iconst_0
+385:  ireturn
+[eofacc]:
+386:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+387:  ireturn
+org.vesalainen.bcc.SubClass$Method@56c10f4e
+[start]:
+0:  iconst_m1
+1:  istore_2 // LocalVariable{type=int, simpleName=cc}
+2:  iconst_m1
+3:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+[S0]:
+4:  iconst_m1
+5:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+6:  aload_1 // ElementImpl{name=reader}
+7:  invokevirtual 166 // read ()I
+10:  istore_2 // LocalVariable{type=int, simpleName=cc}
+11:  iload_2 // LocalVariable{type=int, simpleName=cc}
+12:  iflt 203 //[eof]
+15:  iload_2 // LocalVariable{type=int, simpleName=cc}
+16:  lookupswitch // default -> [error]
+   // 9 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 10 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 13 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 32 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 39 -> [S0-'>S(2), S(2)]
+[S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]:
+68:  bipush 11
+70:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+71:  aload_1 // ElementImpl{name=reader}
+72:  invokevirtual 166 // read ()I
+75:  istore_2 // LocalVariable{type=int, simpleName=cc}
+76:  iload_2 // LocalVariable{type=int, simpleName=cc}
+77:  iflt 203 //[eof]
+80:  iload_2 // LocalVariable{type=int, simpleName=cc}
+81:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 10 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 13 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 32 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+[S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]:
+124:  bipush 11
+126:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+127:  aload_1 // ElementImpl{name=reader}
+128:  invokevirtual 166 // read ()I
+131:  istore_2 // LocalVariable{type=int, simpleName=cc}
+132:  iload_2 // LocalVariable{type=int, simpleName=cc}
+133:  iflt 203 //[eof]
+136:  iload_2 // LocalVariable{type=int, simpleName=cc}
+137:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 10 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 13 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+   // 32 -> [S(1)-0x9-0xa>S(3), S(1)-0xd>S(3), S(1)- >S(3), S(3)]
+[S0-'>S(2), S(2)]:
+180:  bipush 8
+182:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+183:  goto  201 //[exit]
+[error]:
+186:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+187:  iconst_m1
+188:  if_icmpne 193 //[pushback]
+191:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+192:  ireturn
+[pushback]:
+193:  aload_1 // ElementImpl{name=reader}
+194:  iload_2 // LocalVariable{type=int, simpleName=cc}
+195:  invokevirtual 170 // unread (I)V
+198:  goto  201 //[exit]
+[exit]:
+201:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+202:  ireturn
+[eof]:
+203:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+204:  iconst_m1
+205:  if_icmpne 210 //[eofacc]
+208:  iconst_0
+209:  ireturn
+[eofacc]:
+210:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+211:  ireturn
+org.vesalainen.bcc.SubClass$Method@1cd3f661
+[start]:
+0:  iconst_m1
+1:  istore_2 // LocalVariable{type=int, simpleName=cc}
+2:  iconst_m1
+3:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+[S0]:
+4:  iconst_m1
+5:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+6:  aload_1 // ElementImpl{name=reader}
+7:  invokevirtual 166 // read ()I
+10:  istore_2 // LocalVariable{type=int, simpleName=cc}
+11:  iload_2 // LocalVariable{type=int, simpleName=cc}
+12:  iflt 463 //[eof]
+15:  iload_2 // LocalVariable{type=int, simpleName=cc}
+16:  lookupswitch // default -> [error]
+   // 9 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 10 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 13 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 32 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 43 -> [S0-+>S2, S0-->S2, S2]
+   // 45 -> [S0-+>S2, S0-->S2, S2]
+   // 48 -> [S0-0-9>S(3), S(3)]
+   // 49 -> [S0-0-9>S(3), S(3)]
+   // 50 -> [S0-0-9>S(3), S(3)]
+   // 51 -> [S0-0-9>S(3), S(3)]
+   // 52 -> [S0-0-9>S(3), S(3)]
+   // 53 -> [S0-0-9>S(3), S(3)]
+   // 54 -> [S0-0-9>S(3), S(3)]
+   // 55 -> [S0-0-9>S(3), S(3)]
+   // 56 -> [S0-0-9>S(3), S(3)]
+   // 57 -> [S0-0-9>S(3), S(3)]
+[S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]:
+156:  bipush 11
+158:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+159:  aload_1 // ElementImpl{name=reader}
+160:  invokevirtual 166 // read ()I
+163:  istore_2 // LocalVariable{type=int, simpleName=cc}
+164:  iload_2 // LocalVariable{type=int, simpleName=cc}
+165:  iflt 463 //[eof]
+168:  iload_2 // LocalVariable{type=int, simpleName=cc}
+169:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 10 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 13 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 32 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+[S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]:
+212:  bipush 11
+214:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+215:  aload_1 // ElementImpl{name=reader}
+216:  invokevirtual 166 // read ()I
+219:  istore_2 // LocalVariable{type=int, simpleName=cc}
+220:  iload_2 // LocalVariable{type=int, simpleName=cc}
+221:  iflt 463 //[eof]
+224:  iload_2 // LocalVariable{type=int, simpleName=cc}
+225:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 10 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 13 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+   // 32 -> [S(1)-0x9-0xa>S(4), S(1)-0xd>S(4), S(1)- >S(4), S(4)]
+[S0-+>S2, S0-->S2, S2]:
+268:  iconst_m1
+269:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+270:  aload_1 // ElementImpl{name=reader}
+271:  invokevirtual 166 // read ()I
+274:  istore_2 // LocalVariable{type=int, simpleName=cc}
+275:  iload_2 // LocalVariable{type=int, simpleName=cc}
+276:  iflt 463 //[eof]
+279:  iload_2 // LocalVariable{type=int, simpleName=cc}
+280:  bipush 48 //'0'
+282:  if_icmplt 446 //[error]
+285:  iload_2 // LocalVariable{type=int, simpleName=cc}
+286:  bipush 58
+288:  if_icmpge 446 //[error]
+291:  goto  294 //[S0-0-9>S(3), S(3)]
+[S0-0-9>S(3), S(3)]:
+294:  bipush 9
+296:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+297:  aload_1 // ElementImpl{name=reader}
+298:  invokevirtual 166 // read ()I
+301:  istore_2 // LocalVariable{type=int, simpleName=cc}
+302:  iload_2 // LocalVariable{type=int, simpleName=cc}
+303:  iflt 463 //[eof]
+306:  iload_2 // LocalVariable{type=int, simpleName=cc}
+307:  bipush 48 //'0'
+309:  if_icmplt 321 //[S(3)-0-9>S(6)]
+312:  iload_2 // LocalVariable{type=int, simpleName=cc}
+313:  bipush 58
+315:  if_icmpge 321 //[S(3)-0-9>S(6)]
+318:  goto  410 //[S(6)]
+[S(3)-0-9>S(6)]:
+321:  iload_2 // LocalVariable{type=int, simpleName=cc}
+322:  bipush 46
+324:  if_icmpne 446 //[error]
+327:  goto  330 //[S5]
+[S5]:
+330:  iconst_m1
+331:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+332:  aload_1 // ElementImpl{name=reader}
+333:  invokevirtual 166 // read ()I
+336:  istore_2 // LocalVariable{type=int, simpleName=cc}
+337:  iload_2 // LocalVariable{type=int, simpleName=cc}
+338:  iflt 463 //[eof]
+341:  iload_2 // LocalVariable{type=int, simpleName=cc}
+342:  bipush 48 //'0'
+344:  if_icmplt 446 //[error]
+347:  iload_2 // LocalVariable{type=int, simpleName=cc}
+348:  bipush 58
+350:  if_icmpge 446 //[error]
+353:  goto  356 //[S(7)]
+[S(7)]:
+356:  bipush 10
+358:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+359:  aload_1 // ElementImpl{name=reader}
+360:  invokevirtual 166 // read ()I
+363:  istore_2 // LocalVariable{type=int, simpleName=cc}
+364:  iload_2 // LocalVariable{type=int, simpleName=cc}
+365:  iflt 463 //[eof]
+368:  iload_2 // LocalVariable{type=int, simpleName=cc}
+369:  bipush 48 //'0'
+371:  if_icmplt 446 //[error]
+374:  iload_2 // LocalVariable{type=int, simpleName=cc}
+375:  bipush 58
+377:  if_icmpge 446 //[error]
+380:  goto  383 //[S(8)]
+[S(8)]:
+383:  bipush 10
+385:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+386:  aload_1 // ElementImpl{name=reader}
+387:  invokevirtual 166 // read ()I
+390:  istore_2 // LocalVariable{type=int, simpleName=cc}
+391:  iload_2 // LocalVariable{type=int, simpleName=cc}
+392:  iflt 463 //[eof]
+395:  iload_2 // LocalVariable{type=int, simpleName=cc}
+396:  bipush 48 //'0'
+398:  if_icmplt 446 //[error]
+401:  iload_2 // LocalVariable{type=int, simpleName=cc}
+402:  bipush 58
+404:  if_icmpge 446 //[error]
+407:  goto  383 //[S(8)]
+[S(6)]:
+410:  bipush 9
+412:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+413:  aload_1 // ElementImpl{name=reader}
+414:  invokevirtual 166 // read ()I
+417:  istore_2 // LocalVariable{type=int, simpleName=cc}
+418:  iload_2 // LocalVariable{type=int, simpleName=cc}
+419:  iflt 463 //[eof]
+422:  iload_2 // LocalVariable{type=int, simpleName=cc}
+423:  bipush 48 //'0'
+425:  if_icmplt 437 //[S(6)-0-9>S(6)]
+428:  iload_2 // LocalVariable{type=int, simpleName=cc}
+429:  bipush 58
+431:  if_icmpge 437 //[S(6)-0-9>S(6)]
+434:  goto  410 //[S(6)]
+[S(6)-0-9>S(6)]:
+437:  iload_2 // LocalVariable{type=int, simpleName=cc}
+438:  bipush 46
+440:  if_icmpne 446 //[error]
+443:  goto  330 //[S5]
+[error]:
+446:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+447:  iconst_m1
+448:  if_icmpne 453 //[pushback]
+451:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+452:  ireturn
+[pushback]:
+453:  aload_1 // ElementImpl{name=reader}
+454:  iload_2 // LocalVariable{type=int, simpleName=cc}
+455:  invokevirtual 170 // unread (I)V
+458:  goto  461 //[exit]
+[exit]:
+461:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+462:  ireturn
+[eof]:
+463:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+464:  iconst_m1
+465:  if_icmpne 470 //[eofacc]
+468:  iconst_0
+469:  ireturn
+[eofacc]:
+470:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+471:  ireturn
+org.vesalainen.bcc.SubClass$Method@1fd46910
+[start]:
+0:  iconst_m1
+1:  istore_2 // LocalVariable{type=int, simpleName=cc}
+2:  iconst_m1
+3:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+[S0]:
+4:  iconst_m1
+5:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+6:  aload_1 // ElementImpl{name=reader}
+7:  invokevirtual 166 // read ()I
+10:  istore_2 // LocalVariable{type=int, simpleName=cc}
+11:  iload_2 // LocalVariable{type=int, simpleName=cc}
+12:  iflt 189 //[eof]
+15:  iload_2 // LocalVariable{type=int, simpleName=cc}
+16:  lookupswitch // default -> [error]
+   // 9 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 10 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 13 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+   // 32 -> [S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]
+[S0-0x9-0xa>S(1), S0-0xd>S(1), S0- >S(1), S(1)]:
+60:  bipush 11
+62:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+63:  aload_1 // ElementImpl{name=reader}
+64:  invokevirtual 166 // read ()I
+67:  istore_2 // LocalVariable{type=int, simpleName=cc}
+68:  iload_2 // LocalVariable{type=int, simpleName=cc}
+69:  iflt 189 //[eof]
+72:  iload_2 // LocalVariable{type=int, simpleName=cc}
+73:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(2), S(1)-0xd>S(2), S(1)- >S(2), S(2)]
+   // 10 -> [S(1)-0x9-0xa>S(2), S(1)-0xd>S(2), S(1)- >S(2), S(2)]
+   // 13 -> [S(1)-0x9-0xa>S(2), S(1)-0xd>S(2), S(1)- >S(2), S(2)]
+   // 32 -> [S(1)-0x9-0xa>S(2), S(1)-0xd>S(2), S(1)- >S(2), S(2)]
+[S(1)-0x9-0xa>S(2), S(1)-0xd>S(2), S(1)- >S(2), S(2)]:
+116:  bipush 11
+118:  istore_3 // LocalVariable{type=int, simpleName=accepted}
+119:  aload_1 // ElementImpl{name=reader}
+120:  invokevirtual 166 // read ()I
+123:  istore_2 // LocalVariable{type=int, simpleName=cc}
+124:  iload_2 // LocalVariable{type=int, simpleName=cc}
+125:  iflt 189 //[eof]
+128:  iload_2 // LocalVariable{type=int, simpleName=cc}
+129:  lookupswitch // default -> [error]
+   // 9 -> [S(1)-0x9-0xa>S(2), S(1)-0xd>S(2), S(1)- >S(2), S(2)]
+   // 10 -> [S(1)-0x9-0xa>S(2), S(1)-0xd>S(2), S(1)- >S(2), S(2)]
+   // 13 -> [S(1)-0x9-0xa>S(2), S(1)-0xd>S(2), S(1)- >S(2), S(2)]
+   // 32 -> [S(1)-0x9-0xa>S(2), S(1)-0xd>S(2), S(1)- >S(2), S(2)]
+[error]:
+172:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+173:  iconst_m1
+174:  if_icmpne 179 //[pushback]
+177:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+178:  ireturn
+[pushback]:
+179:  aload_1 // ElementImpl{name=reader}
+180:  iload_2 // LocalVariable{type=int, simpleName=cc}
+181:  invokevirtual 170 // unread (I)V
+184:  goto  187 //[exit]
+[exit]:
+187:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+188:  ireturn
+[eof]:
+189:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+190:  iconst_m1
+191:  if_icmpne 196 //[eofacc]
+194:  iconst_0
+195:  ireturn
+[eofacc]:
+196:  iload_3 // LocalVariable{type=int, simpleName=accepted}
+197:  ireturn

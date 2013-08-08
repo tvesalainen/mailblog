@@ -71,7 +71,7 @@
     Following deployment from the same machine don't ask it again.
 -->
     <target name="deploy" depends="build">
-        <exec executable="cmd">
+        <exec executable="cmd" inputstring="4/EHRl9MVIxpZi0vGzd0tKC7bLqGNZ.oqeddmHbA4YROl05ti8ZT3ZVApa4gAI">
             <arg value="/c"/>
             <arg value="${appcfg}"/>
             <arg value="--oauth2"/>
