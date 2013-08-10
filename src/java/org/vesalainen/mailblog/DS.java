@@ -1060,9 +1060,9 @@ public class DS extends CachingDatastoreService implements BlogConstants
     {
         placemarkType.setStyleUrl("#placemark-style");
         String title = (String) placemark.getProperty(TitleProperty);
-        placemarkType.setName(title);
+        //placemarkType.setName(title);
         String description = (String) placemark.getProperty(DescriptionProperty);
-        placemarkType.setDescription(description);
+        //placemarkType.setDescription(description);
     }
     
     private void populate(PlacemarkType placemarkType, Entity entity, ObjectFactory factory, DatatypeFactory dtFactory)
