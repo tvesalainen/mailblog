@@ -78,6 +78,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 import org.vesalainen.kml.KML;
 import org.vesalainen.kml.KMZ;
+import static org.vesalainen.mailblog.BlogConstants.DateProperty;
 import org.vesalainen.mailblog.MaidenheadLocator.LocatorLevel;
 import org.vesalainen.mailblog.exif.ExifParser;
 
@@ -308,7 +309,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         {
             return null;
         }
-        if ("Date".equals(name))
+        if (DateProperty.equals(name))
         {
             SimpleDateFormat df = new SimpleDateFormat(RFC1123Format, Locale.US);
             try

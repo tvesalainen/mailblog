@@ -83,6 +83,7 @@ import net.opengis.kml.StyleType;
 import net.opengis.kml.TimeSpanType;
 import net.opengis.kml.TimeStampType;
 import org.vesalainen.kml.KMZ;
+import static org.vesalainen.mailblog.BlogConstants.PlacemarkKind;
 import org.vesalainen.rss.Channel;
 import org.vesalainen.rss.Item;
 import org.vesalainen.rss.RSS;
@@ -898,6 +899,39 @@ public class DS extends CachingDatastoreService implements BlogConstants
         outputStream.flush();
     }
 
+    private Entity fetchLastPlacemark()
+    {
+        Settings settings = getSettings();
+        if (settings.isCommonPlacemarks())
+        {
+            String namespace = NamespaceManager.get();
+            try
+            {
+                NamespaceManager.set(null);
+                return doFetchLastPlacemark();
+            }
+            finally
+            {
+                NamespaceManager.set(namespace);
+            }
+        }
+        else
+        {
+            return doFetchLastPlacemark();
+        }
+    }
+    private Entity doFetchLastPlacemark()
+    {
+        Query placemarkQuery = new Query(PlacemarkKind);
+        placemarkQuery.addSort(TimestampProperty, Query.SortDirection.ASCENDING);
+        System.err.println(placemarkQuery);
+        PreparedQuery placemarkPrepared = prepare(placemarkQuery);
+        for (Entity placemark : placemarkPrepared.asIterable(FetchOptions.Builder.withLimit(1)))
+        {
+            return placemark;
+        }
+        return null;
+    }
     private List<Entity> fetchPlacemarks(MaidenheadLocator2[] bb)
     {
         Settings settings = getSettings();

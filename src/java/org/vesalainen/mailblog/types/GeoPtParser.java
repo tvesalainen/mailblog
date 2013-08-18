@@ -18,7 +18,7 @@ import org.vesalainen.parser.annotation.Rules;
 import org.vesalainen.parser.annotation.Terminal;
 import org.vesalainen.parser.util.InputReader;
 import org.vesalainen.regex.Regex;
-
+ 
 /**
  * @author Timo Vesalainen
  * @see <a href="doc-files/GeoPtParser-coordinate.html#BNF">BNF Syntax for Geological Coordinate</a>

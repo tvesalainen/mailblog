@@ -26,24 +26,15 @@ import java.util.Date;
  */
 public class DateType extends PropertyType<Date> 
 {
-    public static final String DateFormat = "yyyy-MM-dd"; // TODO in java 6 only supported format.
-    // TODO in java 6 only supported format.
-    // TODO in java 7 bring Parsers ISO8601 parser
-
+    public static final HTML5Datetime parser = HTML5Datetime.getInstance();
+    public static final String DateFormat = "yyyy-MM-dd'T'HH:mm";
+    
     @Override
     public Date newInstance(String value)
     {
         if (value != null && !value.isEmpty())
         {
-            SimpleDateFormat format = new SimpleDateFormat(DateFormat);
-            try
-            {
-                return format.parse(value);
-            }
-            catch (ParseException ex)
-            {
-                throw new IllegalArgumentException(ex);
-            }
+            return parser.parse(value);
         }
         return null;
     }
@@ -59,7 +50,7 @@ public class DateType extends PropertyType<Date>
     @Override
     public String getDefaultInputType()
     {
-        return "date";
+        return "datetime-local";
     }
 
 }
