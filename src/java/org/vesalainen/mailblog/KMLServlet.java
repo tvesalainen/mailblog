@@ -18,6 +18,8 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.NamespaceManager;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.GeoPt;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -29,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBElement;
 import net.opengis.kml.LinkType;
+import net.opengis.kml.LookAtType;
 import net.opengis.kml.NetworkLinkType;
 import net.opengis.kml.RefreshModeEnumType;
 import net.opengis.kml.ViewRefreshModeEnumType;
@@ -60,11 +63,11 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                 DS.CacheWriter cw = ds.createCacheWriter(request, response, "application/vnd.google-earth.kml+xml", "utf-8", false);
                 KML kml = new KML();
                 JAXBElement<NetworkLinkType> networkLink = kml.createNetworkLink();
-                networkLink.getValue().setRefreshVisibility(Boolean.TRUE);
                 networkLink.getValue().setFlyToView(Boolean.TRUE);
+                networkLink.getValue().setRefreshVisibility(Boolean.FALSE);
                 LinkType link = kml.createLink();
                 link.setRefreshMode(RefreshModeEnumType.ON_CHANGE);
-                link.setViewRefreshMode(ViewRefreshModeEnumType.ON_STOP);
+                link.setViewRefreshMode(ViewRefreshModeEnumType.ON_REQUEST);
                 link.setHref(request.getRequestURL().toString()+"?"+NamespaceParameter+"="+NamespaceManager.get());
                 link.setViewFormat(BoundingBoxParameter+"=[bboxWest],[bboxSouth],[bboxEast],[bboxNorth]");
                 networkLink.getValue().setLink(link);

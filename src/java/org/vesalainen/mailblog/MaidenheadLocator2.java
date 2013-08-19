@@ -75,6 +75,8 @@ public class MaidenheadLocator2 extends MaidenheadLocator implements BlogConstan
         MaidenheadLocator2[] bb = getBoundingBox(request);
         if (bb != null)
         {
+            return "Maidenhead";
+            /* for now on
             assert bb.length == 2;
             if (!bb[0].getField().equals(bb[1].getField()))
             {
@@ -91,6 +93,7 @@ public class MaidenheadLocator2 extends MaidenheadLocator implements BlogConstan
                     return bb[0].getSubsquare()+bb[1].getSubsquare();
                 }
             }
+            */
         }
         else
         {

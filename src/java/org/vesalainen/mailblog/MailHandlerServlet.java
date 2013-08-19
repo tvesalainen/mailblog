@@ -662,7 +662,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                         List<GeoPt> coordinates = ds.getCoordinates(placemark);
                         if (!coordinates.isEmpty())
                         {
-                            blog.setProperty(CoordinatesProperty, DS.center(coordinates));
+                            blog.setProperty(LocationProperty, DS.center(coordinates));
                         }
                     }
                     ds.saveBlog(blog);

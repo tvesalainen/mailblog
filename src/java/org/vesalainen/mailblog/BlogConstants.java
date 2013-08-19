@@ -70,7 +70,7 @@ public interface BlogConstants
     static final String KeywordProperty = "Keyword";
     static final String CommentProperty = "Comment";
     static final String UserProperty = "User";
-    static final String CoordinatesProperty = "Location";
+    static final String LocationProperty = "Location";
     static final String FileProperty = "File";
     static final String CommonPlacemarksProperty = "CommonPlacemarks";
     static final String BlogIconProperty = "BlogIcon";

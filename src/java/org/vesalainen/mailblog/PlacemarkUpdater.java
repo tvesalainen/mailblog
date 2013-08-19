@@ -128,14 +128,14 @@ public class PlacemarkUpdater extends FeatureVisitor<Entity> implements BlogCons
     {
         if (coordinates.size() == 1)
         {
-            ctx.setProperty(CoordinatesProperty, coordinates.get(0));
+            ctx.setProperty(LocationProperty, coordinates.get(0));
             MaidenheadLocator2.setLocation(ctx, coordinates.get(0), level);
         }
         else
         {
             if (coordinates.size() > 1)
             {
-                ctx.setProperty(CoordinatesProperty, coordinates);
+                ctx.setProperty(LocationProperty, coordinates);
                 MaidenheadLocator2.setLocation(ctx, DS.center(coordinates), level.ordinal()+1);
             }
         }

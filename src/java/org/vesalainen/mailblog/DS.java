@@ -76,6 +76,7 @@ import net.opengis.kml.DocumentType;
 import net.opengis.kml.IconStyleType;
 import net.opengis.kml.LineStringType;
 import net.opengis.kml.LinkType;
+import net.opengis.kml.LookAtType;
 import net.opengis.kml.ObjectFactory;
 import net.opengis.kml.PlacemarkType;
 import net.opengis.kml.PointType;
@@ -83,7 +84,9 @@ import net.opengis.kml.StyleType;
 import net.opengis.kml.TimeSpanType;
 import net.opengis.kml.TimeStampType;
 import org.vesalainen.kml.KMZ;
+import static org.vesalainen.mailblog.BlogConstants.LocationProperty;
 import static org.vesalainen.mailblog.BlogConstants.PlacemarkKind;
+import static org.vesalainen.mailblog.BlogConstants.TimestampProperty;
 import org.vesalainen.rss.Channel;
 import org.vesalainen.rss.Item;
 import org.vesalainen.rss.RSS;
@@ -869,6 +872,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         spotIconStyle.setIcon(spotIcon);
         placemarkStyle.getValue().setIconStyle(spotIconStyle);
         // blogs
+        /*
         Query blogQuery = new Query(BlogKind);
         List<Filter> blogFilters = new ArrayList<>();
         blogFilters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
@@ -884,22 +888,38 @@ public class DS extends CachingDatastoreService implements BlogConstants
             
             JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
             document.getValue().getAbstractFeatureGroup().add(pm);
-        }   
+        } 
+        */
         // placemarks
+        Entity lastPlacemark = null;
+        PlacemarkType lastPlacemarkType = null;
         for (Entity placemark : fetchPlacemarks(bb))
         {
+            System.err.println(placemark);
             PlacemarkType placemarkType = factory.createPlacemarkType();
             populatePlacemark(placemarkType, placemark);
-            populate(placemarkType, placemark, factory, dtFactory);
+            populate(placemarkType, placemark, lastPlacemark, factory, dtFactory);
             
             JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
             document.getValue().getAbstractFeatureGroup().add(pm);
+            lastPlacemark = placemark;
+            lastPlacemarkType = placemarkType;
         }      
+        if (lastPlacemark != null)
+        {
+            GeoPt coordinate = (GeoPt) lastPlacemark.getProperty(LocationProperty);
+            JAXBElement<LookAtType> lookAt = factory.createLookAt(factory.createLookAtType());
+            lookAt.getValue().setLatitude((double)coordinate.getLatitude());
+            lookAt.getValue().setLongitude((double)coordinate.getLongitude());
+            lookAt.getValue().setRange(200.0);
+            lookAt.getValue().setTilt(30.0);
+            lastPlacemarkType.setAbstractViewGroup(lookAt);
+        }
         kmz.write(outputStream);
         outputStream.flush();
     }
 
-    private Entity fetchLastPlacemark()
+    public Entity fetchLastPlacemark()
     {
         Settings settings = getSettings();
         if (settings.isCommonPlacemarks())
@@ -923,7 +943,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
     private Entity doFetchLastPlacemark()
     {
         Query placemarkQuery = new Query(PlacemarkKind);
-        placemarkQuery.addSort(TimestampProperty, Query.SortDirection.ASCENDING);
+        placemarkQuery.addSort(TimestampProperty, Query.SortDirection.DESCENDING);
         System.err.println(placemarkQuery);
         PreparedQuery placemarkPrepared = prepare(placemarkQuery);
         for (Entity placemark : placemarkPrepared.asIterable(FetchOptions.Builder.withLimit(1)))
@@ -956,6 +976,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
     private List<Entity> doFetchPlacemarks(MaidenheadLocator2[] bb)
     {
         Query placemarkQuery = new Query(PlacemarkKind);
+        /*
         List<Filter> placemarkFilters = new ArrayList<Filter>();
         MaidenheadLocator2.addFilters(placemarkFilters, bb);
         if (placemarkFilters.size() == 1)
@@ -966,6 +987,8 @@ public class DS extends CachingDatastoreService implements BlogConstants
         {
             placemarkQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, placemarkFilters));
         }
+        */
+        placemarkQuery.addSort(TimestampProperty);
         System.err.println(placemarkQuery);
         PreparedQuery placemarkPrepared = prepare(placemarkQuery);
         return placemarkPrepared.asList(FetchOptions.Builder.withDefaults());
@@ -1099,21 +1122,34 @@ public class DS extends CachingDatastoreService implements BlogConstants
         //placemarkType.setDescription(description);
     }
     
-    private void populate(PlacemarkType placemarkType, Entity entity, ObjectFactory factory, DatatypeFactory dtFactory)
+    private void populate(PlacemarkType placemarkType, Entity placemark, Entity lastPlacemark, ObjectFactory factory, DatatypeFactory dtFactory)
     {
-        String id = KeyFactory.keyToString(entity.getKey());
+        String id = KeyFactory.keyToString(placemark.getKey());
 
         placemarkType.setId(id);
         
-        List<GeoPt> coordinates = getCoordinates(entity);
+        List<GeoPt> coordinates = getCoordinates(placemark);
         if (!coordinates.isEmpty())
         {
             if (coordinates.size() == 1)
             {
-                GeoPt location = coordinates.get(0);
-                PointType pointType = factory.createPointType();
-                pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
-                placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
+                if (lastPlacemark != null)
+                {
+                    List<GeoPt> lastCoordinates = getCoordinates(lastPlacemark);
+                    List<GeoPt> list = new ArrayList<>();
+                    list.addAll(0, lastCoordinates);
+                    list.addAll(0, coordinates);
+                    LineStringType lineStringType = factory.createLineStringType();
+                    lineStringType.getCoordinates().add(getCoordinatesString(list));
+                    placemarkType.setAbstractGeometryGroup(factory.createLineString(lineStringType));
+                }
+                else
+                {
+                    GeoPt location = coordinates.get(0);
+                    PointType pointType = factory.createPointType();
+                    pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
+                    placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
+                }
             }
             else
             {
@@ -1123,7 +1159,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             }
         }
         
-        List<Date> timestamp = getTimestamp(entity);
+        List<Date> timestamp = getTimestamp(placemark);
         if (!timestamp.isEmpty())
         {
             if (timestamp.size() == 1)
@@ -1171,7 +1207,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
      
     public List<GeoPt> getCoordinates(Entity entity)
     {
-        Object ob = entity.getProperty(CoordinatesProperty);
+        Object ob = entity.getProperty(LocationProperty);
         if (ob == null)
         {
             return Collections.EMPTY_LIST;
@@ -1238,7 +1274,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
     {
         Entity placemark = new Entity(PlacemarkKind, time.getTime(), getRootKey());
         MaidenheadLocator2.setLocation(placemark, geoPt, MaidenheadLocator2.LocatorLevel.Field);
-        placemark.setProperty(CoordinatesProperty, geoPt);
+        placemark.setProperty(LocationProperty, geoPt);
         placemark.setProperty(TimestampProperty, time);
         placemark.setUnindexedProperty(TitleProperty, title);
         placemark.setUnindexedProperty(DescriptionProperty, description);
@@ -1304,7 +1340,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 List<GeoPt> coordinates = ds.getCoordinates(placemark);
                 if (!coordinates.isEmpty())
                 {
-                    blog.setProperty(CoordinatesProperty, DS.center(coordinates));
+                    blog.setProperty(LocationProperty, DS.center(coordinates));
                     put(blog);
                 }
             }
