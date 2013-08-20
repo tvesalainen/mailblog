@@ -52,27 +52,31 @@ public class GeoPtType extends PropertyType<GeoPt>
         if (obj != null)
         {
             GeoPt pt = (GeoPt) obj;
-            float lat = pt.getLatitude();
-            char ns = lat > 0 ? 'N' : 'S';
-            lat = Math.abs(lat);
-            int lati = (int) lat;
-            lat = lat-lati;
-            float lon = pt.getLongitude();
-            char we = lon > 0 ? 'E' : 'W';
-            lon = Math.abs(lon);
-            int loni = (int) lon;
-            lon = lon-loni;
-            return String.format(Locale.US,
-                    "%c %d\u00b0 %.3f', %c %d\u00b0 %.3f'", 
-                    ns,
-                    lati,
-                    lat*60,
-                    we,
-                    loni,
-                    lon*60
-                    );
+            return getString(pt);
         }
         return "";
     }
 
+    public static String getString(GeoPt pt)
+    {
+        float lat = pt.getLatitude();
+        char ns = lat > 0 ? 'N' : 'S';
+        lat = Math.abs(lat);
+        int lati = (int) lat;
+        lat = lat-lati;
+        float lon = pt.getLongitude();
+        char we = lon > 0 ? 'E' : 'W';
+        lon = Math.abs(lon);
+        int loni = (int) lon;
+        lon = lon-loni;
+        return String.format(Locale.US,
+                "%c %d\u00b0 %.3f', %c %d\u00b0 %.3f'", 
+                ns,
+                lati,
+                lat*60,
+                we,
+                loni,
+                lon*60
+                );
+    }
 }

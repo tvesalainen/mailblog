@@ -66,6 +66,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBElement;
@@ -87,6 +89,7 @@ import org.vesalainen.kml.KMZ;
 import static org.vesalainen.mailblog.BlogConstants.LocationProperty;
 import static org.vesalainen.mailblog.BlogConstants.PlacemarkKind;
 import static org.vesalainen.mailblog.BlogConstants.TimestampProperty;
+import org.vesalainen.mailblog.types.GeoPtType;
 import org.vesalainen.rss.Channel;
 import org.vesalainen.rss.Item;
 import org.vesalainen.rss.RSS;
@@ -913,12 +916,45 @@ public class DS extends CachingDatastoreService implements BlogConstants
             lookAt.getValue().setLongitude((double)coordinate.getLongitude());
             lookAt.getValue().setRange(200.0);
             lookAt.getValue().setTilt(30.0);
-            lastPlacemarkType.setAbstractViewGroup(lookAt);
+            List<Date> timestamp = getTimestamp(lastPlacemark);
+            if (!timestamp.isEmpty())
+            {
+                if (timestamp.size() == 1)
+                {
+                    TimeStampType timeStampType = factory.createTimeStampType();
+                    GregorianCalendar cal = new GregorianCalendar();
+                    cal.setTime(timestamp.get(0));
+                    XMLGregorianCalendar xCal = dtFactory.newXMLGregorianCalendar(cal);
+                    timeStampType.setWhen(xCal.toXMLFormat());
+                    lookAt.getValue().getAbstractViewObjectExtensionGroup().add(factory.createTimeStamp(timeStampType));
+                }
+            }
+            document.getValue().setAbstractViewGroup(lookAt);
         }
         kmz.write(outputStream);
         outputStream.flush();
     }
-
+    public void writeLastPosition(CacheWriter cacheWriter) throws IOException
+    {
+        Entity lastPlacemark = fetchLastPlacemark();
+        if (lastPlacemark != null)
+        {
+            Settings settings = getSettings();
+            Date timestamp = (Date) lastPlacemark.getProperty(TimestampProperty);
+            GeoPt location = (GeoPt) lastPlacemark.getProperty(LocationProperty);
+            if (timestamp != null && location != null)
+            {
+                cacheWriter.append("<div>");
+                DateFormat dateFormat = settings.getDateFormat();
+                cacheWriter.append(dateFormat.format(timestamp));
+                cacheWriter.append("</div>");
+                cacheWriter.append("<div>");
+                String locationString = GeoPtType.getString(location);
+                cacheWriter.append(locationString);
+                cacheWriter.append("</div>");
+            }
+        }
+    }
     public Entity fetchLastPlacemark()
     {
         Settings settings = getSettings();

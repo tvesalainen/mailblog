@@ -35,8 +35,10 @@ $(document).ready(function(){
     
     $(".keywordSelect").load("/blog?keywords=true");
     
+    $(".lastPosition").load("/lastPosition");
+    
     $("body").on("click", "img", function(event)
-   {        
+    {        
         window.open($(this).attr("src")+"&original=true");
     });
 
