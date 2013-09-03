@@ -951,6 +951,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 String locationString = GeoPtType.getString(location);
                 cacheWriter.append(locationString);
                 cacheWriter.append("</div>");
+                cacheWriter.append("<div>");
+                MaidenheadLocator2 mh = new MaidenheadLocator2(location);
+                String maidenheadString = mh.getSubsquare();
+                cacheWriter.append(maidenheadString);
+                cacheWriter.append("</div>");
             }
         }
     }
