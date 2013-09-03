@@ -16,6 +16,7 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.NamespaceManager;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.MalformedURLException;
@@ -48,10 +49,31 @@ public class LastPositionServlet extends HttpServlet
             throws ServletException, IOException
     {
         DS ds = DS.get();
-        if (!ds.serveFromCache(request, response))
+        Settings settings = ds.getSettings();
+        if (settings.isCommonPlacemarks())
         {
-            DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", false);
-            ds.writeLastPosition(cacheWriter);
+            String namespace = NamespaceManager.get();
+            try
+            {
+                NamespaceManager.set(null);
+                if (!ds.serveFromCache(request, response))
+                {
+                    DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", false);
+                    ds.writeLastPosition(cacheWriter, settings);
+                }
+            }
+            finally
+            {
+                NamespaceManager.set(namespace);
+            }
+        }
+        else
+        {
+            if (!ds.serveFromCache(request, response))
+            {
+                DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", false);
+                ds.writeLastPosition(cacheWriter, settings);
+            }
         }
     }
 

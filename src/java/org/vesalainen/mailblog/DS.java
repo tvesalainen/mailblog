@@ -934,12 +934,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
         kmz.write(outputStream);
         outputStream.flush();
     }
-    public void writeLastPosition(CacheWriter cacheWriter) throws IOException
+    public void writeLastPosition(CacheWriter cacheWriter, Settings settings) throws IOException
     {
-        Entity lastPlacemark = fetchLastPlacemark();
+        Entity lastPlacemark = fetchLastPlacemark(settings);
         if (lastPlacemark != null)
         {
-            Settings settings = getSettings();
             Date timestamp = (Date) lastPlacemark.getProperty(TimestampProperty);
             GeoPt location = (GeoPt) lastPlacemark.getProperty(LocationProperty);
             if (timestamp != null && location != null)
@@ -955,9 +954,8 @@ public class DS extends CachingDatastoreService implements BlogConstants
             }
         }
     }
-    public Entity fetchLastPlacemark()
+    public Entity fetchLastPlacemark(Settings settings)
     {
-        Settings settings = getSettings();
         if (settings.isCommonPlacemarks())
         {
             String namespace = NamespaceManager.get();

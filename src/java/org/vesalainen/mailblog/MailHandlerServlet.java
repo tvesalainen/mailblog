@@ -64,6 +64,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -201,6 +202,14 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         log("sender="+sender);
         if (sender == null)
         {
+            Address[] from = message.getFrom();
+            if (from != null && from.length != 0)
+            {
+                sender = (InternetAddress) from[0];
+            }
+        }
+        if (sender == null)
+        {
             log("Sender missing");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
             return;
@@ -213,69 +222,90 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
+        Key blogKey = ds.getBlogKey(messageID);
         String[] ripperDate = message.getHeader(BlogRipper+"Date");
         boolean ripping = ripperDate != null && ripperDate.length > 0;
-        Multipart multipart = (Multipart) message.getContent();
-        List<BodyPart> bodyPartList = findParts(multipart);
-        try
+        Object content = message.getContent();
+        if (content instanceof Multipart)
         {
-            Key blogKey = ds.getBlogKey(messageID);
-            String htmlBody = getHtmlBody(bodyPartList);
-            if (htmlBody != null)
+            Multipart multipart = (Multipart) message.getContent();
+            List<BodyPart> bodyPartList = findParts(multipart);
+            try
             {
-                boolean publishImmediately = settings.isPublishImmediately();
-                Entity blog = createBlog(blogKey, message, htmlBody, publishImmediately);
-                if (!ripping)
+                String htmlBody = getHtmlBody(bodyPartList);
+                if (htmlBody != null)
                 {
-                    if (blog != null)
+                    boolean publishImmediately = settings.isPublishImmediately();
+                    Entity blog = createBlog(blogKey, message, htmlBody, publishImmediately);
+                    if (!ripping)
                     {
-                        sendMail(request, blogAuthor, blog, publishImmediately);
+                        if (blog != null)
+                        {
+                            sendMail(request, blogAuthor, blog, publishImmediately);
+                        }
+                    }
+                    else
+                    {
+                        log("not sending email because ripping");
                     }
                 }
                 else
                 {
-                    log("not sending email because ripping");
+                    log("no html body");
+                }
+                List<Future<HTTPResponse>> futureList = new ArrayList<Future<HTTPResponse>>();
+                for (BodyPart bodyPart : bodyPartList)
+                {
+                    Collection<Future<HTTPResponse>> futures = handleBodyPart(request, blogKey, bodyPart, settings);
+                    if (futures != null)
+                    {
+                        futureList.addAll(futures);
+                    }
+                }
+                long remainingMillis = ApiProxy.getCurrentEnvironment().getRemainingMillis();
+                log("remainingMillis="+remainingMillis);
+                for (Future<HTTPResponse> res : futureList)
+                {
+                    try
+                    {
+                        HTTPResponse hr = res.get();
+                        log("code="+hr.getResponseCode());
+                        if (hr.getResponseCode() != HttpServletResponse.SC_OK)
+                        {
+                            throw new ServletException("blob upload failed code="+hr.getResponseCode());
+                        }
+                    }
+                    catch (InterruptedException ex)
+                    {
+                        throw new IOException(ex);
+                    }
+                    catch (ExecutionException ex)
+                    {
+                        throw new IOException(ex);
+                    }
+                }
+            }
+            catch (MessagingException ex)
+            {
+                throw new IOException(ex);
+            }
+        }
+        else
+        {
+            if (content instanceof String)
+            {
+                String bodyPart = (String) content;
+                boolean publishImmediately = settings.isPublishImmediately();
+                Entity blog = createBlog(blogKey, message, bodyPart, publishImmediately);
+                if (blog != null)
+                {
+                    sendMail(request, blogAuthor, blog, publishImmediately);
                 }
             }
             else
             {
-                log("no html body");
+                log("body not MultiPart of String");
             }
-            List<Future<HTTPResponse>> futureList = new ArrayList<Future<HTTPResponse>>();
-            for (BodyPart bodyPart : bodyPartList)
-            {
-                Collection<Future<HTTPResponse>> futures = handleBodyPart(request, blogKey, bodyPart, settings);
-                if (futures != null)
-                {
-                    futureList.addAll(futures);
-                }
-            }
-            long remainingMillis = ApiProxy.getCurrentEnvironment().getRemainingMillis();
-            log("remainingMillis="+remainingMillis);
-            for (Future<HTTPResponse> res : futureList)
-            {
-                try
-                {
-                    HTTPResponse hr = res.get();
-                    log("code="+hr.getResponseCode());
-                    if (hr.getResponseCode() != HttpServletResponse.SC_OK)
-                    {
-                        throw new ServletException("blob upload failed code="+hr.getResponseCode());
-                    }
-                }
-                catch (InterruptedException ex)
-                {
-                    throw new IOException(ex);
-                }
-                catch (ExecutionException ex)
-                {
-                    throw new IOException(ex);
-                }
-            }
-        }
-        catch (MessagingException ex)
-        {
-            throw new IOException(ex);
         }
     }
 

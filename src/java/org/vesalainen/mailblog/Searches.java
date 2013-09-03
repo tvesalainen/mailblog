@@ -66,12 +66,20 @@ public class Searches implements BlogConstants
             builder.addField(Field.newBuilder()
                     .setName(SubjectProperty)
                     .setText(subject));
-            builder.addField(Field.newBuilder()
-                    .setName(SenderProperty)
-                    .setText(sender.getEmail()));
-            builder.addField(Field.newBuilder()
-                    .setName(HtmlProperty)
-                    .setHTML(html.getValue()));
+            if (sender != null)
+            {
+                String senderEmail = sender.getEmail();
+                builder.addField(Field.newBuilder()
+                        .setName(SenderProperty)
+                        .setText(senderEmail));
+            }
+            String htmlValue = html.getValue();
+            if (htmlValue != null)
+            {
+                builder.addField(Field.newBuilder()
+                        .setName(HtmlProperty)
+                        .setHTML(htmlValue));
+            }
             builder.addField(Field.newBuilder()
                     .setName(DateProperty)
                     .setDate(date));
