@@ -53,8 +53,6 @@ public class BlobServlet extends HttpServlet implements BlogConstants
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-        Locale locale = Util.getLocale(request);
-        log("locale="+locale);
         String sha1 = request.getParameter(Sha1Parameter);
         if (sha1 != null)
         {
