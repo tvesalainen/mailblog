@@ -25,11 +25,13 @@ import com.google.appengine.api.datastore.Entity;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.vesalainen.mailblog.types.Util;
 
 /**
  *
@@ -51,6 +53,8 @@ public class BlobServlet extends HttpServlet implements BlogConstants
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
+        Locale locale = Util.getLocale(request);
+        log("locale="+locale);
         String sha1 = request.getParameter(Sha1Parameter);
         if (sha1 != null)
         {

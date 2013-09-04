@@ -96,7 +96,6 @@ public class BloggerSettingsServlet extends SettingsServlet implements BlogConst
     @Override
     protected Key getKey(HttpServletRequest req) throws HttpException
     {
-        DS ds = DS.get();
         UserService userService = UserServiceFactory.getUserService();
         User user = userService.getCurrentUser();
         Key baseKey = KeyFactory.createKey(DS.getRootKey(), kind, BaseKey);

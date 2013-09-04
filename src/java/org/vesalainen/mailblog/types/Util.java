@@ -18,7 +18,9 @@
 package org.vesalainen.mailblog.types;
 
 import com.google.appengine.api.datastore.GeoPt;
+import java.util.IllformedLocaleException;
 import java.util.Locale;
+import java.util.Locale.Builder;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -28,12 +30,23 @@ public class Util
 {
     public static Locale getLocale(HttpServletRequest request)
     {
-        // TODO change in java 7
         String language = request.getHeader("Accept-Language");
         language = language.substring(0, 2);
         String country = request.getHeader("X-AppEngine-Country");
         String region = request.getHeader("X-AppEngine-Region");
-        return new Locale(language, country);
+        Builder builder = new Builder();
+        try
+        {
+            builder.setLanguage(language);
+            builder.setRegion(country);
+            builder.setVariant(region);
+            return builder.build();
+        }
+        catch (IllformedLocaleException ex)
+        {
+            ex.printStackTrace();
+            return new Locale(language, country);
+        }
     }
     public static String getCity(HttpServletRequest request)
     {

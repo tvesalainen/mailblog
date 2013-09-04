@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import static org.vesalainen.mailblog.BlogConstants.NicknameProperty;
 import org.vesalainen.mailblog.types.LocaleHelp;
 
 /**
@@ -75,7 +76,15 @@ public class Settings implements BlogConstants, Serializable
     }
     public String getNickname()
     {
-        return (String) Objects.nonNull(map.get(NicknameProperty));
+        String nickname = (String) map.get(NicknameProperty);
+        if (nickname != null)
+        {
+            return (String) Objects.nonNull(map.get(NicknameProperty));
+        }
+        else
+        {
+            return "";
+        }
     }
     public Locale getLocale()
     {

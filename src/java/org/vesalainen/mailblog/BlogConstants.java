@@ -105,6 +105,7 @@ public interface BlogConstants
     static final String AuthParameter = "auth";
     static final String PublishParameter = "publish";
     static final String BoundingBoxParameter = "bbox";
+    static final String EmailParameter = "email";
     
     static final String BaseKey = "base";
     

@@ -236,7 +236,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                 if (htmlBody != null)
                 {
                     boolean publishImmediately = settings.isPublishImmediately();
-                    Entity blog = createBlog(blogKey, message, htmlBody, publishImmediately);
+                    Entity blog = createBlog(blogKey, message, htmlBody, publishImmediately, senderEmail);
                     if (!ripping)
                     {
                         if (blog != null)
@@ -296,7 +296,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             {
                 String bodyPart = (String) content;
                 boolean publishImmediately = settings.isPublishImmediately();
-                Entity blog = createBlog(blogKey, message, bodyPart, publishImmediately);
+                Entity blog = createBlog(blogKey, message, bodyPart, publishImmediately, senderEmail);
                 if (blog != null)
                 {
                     sendMail(request, blogAuthor, blog, publishImmediately);
@@ -645,7 +645,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         return htmlBody;
     }
 
-    private Entity createBlog(final Key blogKey, final MimeMessage message, final String htmlBody, final boolean publishImmediately) throws IOException
+    private Entity createBlog(final Key blogKey, final MimeMessage message, final String htmlBody, final boolean publishImmediately, final Email senderEmail) throws IOException
     {
         Updater<Entity> updater = new Updater<Entity>()
         {
@@ -682,7 +682,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     blog.setProperty(SubjectProperty, subject);
                     blog.setProperty(PublishProperty, publishImmediately);
                     blog.setProperty(SubjectProperty, subject);
-                    setProperty(message, SenderProperty, blog, true);
+                    blog.setProperty(SenderProperty, senderEmail);
                     setProperty(message, DateProperty, blog, true);
                     blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
                     blog.setProperty(TimestampProperty, new Date());
