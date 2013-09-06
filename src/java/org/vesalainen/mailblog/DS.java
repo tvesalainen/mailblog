@@ -86,6 +86,7 @@ import net.opengis.kml.StyleType;
 import net.opengis.kml.TimeSpanType;
 import net.opengis.kml.TimeStampType;
 import org.vesalainen.kml.KMZ;
+import static org.vesalainen.mailblog.BlogConstants.BaseKey;
 import static org.vesalainen.mailblog.BlogConstants.LocationProperty;
 import static org.vesalainen.mailblog.BlogConstants.PlacemarkKind;
 import static org.vesalainen.mailblog.BlogConstants.TimestampProperty;
@@ -894,8 +895,8 @@ public class DS extends CachingDatastoreService implements BlogConstants
         } 
         */
         // placemarks
+        Entity firstPlacemark = null;
         Entity lastPlacemark = null;
-        PlacemarkType lastPlacemarkType = null;
         for (Entity placemark : fetchPlacemarks(bb))
         {
             System.err.println(placemark);
@@ -905,10 +906,13 @@ public class DS extends CachingDatastoreService implements BlogConstants
             
             JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
             document.getValue().getAbstractFeatureGroup().add(pm);
+            if (firstPlacemark == null)
+            {
+                firstPlacemark = placemark;
+            }
             lastPlacemark = placemark;
-            lastPlacemarkType = placemarkType;
         }      
-        if (lastPlacemark != null)
+        if (lastPlacemark != null && firstPlacemark != null)
         {
             GeoPt coordinate = (GeoPt) lastPlacemark.getProperty(LocationProperty);
             JAXBElement<LookAtType> lookAt = factory.createLookAt(factory.createLookAtType());
@@ -916,17 +920,34 @@ public class DS extends CachingDatastoreService implements BlogConstants
             lookAt.getValue().setLongitude((double)coordinate.getLongitude());
             lookAt.getValue().setRange(200.0);
             lookAt.getValue().setTilt(30.0);
-            List<Date> timestamp = getTimestamp(lastPlacemark);
-            if (!timestamp.isEmpty())
+            List<Date> lastTimestamp = getTimestamp(lastPlacemark);
+            if (!lastTimestamp.isEmpty())
             {
-                if (timestamp.size() == 1)
+                if (lastTimestamp.size() == 1)
                 {
-                    TimeStampType timeStampType = factory.createTimeStampType();
-                    GregorianCalendar cal = new GregorianCalendar();
-                    cal.setTime(timestamp.get(0));
-                    XMLGregorianCalendar xCal = dtFactory.newXMLGregorianCalendar(cal);
-                    timeStampType.setWhen(xCal.toXMLFormat());
-                    lookAt.getValue().getAbstractViewObjectExtensionGroup().add(factory.createTimeStamp(timeStampType));
+                    List<Date> firstTimestamp = getTimestamp(firstPlacemark);
+                    if (firstPlacemark != null && firstTimestamp.size() == 1)
+                    {
+                        TimeSpanType timeSpanType = factory.createTimeSpanType();
+                        GregorianCalendar cal1 = new GregorianCalendar();
+                        cal1.setTime(firstTimestamp.get(0));
+                        XMLGregorianCalendar xCal1 = dtFactory.newXMLGregorianCalendar(cal1);
+                        timeSpanType.setBegin(xCal1.toXMLFormat());
+                        GregorianCalendar cal2 = new GregorianCalendar();
+                        cal2.setTime(lastTimestamp.get(0));
+                        XMLGregorianCalendar xCal2 = dtFactory.newXMLGregorianCalendar(cal2);
+                        timeSpanType.setEnd(xCal2.toXMLFormat());
+                        lookAt.getValue().getAbstractViewObjectExtensionGroup().add(factory.createTimeSpan(timeSpanType));
+                    }
+                    else
+                    {
+                        TimeStampType timeStampType = factory.createTimeStampType();
+                        GregorianCalendar cal = new GregorianCalendar();
+                        cal.setTime(lastTimestamp.get(0));
+                        XMLGregorianCalendar xCal = dtFactory.newXMLGregorianCalendar(cal);
+                        timeStampType.setWhen(xCal.toXMLFormat());
+                        lookAt.getValue().getAbstractViewObjectExtensionGroup().add(factory.createTimeStamp(timeStampType));
+                    }
                 }
             }
             document.getValue().setAbstractViewGroup(lookAt);
