@@ -611,8 +611,20 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                 }
                 Text text = (Text) blog.getProperty(HtmlProperty);
                 String body = text.getValue();
-                body = body.replace("cid:"+cid, "/blob?"+Sha1Parameter+"="+sha1);
-                blog.setUnindexedProperty(HtmlProperty, new Text(body));
+                int start = body.indexOf("cid:"+cid);
+                if (start != -1)
+                {
+                    int end = body.indexOf(">", start);
+                    start = body.lastIndexOf("<img", start);
+                    if (start != -1 && end != -1)
+                    {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(body.substring(0, start));
+                        sb.append("<img src=\"/blob?"+Sha1Parameter+"="+sha1+"\">");
+                        sb.append(body.substring(end+1));
+                        blog.setUnindexedProperty(HtmlProperty, new Text(sb.toString()));
+                    }
+                }
                 ds.put(blog);
                 return null;
             }
