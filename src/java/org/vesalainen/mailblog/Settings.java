@@ -26,6 +26,7 @@ import com.google.appengine.api.datastore.Text;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
 import java.io.Serializable;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -99,6 +100,12 @@ public class Settings implements BlogConstants, Serializable
     {
         Locale locale = getLocale();
         DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.DEFAULT, DateFormat.DEFAULT, locale);
+        if (dateFormat instanceof SimpleDateFormat)
+        {
+            SimpleDateFormat sdf = (SimpleDateFormat) dateFormat;
+            String localizedPattern = sdf.toLocalizedPattern();
+            sdf.applyLocalizedPattern(localizedPattern+" z");
+        }
         TimeZone timeZone = getTimeZone();
         dateFormat.setTimeZone(timeZone);
         return dateFormat;

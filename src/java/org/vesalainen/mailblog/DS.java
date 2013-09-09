@@ -962,6 +962,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         {
             Date timestamp = (Date) lastPlacemark.getProperty(TimestampProperty);
             GeoPt location = (GeoPt) lastPlacemark.getProperty(LocationProperty);
+            String locator = (String) lastPlacemark.getProperty(SubsquareProperty);
             if (timestamp != null && location != null)
             {
                 cacheWriter.append("<div>");
@@ -972,10 +973,8 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 String locationString = GeoPtType.getString(location);
                 cacheWriter.append(locationString);
                 cacheWriter.append("</div>");
-                cacheWriter.append("<div>");
-                MaidenheadLocator2 mh = new MaidenheadLocator2(location);
-                String maidenheadString = mh.getSubsquare();
-                cacheWriter.append(maidenheadString);
+                cacheWriter.append("<div title=\"Maidenhead Locator\">");
+                cacheWriter.append(locator);
                 cacheWriter.append("</div>");
             }
         }
