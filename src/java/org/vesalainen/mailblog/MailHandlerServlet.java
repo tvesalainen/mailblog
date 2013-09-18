@@ -298,7 +298,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                 String bodyPart = (String) content;
                 if (contentType.startsWith("text/plain"))
                 {
-                    bodyPart = "<p>"+bodyPart.replaceAll("\n", "\n<p>");                    
+                    bodyPart = textPlainToHtml(bodyPart);
                 }
                 boolean publishImmediately = settings.isPublishImmediately();
                 Entity blog = createBlog(blogKey, message, bodyPart, publishImmediately, senderEmail);
@@ -659,7 +659,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     if (htmlBody == null)
                     {
                         htmlBody = (String) content;
-                        htmlBody = "<p>"+htmlBody.replaceAll("\n", "\n<p>");
+                        htmlBody = textPlainToHtml(htmlBody);
                     }
                 }
             }
@@ -828,6 +828,11 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             }
         }
         return messageID;
+    }
+
+    private String textPlainToHtml(String htmlBody)
+    {
+        return "<p>"+htmlBody.replaceAll("[\r\n]+", "\n<p>");
     }
     private class BlogAuthor
     {
