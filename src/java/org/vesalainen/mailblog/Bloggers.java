@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 public class Bloggers implements BlogConstants
 {
     public static final String Blogger = "Blogger";
+    public static final String Nickname = "Nickname";
     private Key parent;
 
     public Bloggers(Key parent)
@@ -47,14 +48,25 @@ public class Bloggers implements BlogConstants
     {
         StringBuilder sb = new StringBuilder();
         sb.append("<div><table>");
+        sb.append("<tr><th>Blogger</th><th>Nickname</th></tr>");
         for (Entity entity : getBloggers())
         {
-            sb.append("<tr><th>Blogger</th><td>");
+            sb.append("<tr>");
+            sb.append("<td>");
             String email = entity.getKey().getName();
             sb.append("<input  type=\"email\" name=\""+Blogger+"\" value=\""+email+"\" size=\"40\" title=\"Clear to delete\"/>");
-            sb.append("</td></tr>");
+            sb.append("</td>");
+            sb.append("<td>");
+            String nickname = (String) entity.getProperty(NicknameProperty);
+            if (nickname == null)
+            {
+                nickname = "";
+            }
+            sb.append("<input  type=\"text\" name=\""+email+"#"+Nickname+"\" value=\""+nickname+"\" title=\"Nickname\"/>");
+            sb.append("</td>");
+            sb.append("</tr>");
         }
-        sb.append("<tr class=\"editable\"><th>Blogger</th><td>");
+        sb.append("<tr class=\"editable\"><td>");
         sb.append("<input  type=\"email\" name=\""+Blogger+"\" value=\"\" size=\"40\" placeholder=\"New Blogger Email Address\"/>");
         sb.append("</td></tr>");
         sb.append("</table></div>");
@@ -82,6 +94,10 @@ public class Bloggers implements BlogConstants
             if (newBloggers.contains(key))
             {
                 newBloggers.remove(key);
+                String email = entity.getKey().getName();
+                String nickname = req.getParameter(email+"#"+Nickname);
+                entity.setProperty(NicknameProperty, nickname);
+                datastore.put(entity);
             }
             else
             {
@@ -93,13 +109,12 @@ public class Bloggers implements BlogConstants
             datastore.put(new Entity(key));
         }
         datastore.delete(removedBloggers);
-    }
+   }
     private List<Entity> getBloggers()
     {
         DatastoreService datastore = DS.get();
         Query query = new Query(SettingsKind);
         query.setAncestor(parent);
-        query.setKeysOnly();
         List<Entity> list = new ArrayList<Entity>();
         PreparedQuery prepared = datastore.prepare(query);
         for (Entity entity : prepared.asIterable())
