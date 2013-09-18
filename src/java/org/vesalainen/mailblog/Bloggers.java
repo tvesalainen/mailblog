@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
+import static org.vesalainen.mailblog.BlogConstants.NicknameProperty;
 
 /**
  * @author Timo Vesalainen
@@ -37,6 +38,7 @@ public class Bloggers implements BlogConstants
 {
     public static final String Blogger = "Blogger";
     public static final String Nickname = "Nickname";
+    public static final String DontSendEmail = "DontSendEmail";
     private Key parent;
 
     public Bloggers(Key parent)
@@ -48,7 +50,7 @@ public class Bloggers implements BlogConstants
     {
         StringBuilder sb = new StringBuilder();
         sb.append("<div><table>");
-        sb.append("<tr><th>Blogger</th><th>Nickname</th></tr>");
+        sb.append("<tr><th>Blogger</th><th>Nickname</th><th>No Email</th></tr>");
         for (Entity entity : getBloggers())
         {
             sb.append("<tr>");
@@ -63,6 +65,21 @@ public class Bloggers implements BlogConstants
                 nickname = "";
             }
             sb.append("<input  type=\"text\" name=\""+email+"#"+Nickname+"\" value=\""+nickname+"\" title=\"Nickname\"/>");
+            sb.append("</td>");
+            sb.append("<td>");
+            boolean noEmail = false;
+            Boolean dontSendEmail = (Boolean) entity.getProperty(DontSendEmailProperty);
+            if (dontSendEmail != null)
+            {
+                noEmail = dontSendEmail.booleanValue();
+            }
+            String dsen = email+"#"+DontSendEmail;
+            String checked = "";
+            if (noEmail)
+            {
+                checked = "checked ";
+            }
+            sb.append("<input  type=\"checkbox\" name=\""+dsen+"\" "+checked+"value=\""+dsen+"\" title=\"Dont send email\"/>");
             sb.append("</td>");
             sb.append("</tr>");
         }
@@ -96,6 +113,10 @@ public class Bloggers implements BlogConstants
                 newBloggers.remove(key);
                 String email = entity.getKey().getName();
                 String nickname = req.getParameter(email+"#"+Nickname);
+                entity.setProperty(NicknameProperty, nickname);
+                String dontSendEmail = req.getParameter(email+"#"+DontSendEmail);
+                boolean noEmail = dontSendEmail != null;
+                entity.setProperty(DontSendEmailProperty, noEmail);
                 entity.setProperty(NicknameProperty, nickname);
                 datastore.put(entity);
             }

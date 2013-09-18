@@ -242,7 +242,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     {
                         if (blog != null)
                         {
-                            sendMail(request, blogAuthor, blog, publishImmediately);
+                            sendMail(request, blogAuthor, blog, settings);
                         }
                     }
                     else
@@ -304,7 +304,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                 Entity blog = createBlog(blogKey, message, bodyPart, publishImmediately, senderEmail);
                 if (blog != null)
                 {
-                    sendMail(request, blogAuthor, blog, publishImmediately);
+                    sendMail(request, blogAuthor, blog, settings);
                 }
             }
             else
@@ -549,8 +549,12 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         return baos.toByteArray();
     }
     
-    private void sendMail(HttpServletRequest request, BlogAuthor blogAuthor, Entity blog, boolean publishImmediately) throws IOException
+    private void sendMail(HttpServletRequest request, BlogAuthor blogAuthor, Entity blog, Settings settings) throws IOException
     {
+        if (settings.dontSendEmail())
+        {
+            return;
+        }
         try
         {
             String digest = DS.getBlogDigest(blog);
@@ -558,16 +562,12 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             Message reply = new Message();
             reply.setSender(blogAuthor.toString());
             Email sender = (Email) blog.getProperty(SenderProperty);
-            if (sender.getEmail().endsWith("winlink.org"))
-            {
-                return; // TODO use settings!!!
-            }
             reply.setTo(sender.getEmail());
             String subject = (String) blog.getProperty(SubjectProperty);
             reply.setSubject("Blog: "+subject+" received");
             StringBuilder sb = new StringBuilder();
             URI reqUri = new URI(request.getScheme(), NamespaceManager.get(), "", "");
-            if (!publishImmediately)
+            if (!settings.isPublishImmediately())
             {
                 sb.append("<div>");
                 sb.append("<p>Blog is not yet published because it was sent from untrusted email address "+sender.getEmail()+". </p>");

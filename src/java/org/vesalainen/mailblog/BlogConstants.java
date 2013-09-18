@@ -75,6 +75,7 @@ public interface BlogConstants
     static final String CommonPlacemarksProperty = "CommonPlacemarks";
     static final String BlogIconProperty = "BlogIcon";
     static final String PlacemarkIconProperty = "PlacemarkIcon";
+    static final String DontSendEmailProperty = "DontSendEmail";
     // Maidenhead properties
     static final String FieldProperty = "Field";
     static final String SquareProperty = "Square";

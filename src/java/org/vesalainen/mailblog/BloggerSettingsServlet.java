@@ -28,6 +28,7 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import static org.vesalainen.mailblog.BlogConstants.FixPicProperty;
 
 /**
  *
@@ -59,7 +60,7 @@ public class BloggerSettingsServlet extends SettingsServlet implements BlogConst
                 .setType(Long.class);
         addProperty(PicMaxWidthProperty)
                 .setType(Long.class);
-        addProperty(FixPicProperty)
+        addProperty(DontSendEmailProperty)
                 .setType(Boolean.class);
     }
 
