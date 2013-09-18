@@ -701,6 +701,10 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                             blog.setProperty(KeywordsProperty, keywords);
                         }
                     }
+                    if (subject.startsWith("//WL2K "))
+                    {
+                        subject = subject.substring(7);
+                    }
                     blog.setProperty(SubjectProperty, subject);
                     blog.setProperty(PublishProperty, publishImmediately);
                     blog.setProperty(SubjectProperty, subject);
