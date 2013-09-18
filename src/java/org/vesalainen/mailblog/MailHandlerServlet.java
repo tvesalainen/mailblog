@@ -184,7 +184,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
         MimeMessage message = new MimeMessage(session, request.getInputStream());
-        String messageID = (String) getHeader(message, "Message-ID");
+        String messageID = getMessageId(message);
         
         if (messageID == null)
         {
@@ -805,6 +805,20 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             return spotHeader[0];
         }
         return null;
+    }
+
+    private String getMessageId(MimeMessage message) throws IOException, MessagingException
+    {
+        String messageID = (String) getHeader(message, "Message-ID");
+        if (messageID.endsWith("winlink.org"))
+        {
+            int idx = messageID.indexOf("@");
+            if (idx != -1)
+            {
+                messageID = messageID.substring(0, idx)+"@winlink.org";
+            }
+        }
+        return messageID;
     }
     private class BlogAuthor
     {
