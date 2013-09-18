@@ -185,6 +185,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         Session session = Session.getDefaultInstance(props, null);
         MimeMessage message = new MimeMessage(session, request.getInputStream());
         String messageID = getMessageId(message);
+        String contentType = message.getContentType();
         
         if (messageID == null)
         {
@@ -295,6 +296,10 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             if (content instanceof String)
             {
                 String bodyPart = (String) content;
+                if (contentType.startsWith("text/plain"))
+                {
+                    bodyPart = "<p>"+bodyPart.replaceAll("\n", "\n<p>");                    
+                }
                 boolean publishImmediately = settings.isPublishImmediately();
                 Entity blog = createBlog(blogKey, message, bodyPart, publishImmediately, senderEmail);
                 if (blog != null)
@@ -553,6 +558,10 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             Message reply = new Message();
             reply.setSender(blogAuthor.toString());
             Email sender = (Email) blog.getProperty(SenderProperty);
+            if (sender.getEmail().endsWith("winlink.org"))
+            {
+                return; // TODO use settings!!!
+            }
             reply.setTo(sender.getEmail());
             String subject = (String) blog.getProperty(SubjectProperty);
             reply.setSubject("Blog: "+subject+" received");
