@@ -650,6 +650,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     if (htmlBody == null)
                     {
                         htmlBody = (String) content;
+                        htmlBody = "<p>"+htmlBody.replaceAll("\n", "\n<p>");
                     }
                 }
             }
