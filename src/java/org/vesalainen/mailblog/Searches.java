@@ -129,7 +129,7 @@ public class Searches implements BlogConstants
         }
         bc.setSearchCursor(result.getCursor());
         sb.append("<span id=\"nextPage\" class=\"hidden\">"+bc.getWebSafe()+"</span>");
-        sb.ready();
+        sb.cache();
     }
 
 }

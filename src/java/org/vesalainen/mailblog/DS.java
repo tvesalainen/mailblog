@@ -397,7 +397,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             channel.setPubDate(last);
             channel.setLastBuildDate(last);
             rss.marshall(cw);
-            cw.ready();
+            cw.cache();
         }
         catch (URISyntaxException ex)
         {
@@ -471,7 +471,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         {
             sb.append("<span id=\"nextPage\" class=\"hidden\">"+bc.getWebSafe()+"</span>");
         }
-        sb.ready();
+        sb.cache();
     }
 
     public void getComments(Key blogKey, User loggedUser, CacheWriter cw) throws HttpException, IOException
@@ -512,7 +512,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 cw.append(String.format(locale, commentTemplate, nickname, dateString, text.getValue(), hidden, KeyFactory.keyToString(comment.getKey())));
             }
         }
-        cw.ready();
+        cw.cache();
     }
     public void addComment(Key blogKey, User user, String text)
     {
@@ -583,7 +583,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             throw new HttpException(HttpServletResponse.SC_NOT_FOUND, key+" not found");
         }
         cw.append(getBlog(entity, base));
-        cw.ready();
+        cw.cache();
     }
     public String getBlog(Entity entity, URL base) throws HttpException, IOException
     {
@@ -672,7 +672,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             cw.append("</div>\n");
             yearCount = 0;
         }
-        cw.ready();
+        cw.cache();
     }
     private String prettify(String str)
     {
@@ -789,7 +789,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             cw.append("<option value=\"Keyword:"+kw+"\">"+kw+"("+map.get(kw) +")</option>");
         }
         cw.append("</select>");
-        cw.ready();
+        cw.cache();
     }
 
     public void handleBlogAction(Key blogKey, String action, String auth, CacheWriter cw) throws HttpException, IOException
@@ -976,6 +976,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 cacheWriter.append("<div title=\"Maidenhead Locator\">");
                 cacheWriter.append(locator);
                 cacheWriter.append("</div>");
+                cacheWriter.cache();
             }
         }
     }
@@ -1414,6 +1415,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         private String eTag;
         private String cacheKey;
         private boolean isPrivate;
+        private boolean cached;
 
         private CacheWriter(HttpServletRequest request, HttpServletResponse response, boolean isPrivate) throws IOException
         {
@@ -1433,7 +1435,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             }
         }
 
-        public void ready()
+        public void cache()
         {
             if (!isPrivate)
             {
@@ -1449,6 +1451,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 }
                 cache.put(cacheKey, cachedContent);
             }
+            cached = true;
         }
         
         @Override
@@ -1466,6 +1469,10 @@ public class DS extends CachingDatastoreService implements BlogConstants
         @Override
         public void close() throws IOException
         {
+            if (!cached)
+            {
+                System.err.println("closing without caching");
+            }
         }
 
     }
@@ -1477,6 +1484,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         private String eTag;
         private String cacheKey;
         private boolean isPrivate;
+        private boolean cached;
 
         private CacheOutputStream(HttpServletRequest request, HttpServletResponse response, boolean isPrivate) throws IOException
         {
@@ -1496,7 +1504,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             }
         }
 
-        public void ready()
+        public void cache()
         {
             if (!isPrivate)
             {
@@ -1505,6 +1513,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 cachedContent = new CachedContent(content, response.getContentType(), response.getCharacterEncoding(), eTag, isPrivate);
                 cache.put(cacheKey, cachedContent);
             }
+            cached = true;
         }
         
         @Override
@@ -1513,6 +1522,16 @@ public class DS extends CachingDatastoreService implements BlogConstants
             out.write(b);
             byteStream.write(b);
         }
+                
+        @Override
+        public void close() throws IOException
+        {
+            if (!cached)
+            {
+                System.err.println("closing without caching");
+            }
+        }
+        
     }
     private static class NullOutputStream extends OutputStream
     {

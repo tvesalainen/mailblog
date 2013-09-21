@@ -58,8 +58,10 @@ public class LastPositionServlet extends HttpServlet
                 NamespaceManager.set(null);
                 if (!ds.serveFromCache(request, response))
                 {
-                    DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", false);
-                    ds.writeLastPosition(cacheWriter, settings);
+                    try (DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", false))
+                    {
+                        ds.writeLastPosition(cacheWriter, settings);
+                    }
                 }
             }
             finally

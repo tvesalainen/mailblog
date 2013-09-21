@@ -56,7 +56,7 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                 DS.CacheOutputStream cos = ds.createCacheOutputStream(request, response, "application/vnd.google-earth.kmz", "utf-8", false);
                 log("updateKml");
                 ds.updateKml(bb, base, cos);
-                cos.ready();
+                cos.cache();
             }
             else
             {
@@ -74,7 +74,7 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                 kml.set(networkLink);
                 kml.write(cw);
                 log("networkLink");
-                cw.ready();
+                cw.cache();
             }
         }
     }
