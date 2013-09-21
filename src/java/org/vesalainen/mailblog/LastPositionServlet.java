@@ -27,6 +27,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.vesalainen.mailblog.DS.CacheWriter;
 
 /**
  *
@@ -73,8 +74,10 @@ public class LastPositionServlet extends HttpServlet
         {
             if (!ds.serveFromCache(request, response))
             {
-                DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", false);
-                ds.writeLastPosition(cacheWriter, settings);
+                try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", false))
+                {
+                    ds.writeLastPosition(cacheWriter, settings);
+                }
             }
         }
     }

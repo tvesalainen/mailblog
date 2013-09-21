@@ -36,6 +36,8 @@ import net.opengis.kml.NetworkLinkType;
 import net.opengis.kml.RefreshModeEnumType;
 import net.opengis.kml.ViewRefreshModeEnumType;
 import org.vesalainen.kml.KML;
+import org.vesalainen.mailblog.DS.CacheOutputStream;
+import org.vesalainen.mailblog.DS.CacheWriter;
 
 /**
  * @author Timo Vesalainen
@@ -53,28 +55,32 @@ public class KMLServlet extends HttpServlet implements BlogConstants
             MaidenheadLocator2[] bb = MaidenheadLocator2.getBoundingBox(request);
             if (bb != null)
             {
-                DS.CacheOutputStream cos = ds.createCacheOutputStream(request, response, "application/vnd.google-earth.kmz", "utf-8", false);
-                log("updateKml");
-                ds.updateKml(bb, base, cos);
-                cos.cache();
+                try (CacheOutputStream cos = ds.createCacheOutputStream(request, response, "application/vnd.google-earth.kmz", "utf-8", false))
+                {
+                    log("updateKml");
+                    ds.updateKml(bb, base, cos);
+                    cos.cache();
+                }
             }
             else
             {
-                DS.CacheWriter cw = ds.createCacheWriter(request, response, "application/vnd.google-earth.kml+xml", "utf-8", false);
-                KML kml = new KML();
-                JAXBElement<NetworkLinkType> networkLink = kml.createNetworkLink();
-                networkLink.getValue().setFlyToView(Boolean.TRUE);
-                networkLink.getValue().setRefreshVisibility(Boolean.FALSE);
-                LinkType link = kml.createLink();
-                link.setRefreshMode(RefreshModeEnumType.ON_CHANGE);
-                link.setViewRefreshMode(ViewRefreshModeEnumType.ON_REQUEST);
-                link.setHref(request.getRequestURL().toString()+"?"+NamespaceParameter+"="+NamespaceManager.get());
-                link.setViewFormat(BoundingBoxParameter+"=[bboxWest],[bboxSouth],[bboxEast],[bboxNorth]");
-                networkLink.getValue().setLink(link);
-                kml.set(networkLink);
-                kml.write(cw);
-                log("networkLink");
-                cw.cache();
+                try (CacheWriter cw = ds.createCacheWriter(request, response, "application/vnd.google-earth.kml+xml", "utf-8", false))
+                {
+                    KML kml = new KML();
+                    JAXBElement<NetworkLinkType> networkLink = kml.createNetworkLink();
+                    networkLink.getValue().setFlyToView(Boolean.TRUE);
+                    networkLink.getValue().setRefreshVisibility(Boolean.FALSE);
+                    LinkType link = kml.createLink();
+                    link.setRefreshMode(RefreshModeEnumType.ON_CHANGE);
+                    link.setViewRefreshMode(ViewRefreshModeEnumType.ON_REQUEST);
+                    link.setHref(request.getRequestURL().toString()+"?"+NamespaceParameter+"="+NamespaceManager.get());
+                    link.setViewFormat(BoundingBoxParameter+"=[bboxWest],[bboxSouth],[bboxEast],[bboxNorth]");
+                    networkLink.getValue().setLink(link);
+                    kml.set(networkLink);
+                    kml.write(cw);
+                    log("networkLink");
+                    cw.cache();
+                }
             }
         }
     }

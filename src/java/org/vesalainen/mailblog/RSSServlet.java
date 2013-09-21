@@ -26,6 +26,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.vesalainen.mailblog.DS.CacheWriter;
 
 /**
  *
@@ -53,8 +54,10 @@ public class RSSServlet extends HttpServlet
             if (!ds.serveFromCache(request, response))
             {
                 URL base = getBase(request);
-                DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response, "application/rss+xml", "utf-8", false);
-                ds.writeRSS(base, cacheWriter);
+                try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, "application/rss+xml", "utf-8", false))
+                {
+                    ds.writeRSS(base, cacheWriter);
+                }
             }
         }
         catch (HttpException ex)

@@ -63,16 +63,20 @@ public class BlogServlet extends HttpServlet implements BlogConstants
                 String calendar = request.getParameter(CalendarParameter);
                 if (calendar != null)
                 {
-                    CacheWriter cacheWriter = ds.createCacheWriter(request, response);
-                    ds.getCalendar(cacheWriter);
+                    try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
+                    {
+                        ds.getCalendar(cacheWriter);
+                    }
                 }
                 else
                 {
                     String keywords = request.getParameter(KeywordsParameter);
                     if (keywords != null)
                     {
-                        CacheWriter cacheWriter = ds.createCacheWriter(request, response);
-                        ds.getKeywordSelect(cacheWriter);
+                        try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
+                        {
+                            ds.getKeywordSelect(cacheWriter);
+                        }
                     }
                     else
                     {
@@ -89,8 +93,10 @@ public class BlogServlet extends HttpServlet implements BlogConstants
                                 {
                                     user = userService.getCurrentUser();
                                 }
-                                CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", true);
-                                ds.getComments(blogKey, user, cacheWriter);
+                                try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", true))
+                                {
+                                    ds.getComments(blogKey, user, cacheWriter);
+                                }
                             }
                             else
                             {
@@ -98,13 +104,17 @@ public class BlogServlet extends HttpServlet implements BlogConstants
                                 if (action != null)
                                 {
                                     String auth = request.getParameter(AuthParameter);
-                                    CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/plain", "utf-8", true);
-                                    ds.handleBlogAction(blogKey, action, auth, cacheWriter);
+                                    try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/plain", "utf-8", true))
+                                    {
+                                        ds.handleBlogAction(blogKey, action, auth, cacheWriter);
+                                    }
                                 }
                                 else
                                 {
-                                    CacheWriter cacheWriter = ds.createCacheWriter(request, response);
-                                    ds.getBlog(blogKey, base, cacheWriter);
+                                    try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
+                                    {
+                                        ds.getBlog(blogKey, base, cacheWriter);
+                                    }
                                 }
                             }
                         }
@@ -112,8 +122,10 @@ public class BlogServlet extends HttpServlet implements BlogConstants
                         {
                             String blogCursor = request.getParameter(CursorParameter);
                             boolean all = request.getParameter(AllParameter) != null;
-                            CacheWriter cacheWriter = ds.createCacheWriter(request, response);
-                            ds.getBlogList(blogCursor, base, all, cacheWriter);
+                            try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
+                            {
+                                ds.getBlogList(blogCursor, base, all, cacheWriter);
+                            }
                         }
                     }
                 }
@@ -151,8 +163,10 @@ public class BlogServlet extends HttpServlet implements BlogConstants
                 {
                     BlogCursor bc = new BlogCursor()
                             .setSearch(search);
-                    CacheWriter cacheWriter = ds.createCacheWriter(request, response);
-                    ds.getBlogList(bc.getWebSafe(), base, false, cacheWriter);
+                    try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
+                    {
+                        ds.getBlogList(bc.getWebSafe(), base, false, cacheWriter);
+                    }
                 }
             }
             else
