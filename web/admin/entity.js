@@ -114,7 +114,7 @@ $(document).ready(function(){
                 })
             .fail(function(jqXHR, textStatus, errorThrown)
                 {
-                    alert("Submit failed");
+                    alert("Submit failed: "+textStatus);
                 });
     });
 
