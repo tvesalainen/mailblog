@@ -955,8 +955,9 @@ public class DS extends CachingDatastoreService implements BlogConstants
         kmz.write(outputStream);
         outputStream.flush();
     }
-    public void writeLastPosition(CacheWriter cacheWriter, Settings settings) throws IOException
+    public void writeLastPosition(CacheWriter cacheWriter) throws IOException
     {
+        Settings settings = getSettings();
         Entity lastPlacemark = fetchLastPlacemark(settings);
         if (lastPlacemark != null)
         {

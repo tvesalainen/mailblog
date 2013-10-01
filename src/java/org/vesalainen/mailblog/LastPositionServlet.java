@@ -50,34 +50,11 @@ public class LastPositionServlet extends HttpServlet
             throws ServletException, IOException
     {
         DS ds = DS.get();
-        Settings settings = ds.getSettings();
-        if (settings.isCommonPlacemarks())
+        if (!ds.serveFromCache(request, response))
         {
-            String namespace = NamespaceManager.get();
-            try
+            try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", false))
             {
-                NamespaceManager.set(null);
-                if (!ds.serveFromCache(request, response))
-                {
-                    try (DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", false))
-                    {
-                        ds.writeLastPosition(cacheWriter, settings);
-                    }
-                }
-            }
-            finally
-            {
-                NamespaceManager.set(namespace);
-            }
-        }
-        else
-        {
-            if (!ds.serveFromCache(request, response))
-            {
-                try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", false))
-                {
-                    ds.writeLastPosition(cacheWriter, settings);
-                }
+                ds.writeLastPosition(cacheWriter);
             }
         }
     }
