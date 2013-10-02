@@ -56,7 +56,7 @@ public class LastPositionServlet extends HttpServlet
     protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
             throws ServletException, IOException
     {
-        final DS ds = DS.get();
+        DS ds = DS.get();
         Settings settings = ds.getSettings();
         RunInNamespace<Boolean> checkETag = new RunInNamespace() 
         {
@@ -65,6 +65,7 @@ public class LastPositionServlet extends HttpServlet
             {
                 try
                 {
+                    DS ds = DS.get();
                     return ds.sameETag(request, response);
                 }
                 catch (IOException ex)
@@ -84,6 +85,7 @@ public class LastPositionServlet extends HttpServlet
                 @Override
                 protected String run()
                 {
+                    DS ds = DS.get();
                     return ds.getETag();
                 }
             };
