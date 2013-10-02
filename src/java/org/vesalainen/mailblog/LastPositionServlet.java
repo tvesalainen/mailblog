@@ -23,6 +23,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -40,19 +42,53 @@ public class LastPositionServlet extends HttpServlet
      * Handles the HTTP
      * <code>GET</code> method.
      *
+     * ETag is used according to useCommonPlacemarks setting It is from empty 
+     * namespace or effective namespace.
+     * 
+     * Cache is always in effective namespace.
+     * 
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(final HttpServletRequest request, final HttpServletResponse response)
             throws ServletException, IOException
     {
-        DS ds = DS.get();
+        final DS ds = DS.get();
+        Settings settings = ds.getSettings();
+        RunInNamespace<Boolean> checkETag = new RunInNamespace() 
+        {
+            @Override
+            protected Boolean run()
+            {
+                try
+                {
+                    return ds.sameETag(request, response);
+                }
+                catch (IOException ex)
+                {
+                    return false;
+                }
+            }
+        };
+        if (checkETag.doIt(null, settings.isCommonPlacemarks()))
+        {
+            return;
+        }
         if (!ds.serveFromCache(request, response))
         {
-            try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", false))
+            RunInNamespace<String> getETag = new RunInNamespace() 
+            {
+                @Override
+                protected String run()
+                {
+                    return ds.getETag();
+                }
+            };
+            String eTag = getETag.doIt(null, settings.isCommonPlacemarks());
+            try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, eTag, "text/html", "utf-8", false))
             {
                 ds.writeLastPosition(cacheWriter);
             }

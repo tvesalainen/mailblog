@@ -51,7 +51,7 @@ public class RSSServlet extends HttpServlet
         try
         {
             DS ds = DS.get();
-            if (!ds.serveFromCache(request, response))
+            if (!ds.sameETagOrCached(request, response))
             {
                 URL base = getBase(request);
                 try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, "application/rss+xml", "utf-8", false))

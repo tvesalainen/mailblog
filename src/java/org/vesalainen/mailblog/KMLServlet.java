@@ -50,7 +50,7 @@ public class KMLServlet extends HttpServlet implements BlogConstants
     {
         DS ds = DS.get();
         URL base = getBase(request);
-        if (!ds.serveFromCache(request, response))
+        if (!ds.sameETagOrCached(request, response))
         {
             MaidenheadLocator2[] bb = MaidenheadLocator2.getBoundingBox(request);
             if (bb != null)

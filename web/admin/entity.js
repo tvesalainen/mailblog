@@ -99,7 +99,7 @@ $(document).ready(function(){
         $(target).find(".mandatory").each(function()
         {
             var val = $(this).val();
-            if (val == "")
+            if (val === "")
             {
                 $(this).focus();
             }

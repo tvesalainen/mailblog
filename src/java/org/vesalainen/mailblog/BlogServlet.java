@@ -55,7 +55,7 @@ public class BlogServlet extends HttpServlet implements BlogConstants
             throws ServletException, IOException
     {
         DS ds = DS.get();
-        if (!ds.serveFromCache(request, response))
+        if (!ds.sameETagOrCached(request, response))
         {
             try
             {
@@ -159,7 +159,7 @@ public class BlogServlet extends HttpServlet implements BlogConstants
             String search = request.getParameter(SearchParameter);
             if (search != null)
             {
-                if (!ds.serveFromCache(request, response))
+                if (!ds.sameETagOrCached(request, response))
                 {
                     BlogCursor bc = new BlogCursor()
                             .setSearch(search);
