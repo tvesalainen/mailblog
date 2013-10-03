@@ -1324,6 +1324,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         };
         placemark = rin.doIt(null, settings.isCommonPlacemarks());
         updateBlogCoordinate(placemark);
+        clearPlacemarkCache();
     }
     
     public void addPlacemark(final Entity placemark)
@@ -1340,6 +1341,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         };
         rin.doIt(null, settings.isCommonPlacemarks());
         updateBlogCoordinate(placemark);
+        clearPlacemarkCache();
     }
     
     public Entity createPlacemark()
@@ -1373,6 +1375,20 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 }
             }
         }
+    }
+
+    private void clearPlacemarkCache()
+    {
+        RunForAllNamespaces rfan = new RunForAllNamespaces() 
+        {
+            @Override
+            protected void run(String namespace)
+            {
+                DS ds = DS.get();
+                ds.cache.delete("/lastPosition");
+            }
+        };
+        rfan.start(this);
     }
 
    public class CacheWriter extends Writer
