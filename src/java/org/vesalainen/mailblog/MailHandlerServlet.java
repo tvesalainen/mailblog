@@ -80,6 +80,7 @@ import javax.xml.bind.JAXBException;
 import org.vesalainen.kml.KML;
 import org.vesalainen.kml.KMZ;
 import static org.vesalainen.mailblog.BlogConstants.DateProperty;
+import static org.vesalainen.mailblog.BlogConstants.OriginalSizeProperty;
 import org.vesalainen.mailblog.MaidenheadLocator.LocatorLevel;
 import org.vesalainen.mailblog.exif.ExifParser;
 
@@ -405,6 +406,11 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     Transform makeResize = ImagesServiceFactory.makeResize(settings.getPicMaxHeight(), settings.getPicMaxWidth());
                     Image shrinken = imagesService.applyTransform(makeResize, image);
                     Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, shrinken.getImageData(), WebSizeProperty, request);
+                    futures.add(res);
+                }
+                else
+                {
+                    Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, WebSizeProperty, request);
                     futures.add(res);
                 }
                 Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, OriginalSizeProperty, request);
