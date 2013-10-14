@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import static org.vesalainen.mailblog.BlogConstants.EmailProperty;
 import static org.vesalainen.mailblog.BlogConstants.FixPicProperty;
 import static org.vesalainen.mailblog.BlogConstants.NicknameProperty;
 import org.vesalainen.mailblog.types.LocaleHelp;
@@ -72,10 +71,6 @@ public class Settings implements BlogConstants, Serializable
     public String getDescription()
     {
         return (String) map.get(DescriptionProperty);
-    }
-    public Email getAdminEmail()
-    {
-        return (Email) map.get(AdminEmailProperty);
     }
     public Email getEmail()
     {

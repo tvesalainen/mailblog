@@ -38,7 +38,6 @@ public interface BlogConstants
     static final String CommentsKind = "Comments";
     static final String PlacemarkKind = "Placemarks";
     
-    static final String AdminEmailProperty = "AdminEmail";
     static final String TitleProperty = "Title";
     static final String DescriptionProperty = "Description";
     static final String TimestampProperty = "Timestamp";
