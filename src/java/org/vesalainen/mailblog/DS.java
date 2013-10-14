@@ -512,7 +512,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         DateFormat dateFormat = senderSettings.getDateFormat();
         Query query = new Query(CommentsKind);
         query.setAncestor(blogKey);
-        query.addSort(TimestampProperty, Query.SortDirection.DESCENDING);
+        query.addSort(TimestampProperty, Query.SortDirection.ASCENDING);
         PreparedQuery prepared = prepare(query);
         for (Entity comment : prepared.asIterable())
         {
