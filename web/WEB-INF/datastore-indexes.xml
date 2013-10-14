@@ -25,6 +25,6 @@
         <property name="Subsquare" direction="asc"/>
     </datastore-index>    
     <datastore-index kind="Comments" ancestor="true" source="manual">
-        <property name="Timestamp" direction="desc"/>
+        <property name="Timestamp" direction="asc"/>
     </datastore-index>
 </datastore-indexes>
