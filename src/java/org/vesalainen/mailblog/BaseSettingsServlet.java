@@ -16,6 +16,7 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -29,6 +30,7 @@ import java.util.TimeZone;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import static org.vesalainen.mailblog.BlogConstants.PublishImmediatelyProperty;
 
 /**
  *
@@ -44,6 +46,8 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
         addProperty(DescriptionProperty);
         addProperty(PublishImmediatelyProperty)
                 .setType(Boolean.class);
+        addProperty(AdminEmailProperty)
+                .setType(Email.class);
         addProperty(ShowCountProperty)
                 .setType(Long.class)
                 .setMandatory();
