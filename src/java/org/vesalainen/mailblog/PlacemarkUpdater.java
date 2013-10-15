@@ -45,31 +45,6 @@ public class PlacemarkUpdater extends FeatureVisitor<Entity> implements BlogCons
     @Override
     protected void handleTimeSpan(AbstractFeatureType feature, TimeSpanType timeSpan, Entity ctx)
     {
-        if (timeSpan != null && ctx != null)
-        {
-            List<Date> list = new ArrayList<>();
-            String begin = timeSpan.getBegin();
-            if (begin != null)
-            {
-                XMLGregorianCalendar cal = kml.getDtFactory().newXMLGregorianCalendar(begin);
-                list.add(cal.toGregorianCalendar().getTime());
-            }
-            else
-            {
-                list.add(new Date(0));
-            }
-            String end = timeSpan.getEnd();
-            if (end != null)
-            {
-                XMLGregorianCalendar cal = kml.getDtFactory().newXMLGregorianCalendar(end);
-                list.add(cal.toGregorianCalendar().getTime());
-            }
-            else
-            {
-                list.add(new Date(Long.MAX_VALUE));
-            }
-            ctx.setProperty(TimestampProperty, list);
-        }
     }
 
     @Override
@@ -135,7 +110,7 @@ public class PlacemarkUpdater extends FeatureVisitor<Entity> implements BlogCons
         {
             if (coordinates.size() > 1)
             {
-                ctx.setProperty(LocationProperty, coordinates);
+                ctx.setProperty(LocationProperty, DS.center(coordinates));
                 MaidenheadLocator2.setLocation(ctx, DS.center(coordinates), level.ordinal()+1);
             }
         }
