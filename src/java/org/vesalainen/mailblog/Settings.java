@@ -33,6 +33,10 @@ import java.util.Map;
 import java.util.TimeZone;
 import static org.vesalainen.mailblog.BlogConstants.FixPicProperty;
 import static org.vesalainen.mailblog.BlogConstants.NicknameProperty;
+import static org.vesalainen.mailblog.BlogConstants.SpotCustomIconProperty;
+import static org.vesalainen.mailblog.BlogConstants.SpotHelpIconProperty;
+import static org.vesalainen.mailblog.BlogConstants.SpotOkIconProperty;
+import static org.vesalainen.mailblog.SpotType.Ok;
 import org.vesalainen.mailblog.types.LocaleHelp;
 
 /**
@@ -40,7 +44,7 @@ import org.vesalainen.mailblog.types.LocaleHelp;
  */
 public class Settings implements BlogConstants, Serializable
 {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     private Map<String,Object> map = new HashMap<String,Object>();
 
     Settings(DS db, Entity entity) throws EntityNotFoundException
@@ -177,9 +181,24 @@ public class Settings implements BlogConstants, Serializable
     }
 
     private static final String DefaultIcon = "http://maps.google.com/mapfiles/kml/shapes/info.png";
-    public String getBlogIcon()
+    public String getSpotOkIcon()
     {
-        Link link = (Link) map.get(BlogIconProperty);
+        return getSpotIcon(SpotOkIconProperty);
+    }
+
+    public String getSpotCustomIcon()
+    {
+        return getSpotIcon(SpotCustomIconProperty);
+    }
+
+    public String getSpotHelpIcon()
+    {
+        return getSpotIcon(SpotHelpIconProperty);
+    }
+
+    private String getSpotIcon(String property)
+    {
+        Link link = (Link) map.get(property);
         if (link != null)
         {
             return link.getValue();
@@ -190,16 +209,18 @@ public class Settings implements BlogConstants, Serializable
         }
     }
 
-    public String getPlacemarkIcon()
+    public String getSpotIcon(SpotType type)
     {
-        Link link = (Link) map.get(PlacemarkIconProperty);
-        if (link != null)
+        switch (type)
         {
-            return link.getValue();
-        }
-        else
-        {
-            return DefaultIcon;
+            case Ok:
+                return getSpotIcon(SpotOkIconProperty);
+            case Custom:
+                return getSpotIcon(SpotCustomIconProperty);
+            case Help:
+                return getSpotIcon(SpotHelpIconProperty);
+            default:
+                return DefaultIcon;
         }
     }
     

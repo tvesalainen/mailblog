@@ -81,6 +81,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import net.opengis.kml.AbstractStyleSelectorType;
 import net.opengis.kml.BalloonStyleType;
 import net.opengis.kml.DocumentType;
 import net.opengis.kml.IconStyleType;
@@ -930,54 +931,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         JAXBElement<DocumentType> document = factory.createDocument(factory.createDocumentType());
         kmz.getKml().getValue().setAbstractFeatureGroup(document);
         // styles
-        // blog style
-        JAXBElement<StyleType> blogStyle = factory.createStyle(factory.createStyleType());
-        document.getValue().getAbstractStyleSelectorGroup().add(blogStyle);
-        blogStyle.getValue().setId("blog-style");
-
-        BalloonStyleType balloonStyle = factory.createBalloonStyleType();
-        balloonStyle.setText("$[name]<div>$[description]</div>");
-        blogStyle.getValue().setBalloonStyle(balloonStyle);
-
-        LinkType icon = factory.createLinkType();
-        Settings settings = getSettings();
-        icon.setHref(settings.getBlogIcon());
-        IconStyleType iconStyle = factory.createIconStyleType();
-        iconStyle.setIcon(icon);
-        blogStyle.getValue().setIconStyle(iconStyle);
-        // spot style
-        JAXBElement<StyleType> placemarkStyle = factory.createStyle(factory.createStyleType());
-        document.getValue().getAbstractStyleSelectorGroup().add(placemarkStyle);
-        placemarkStyle.getValue().setId("placemark-style");
-
-        BalloonStyleType spotBalloonStyle = factory.createBalloonStyleType();
-        spotBalloonStyle.setText("$[name]<div>$[description]</div>");
-        placemarkStyle.getValue().setBalloonStyle(spotBalloonStyle);
-
-        LinkType spotIcon = factory.createLinkType();
-        spotIcon.setHref(settings.getPlacemarkIcon());
-        IconStyleType spotIconStyle = factory.createIconStyleType();
-        spotIconStyle.setIcon(spotIcon);
-        placemarkStyle.getValue().setIconStyle(spotIconStyle);
-        // blogs
-        /*
-         Query blogQuery = new Query(BlogKind);
-         List<Filter> blogFilters = new ArrayList<>();
-         blogFilters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
-         MaidenheadLocator2.addFilters(blogFilters, bb);
-         blogQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, blogFilters));
-         PreparedQuery blogPrepared = prepare(blogQuery);
-         for (Entity blog : blogPrepared.asIterable(FetchOptions.Builder.withDefaults()))
-         {
-         PlacemarkType placemarkType = factory.createPlacemarkType();
-
-         populateBlog(placemarkType, blog, base);
-         populate(placemarkType, blog, factory, dtFactory);
-            
-         JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
-         document.getValue().getAbstractFeatureGroup().add(pm);
-         } 
-         */
+        setStyles(document, factory);
         // placemarks
         Entity firstPlacemark = null;
         Entity lastPlacemark = null;
@@ -985,8 +939,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         {
             System.err.println(placemark);
             PlacemarkType placemarkType = factory.createPlacemarkType();
-            populatePlacemark(placemarkType, placemark);
-            populate(placemarkType, placemark, lastPlacemark, factory, dtFactory);
+            populatePlacemark(placemarkType, placemark, factory, dtFactory);
 
             JAXBElement<PlacemarkType> pm = factory.createPlacemark(placemarkType);
             document.getValue().getAbstractFeatureGroup().add(pm);
@@ -996,48 +949,57 @@ public class DS extends CachingDatastoreService implements BlogConstants
             }
             lastPlacemark = placemark;
         }
-        if (lastPlacemark != null && firstPlacemark != null)
+        if (lastPlacemark != null)
         {
             GeoPt coordinate = (GeoPt) lastPlacemark.getProperty(LocationProperty);
             JAXBElement<LookAtType> lookAt = factory.createLookAt(factory.createLookAtType());
             lookAt.getValue().setLatitude((double) coordinate.getLatitude());
             lookAt.getValue().setLongitude((double) coordinate.getLongitude());
-            lookAt.getValue().setRange(200.0);
-            lookAt.getValue().setTilt(30.0);
-            List<Date> lastTimestamp = getTimestamp(lastPlacemark);
-            if (!lastTimestamp.isEmpty())
+            lookAt.getValue().setRange(2000.0);
+            Date lastTimestamp = (Date) lastPlacemark.getProperty(TimestampProperty);
+            if (lastTimestamp != null)
             {
-                if (lastTimestamp.size() == 1)
+                Date firstTimestamp = (Date) firstPlacemark.getProperty(TimestampProperty);
+                if (firstPlacemark != null)
                 {
-                    List<Date> firstTimestamp = getTimestamp(firstPlacemark);
-                    if (firstPlacemark != null && firstTimestamp.size() == 1)
-                    {
-                        TimeSpanType timeSpanType = factory.createTimeSpanType();
-                        GregorianCalendar cal1 = new GregorianCalendar();
-                        cal1.setTime(firstTimestamp.get(0));
-                        XMLGregorianCalendar xCal1 = dtFactory.newXMLGregorianCalendar(cal1);
-                        timeSpanType.setBegin(xCal1.toXMLFormat());
-                        GregorianCalendar cal2 = new GregorianCalendar();
-                        cal2.setTime(lastTimestamp.get(0));
-                        XMLGregorianCalendar xCal2 = dtFactory.newXMLGregorianCalendar(cal2);
-                        timeSpanType.setEnd(xCal2.toXMLFormat());
-                        lookAt.getValue().getAbstractViewObjectExtensionGroup().add(factory.createTimeSpan(timeSpanType));
-                    }
-                    else
-                    {
-                        TimeStampType timeStampType = factory.createTimeStampType();
-                        GregorianCalendar cal = new GregorianCalendar();
-                        cal.setTime(lastTimestamp.get(0));
-                        XMLGregorianCalendar xCal = dtFactory.newXMLGregorianCalendar(cal);
-                        timeStampType.setWhen(xCal.toXMLFormat());
-                        lookAt.getValue().getAbstractViewObjectExtensionGroup().add(factory.createTimeStamp(timeStampType));
-                    }
+                    TimeSpanType timeSpanType = factory.createTimeSpanType();
+                    GregorianCalendar cal1 = new GregorianCalendar();
+                    cal1.setTime(firstTimestamp);
+                    XMLGregorianCalendar xCal1 = dtFactory.newXMLGregorianCalendar(cal1);
+                    timeSpanType.setBegin(xCal1.toXMLFormat());
+                    GregorianCalendar cal2 = new GregorianCalendar();
+                    cal2.setTime(lastTimestamp);
+                    XMLGregorianCalendar xCal2 = dtFactory.newXMLGregorianCalendar(cal2);
+                    timeSpanType.setEnd(xCal2.toXMLFormat());
+                    lookAt.getValue().getAbstractViewObjectExtensionGroup().add(factory.createTimeSpan(timeSpanType));
                 }
             }
             document.getValue().setAbstractViewGroup(lookAt);
         }
         kmz.write(outputStream);
         outputStream.flush();
+    }
+
+    private void setStyles(JAXBElement<DocumentType> document, ObjectFactory factory)
+    {
+        Settings settings = getSettings();
+        List<JAXBElement<? extends AbstractStyleSelectorType>> abstractStyleSelectorGroup = document.getValue().getAbstractStyleSelectorGroup();
+        for (SpotType type : SpotType.values())
+        {
+            JAXBElement<StyleType> style = factory.createStyle(factory.createStyleType());
+            abstractStyleSelectorGroup.add(style);
+            style.getValue().setId(SpotType.getSpotStyleId(type));
+
+            BalloonStyleType balloonStyle = factory.createBalloonStyleType();
+            balloonStyle.setText("$[name]<div>$[description]</div>");
+            style.getValue().setBalloonStyle(balloonStyle);
+
+            LinkType icon = factory.createLinkType();
+            icon.setHref(settings.getSpotIcon(type));
+            IconStyleType iconStyle = factory.createIconStyleType();
+            iconStyle.setIcon(icon);
+            style.getValue().setIconStyle(iconStyle);
+        }
     }
 
     public void writeLastPosition(CacheWriter cacheWriter) throws IOException
@@ -1233,94 +1195,35 @@ public class DS extends CachingDatastoreService implements BlogConstants
         return cal.getTime();
     }
 
-    private void populateBlog(PlacemarkType placemarkType, Entity blog, URI base)
+    private void populatePlacemark(PlacemarkType placemarkType, Entity placemark, ObjectFactory factory, DatatypeFactory dtFactory)
     {
-        String subject = (String) blog.getProperty(SubjectProperty);
-        String id = KeyFactory.keyToString(blog.getKey());
-        URI uri = base.resolve("/index.html?blog=" + id);
-        placemarkType.setName(subject);
-        placemarkType.setStyleUrl("#blog-style");
-        placemarkType.setDescription("<a href=\"" + uri + "\">" + subject + "</a>");
-    }
-
-    private void populatePlacemark(PlacemarkType placemarkType, Entity placemark)
-    {
-        placemarkType.setStyleUrl("#placemark-style");
+        String description = (String) placemark.getProperty(DescriptionProperty);
+        SpotType spotType = SpotType.getSpotType(description);
+        placemarkType.setStyleUrl("#"+SpotType.getSpotStyleId(spotType));
         String title = (String) placemark.getProperty(TitleProperty);
         //placemarkType.setName(title);
-        String description = (String) placemark.getProperty(DescriptionProperty);
         //placemarkType.setDescription(description);
-    }
-
-    private void populate(PlacemarkType placemarkType, Entity placemark, Entity lastPlacemark, ObjectFactory factory, DatatypeFactory dtFactory)
-    {
         String id = KeyFactory.keyToString(placemark.getKey());
 
         placemarkType.setId(id);
 
-        List<GeoPt> coordinates = getCoordinates(placemark);
-        if (!coordinates.isEmpty())
+        GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
+        if (location != null)
         {
-            if (coordinates.size() == 1)
-            {
-                if (lastPlacemark != null)
-                {
-                    List<GeoPt> lastCoordinates = getCoordinates(lastPlacemark);
-                    List<GeoPt> list = new ArrayList<>();
-                    list.addAll(0, lastCoordinates);
-                    list.addAll(0, coordinates);
-                    LineStringType lineStringType = factory.createLineStringType();
-                    lineStringType.getCoordinates().add(getCoordinatesString(list));
-                    placemarkType.setAbstractGeometryGroup(factory.createLineString(lineStringType));
-                }
-                else
-                {
-                    GeoPt location = coordinates.get(0);
-                    PointType pointType = factory.createPointType();
-                    pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
-                    placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
-                }
-            }
-            else
-            {
-                LineStringType lineStringType = factory.createLineStringType();
-                lineStringType.getCoordinates().add(getCoordinatesString(coordinates));
-                placemarkType.setAbstractGeometryGroup(factory.createLineString(lineStringType));
-            }
+            PointType pointType = factory.createPointType();
+            pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
+            placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
         }
 
-        List<Date> timestamp = getTimestamp(placemark);
-        if (!timestamp.isEmpty())
+        Date timestamp = (Date) placemark.getProperty(TimestampProperty);
+        if (timestamp != null)
         {
-            if (timestamp.size() == 1)
-            {
-                TimeStampType timeStampType = factory.createTimeStampType();
-                GregorianCalendar cal = new GregorianCalendar();
-                cal.setTime(timestamp.get(0));
-                XMLGregorianCalendar xCal = dtFactory.newXMLGregorianCalendar(cal);
-                timeStampType.setWhen(xCal.toXMLFormat());
-                placemarkType.setAbstractTimePrimitiveGroup(factory.createTimeStamp(timeStampType));
-            }
-            else
-            {
-                TimeSpanType timeSpanType = factory.createTimeSpanType();
-                if (timestamp.get(0).getTime() > 0)
-                {
-                    GregorianCalendar begin = new GregorianCalendar();
-                    begin.setTime(timestamp.get(0));
-                    XMLGregorianCalendar xBegin = dtFactory.newXMLGregorianCalendar(begin);
-                    timeSpanType.setBegin(xBegin.toXMLFormat());
-                }
-                if (timestamp.get(1).getTime() < Long.MAX_VALUE)
-                {
-                    GregorianCalendar end = new GregorianCalendar();
-                    end.setTime(timestamp.get(1));
-                    XMLGregorianCalendar xEnd = dtFactory.newXMLGregorianCalendar(end);
-                    timeSpanType.setEnd(xEnd.toXMLFormat());
-                }
-            }
-
-
+            TimeStampType timeStampType = factory.createTimeStampType();
+            GregorianCalendar cal = new GregorianCalendar();
+            cal.setTime(timestamp);
+            XMLGregorianCalendar xCal = dtFactory.newXMLGregorianCalendar(cal);
+            timeStampType.setWhen(xCal.toXMLFormat());
+            placemarkType.setAbstractTimePrimitiveGroup(factory.createTimeStamp(timeStampType));
         }
     }
 
@@ -1335,7 +1238,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
         return new GeoPt(lat / list.size(), lon / list.size());
     }
-
+    /**
+     * @deprecated 
+     * @param entity
+     * @return 
+     */
     public List<GeoPt> getCoordinates(Entity entity)
     {
         Object ob = entity.getProperty(LocationProperty);
@@ -1350,7 +1257,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
         }
         return (List<GeoPt>) ob;
     }
-
+    /**
+     * @deprecated 
+     * @param entity
+     * @return 
+     */
     private List<Date> getTimestamp(Entity entity)
     {
         Object ob = entity.getProperty(TimestampProperty);

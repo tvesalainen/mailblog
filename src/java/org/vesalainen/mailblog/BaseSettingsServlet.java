@@ -78,10 +78,13 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
                 .setType(Boolean.class);
         addProperty(CommonPlacemarksProperty)
                 .setType(Boolean.class);
-        addProperty(BlogIconProperty)
+        addProperty(SpotOkIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100");
-        addProperty(PlacemarkIconProperty)
+        addProperty(SpotCustomIconProperty)
+                .setType(Link.class)
+                .setAttribute("size", "100");
+        addProperty(SpotHelpIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100");
     }

@@ -46,7 +46,6 @@ public interface BlogConstants
     static final String SenderProperty = "Sender";
     static final String DateProperty = "Date";
     static final String CityProperty = "City";
-    static final String CoordinateProperty = "Coordinate";
     static final String FilenameProperty = "Filename";
     static final String ContentTypeProperty = "ContentType";
     static final String EmailProperty = "Email";
@@ -73,8 +72,9 @@ public interface BlogConstants
     static final String LocationProperty = "Location";
     static final String FileProperty = "File";
     static final String CommonPlacemarksProperty = "CommonPlacemarks";
-    static final String BlogIconProperty = "BlogIcon";
-    static final String PlacemarkIconProperty = "PlacemarkIcon";
+    static final String SpotOkIconProperty = "SpotOkIcon";
+    static final String SpotCustomIconProperty = "SpotCustomIcon";
+    static final String SpotHelpIconProperty = "SpotHelpIcon";
     static final String DontSendEmailProperty = "DontSendEmail";
     // Maidenhead properties
     static final String FieldProperty = "Field";
