@@ -19,7 +19,9 @@ package org.vesalainen.mailblog;
 
 import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.GeoPt;
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -28,6 +30,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -47,14 +51,17 @@ import net.opengis.kml.LookAtType;
 import net.opengis.kml.NetworkLinkType;
 import net.opengis.kml.ObjectFactory;
 import net.opengis.kml.PlacemarkType;
+import net.opengis.kml.PointType;
 import net.opengis.kml.RefreshModeEnumType;
 import net.opengis.kml.RegionType;
 import net.opengis.kml.StyleType;
 import net.opengis.kml.ViewRefreshModeEnumType;
 import org.vesalainen.kml.KML;
 import org.vesalainen.kml.KMZ;
+import static org.vesalainen.mailblog.BlogConstants.DescriptionProperty;
 import static org.vesalainen.mailblog.BlogConstants.LocationProperty;
 import static org.vesalainen.mailblog.BlogConstants.NamespaceParameter;
+import static org.vesalainen.mailblog.BlogConstants.TitleProperty;
 import org.vesalainen.mailblog.DS.CacheOutputStream;
 import org.vesalainen.mailblog.DS.CacheWriter;
 
@@ -71,14 +78,21 @@ public class KMLServlet extends HttpServlet implements BlogConstants
     {
         DS ds = DS.get();
         URL base = getBase(request);
-        if (!ds.sameETagOrCached(request, response))
+        if (!ds.serveFromCache(request, response))
         {
             String keyString = request.getParameter("key");
             if (keyString != null)
             {
                 try (CacheOutputStream cos = ds.createCacheOutputStream(request, response, "application/vnd.google-earth.kmz", "utf-8", false))
                 {
-                    log("updateKml");
+                    Key key = KeyFactory.stringToKey(keyString);
+                    log("writeDetails "+key);
+                    switch (key.getKind())
+                    {
+                        case "Placemarks":
+                            writePlacemark(key, request, cos);
+                            break;
+                    }
                     cos.cache();
                 }
             }
@@ -87,14 +101,61 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                 try (CacheOutputStream cos = ds.createCacheOutputStream(request, response, "application/vnd.google-earth.kmz", "utf-8", false))
                 {
                     writeRegions(request, cos);
-                    log("networkLink");
+                    log("writeRegions");
                     cos.cache();
                 }
             }
         }
     }
 
-    public void writeRegions(HttpServletRequest request, CacheOutputStream out) throws IOException
+    private void writePlacemark(Key key, HttpServletRequest request, CacheOutputStream out) throws IOException
+    {
+        DS ds = DS.get();
+        Entity placemark = null;
+        try
+        {
+            placemark = ds.get(key);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new IOException(ex);
+        }
+        Settings settings = ds.getSettings();
+        KMZ kmz = new KMZ();
+        ObjectFactory factory = kmz.getFactory();
+        DocumentType documentType = factory.createDocumentType();
+        JAXBElement<DocumentType> document = factory.createDocument(documentType);
+        List<JAXBElement<? extends AbstractFeatureType>> abstractFeatureGroup = documentType.getAbstractFeatureGroup();
+        kmz.getKml().getValue().setAbstractFeatureGroup(document);
+        // styles
+        setStyles(documentType, factory, settings);
+        
+        PlacemarkType placemarkType = factory.createPlacemarkType();
+        JAXBElement<PlacemarkType> aPlacemark = factory.createPlacemark(placemarkType);
+        abstractFeatureGroup.add(aPlacemark);
+        
+        String description = (String) placemark.getProperty(DescriptionProperty);
+        SpotType spotType = SpotType.getSpotType(description);
+        placemarkType.setStyleUrl("#"+SpotType.getSpotStyleId(spotType));
+        String title = (String) placemark.getProperty(TitleProperty);
+        //placemarkType.setName(title);
+        //placemarkType.setDescription(description);
+        String id = KeyFactory.keyToString(placemark.getKey());
+
+        placemarkType.setId(id);
+
+        GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
+        if (location != null)
+        {
+            PointType pointType = factory.createPointType();
+            pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
+            placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
+        }
+        // write
+        kmz.write(out);
+    }
+
+    private void writeRegions(HttpServletRequest request, CacheOutputStream out) throws IOException
     {
         DS ds = DS.get();
         Settings settings = ds.getSettings();
