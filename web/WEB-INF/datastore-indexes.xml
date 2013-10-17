@@ -27,4 +27,8 @@
     <datastore-index kind="Comments" ancestor="true" source="manual">
         <property name="Timestamp" direction="asc"/>
     </datastore-index>
+    <datastore-index kind="Placemarks" ancestor="false" source="manual">
+        <property name="Field" direction="asc"/>
+        <property name="Timestamp" direction="asc"/>
+    </datastore-index>
 </datastore-indexes>

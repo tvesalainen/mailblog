@@ -66,6 +66,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -916,15 +917,6 @@ public class DS extends CachingDatastoreService implements BlogConstants
 
     public void updateKml(MaidenheadLocator2[] bb, URL reqUrl, CacheOutputStream outputStream) throws IOException
     {
-        URI base;
-        try
-        {
-            base = reqUrl.toURI();
-        }
-        catch (URISyntaxException ex)
-        {
-            throw new IOException();
-        }
         KMZ kmz = new KMZ();
         ObjectFactory factory = kmz.getFactory();
         DatatypeFactory dtFactory = kmz.getDtFactory();
@@ -949,6 +941,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             }
             lastPlacemark = placemark;
         }
+        /*
         if (lastPlacemark != null)
         {
             GeoPt coordinate = (GeoPt) lastPlacemark.getProperty(LocationProperty);
@@ -976,8 +969,8 @@ public class DS extends CachingDatastoreService implements BlogConstants
             }
             document.getValue().setAbstractViewGroup(lookAt);
         }
+        */
         kmz.write(outputStream);
-        outputStream.flush();
     }
 
     private void setStyles(JAXBElement<DocumentType> document, ObjectFactory factory)
@@ -1050,7 +1043,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         return rin.doIt(null, settings.isCommonPlacemarks());
     }
 
-    private List<Entity> fetchPlacemarks(MaidenheadLocator2[] bb)
+    private List<Entity> fetchPlacemarks(final MaidenheadLocator2[] bb)
     {
         Settings settings = getSettings();
         RunInNamespace<List<Entity>> rin = new RunInNamespace()
@@ -1059,18 +1052,13 @@ public class DS extends CachingDatastoreService implements BlogConstants
             protected List<Entity> run()
             {
                 Query placemarkQuery = new Query(PlacemarkKind);
-                /*
-                 List<Filter> placemarkFilters = new ArrayList<Filter>();
-                 MaidenheadLocator2.addFilters(placemarkFilters, bb);
-                 if (placemarkFilters.size() == 1)
-                 {
-                 placemarkQuery.setFilter(placemarkFilters.get(0));
-                 }
-                 else
-                 {
-                 placemarkQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, placemarkFilters));
-                 }
-                 */
+                Set<String> fieldsBetween = MaidenheadLocator.fieldsBetween(bb);
+                if (fieldsBetween.size() > 30)
+                {
+                    System.err.println("Too many fields in request = "+fieldsBetween);
+                    return Collections.EMPTY_LIST;
+                }
+                placemarkQuery.setFilter(new FilterPredicate(FieldProperty, Query.FilterOperator.IN, fieldsBetween));
                 placemarkQuery.addSort(TimestampProperty);
                 System.err.println(placemarkQuery);
                 PreparedQuery placemarkPrepared = prepare(placemarkQuery);
@@ -1214,7 +1202,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
             placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
         }
-
+        /*
         Date timestamp = (Date) placemark.getProperty(TimestampProperty);
         if (timestamp != null)
         {
@@ -1225,6 +1213,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
             timeStampType.setWhen(xCal.toXMLFormat());
             placemarkType.setAbstractTimePrimitiveGroup(factory.createTimeStamp(timeStampType));
         }
+        */
     }
 
     public static GeoPt center(Collection<GeoPt> list)
@@ -1429,6 +1418,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
                     throw new IllegalArgumentException(ex);
                 }
                 cache.put(cacheKey, cachedContent);
+                System.err.println("caching as "+cacheKey);
             }
             cached = true;
         }
@@ -1497,6 +1487,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
                 CachedContent cachedContent;
                 cachedContent = new CachedContent(content, response.getContentType(), response.getCharacterEncoding(), eTag, isPrivate);
                 cache.put(cacheKey, cachedContent);
+                System.err.println("caching as "+cacheKey);
             }
             cached = true;
         }
