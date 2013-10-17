@@ -927,7 +927,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         // placemarks
         Entity firstPlacemark = null;
         Entity lastPlacemark = null;
-        for (Entity placemark : fetchPlacemarks(bb))
+        for (Entity placemark : fetchPlacemarks())
         {
             System.err.println(placemark);
             PlacemarkType placemarkType = factory.createPlacemarkType();
@@ -972,7 +972,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
         */
         kmz.write(outputStream);
     }
-
+    /**
+     * @deprecated 
+     * @param document
+     * @param factory 
+     */
     private void setStyles(JAXBElement<DocumentType> document, ObjectFactory factory)
     {
         Settings settings = getSettings();
@@ -1043,7 +1047,7 @@ public class DS extends CachingDatastoreService implements BlogConstants
         return rin.doIt(null, settings.isCommonPlacemarks());
     }
 
-    private List<Entity> fetchPlacemarks(final MaidenheadLocator2[] bb)
+    public List<Entity> fetchPlacemarks()
     {
         Settings settings = getSettings();
         RunInNamespace<List<Entity>> rin = new RunInNamespace()
@@ -1052,13 +1056,6 @@ public class DS extends CachingDatastoreService implements BlogConstants
             protected List<Entity> run()
             {
                 Query placemarkQuery = new Query(PlacemarkKind);
-                Set<String> fieldsBetween = MaidenheadLocator.fieldsBetween(bb);
-                if (fieldsBetween.size() > 30)
-                {
-                    System.err.println("Too many fields in request = "+fieldsBetween);
-                    return Collections.EMPTY_LIST;
-                }
-                placemarkQuery.setFilter(new FilterPredicate(FieldProperty, Query.FilterOperator.IN, fieldsBetween));
                 placemarkQuery.addSort(TimestampProperty);
                 System.err.println(placemarkQuery);
                 PreparedQuery placemarkPrepared = prepare(placemarkQuery);
