@@ -16,10 +16,15 @@ public class LatLonAltBox
     private static final double HalfCircle = 180;
     private static final double FullCircle = 360;
     private boolean init;
-    private double north = -90.0;
-    private double south = 90.0;
-    private double west = 180.0;
-    private double east = -180.0;
+    private double north;
+    private double south;
+    private double west;
+    private double east;
+
+    public LatLonAltBox()
+    {
+    }
+    
     /**
      * 
      * @param center Center location
@@ -37,7 +42,7 @@ public class LatLonAltBox
      */
     public LatLonAltBox(double latitude, double longitude, double dia)
     {
-        dia = dia / 120;    // 60 NM / 2
+        dia = dia / 60;    // 60 NM
         north = normalize(latitude+dia);
         south = normalize(latitude-dia);
         west = normalize(longitude-dia);
@@ -75,6 +80,14 @@ public class LatLonAltBox
             east = longitude;
             init = true;
         }
+    }
+    public void clear()
+    {
+        north = 0;
+        south = 0;
+        west = 0;
+        east = 0;
+        init = false;
     }
     /**
      * Return area in square degrees

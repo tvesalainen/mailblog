@@ -71,7 +71,6 @@ import org.vesalainen.mailblog.DS.CacheWriter;
 public class KMLServlet extends HttpServlet implements BlogConstants
 {
     private static final String PathStyleId = "path-style";
-    private static final double OverAllMin = 1000;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -167,28 +166,8 @@ public class KMLServlet extends HttpServlet implements BlogConstants
         kmz.getKml().getValue().setAbstractFeatureGroup(document);
         // styles
         setStyles(documentType, factory, settings);
-        // overall placemark
-        PlacemarkType overallPlacemarkType = factory.createPlacemarkType();
-        JAXBElement<PlacemarkType> overallPlacemark = factory.createPlacemark(overallPlacemarkType);
-        abstractFeatureGroup.add(overallPlacemark);
-        // linestring
-        overallPlacemarkType.setStyleUrl('#'+PathStyleId);
-        LineStringType overallLineStringType = factory.createLineStringType();
-        JAXBElement<LineStringType> overallLineString = factory.createLineString(overallLineStringType);
-        overallPlacemarkType.setAbstractGeometryGroup(overallLineString);
-        List<String> overallCoordinates = overallLineStringType.getCoordinates();
-        // region
-        RegionType overallRegionType = factory.createRegionType();
-        overallPlacemarkType.setRegion(overallRegionType);
-        // latlonaltbox
-        LatLonAltBoxType overallLatLonAltBoxType = factory.createLatLonAltBoxType();
-        overallRegionType.setLatLonAltBox(overallLatLonAltBoxType);
-        // lod
-        LodType overallLodType = factory.createLodType();
-        overallLodType.setMinLodPixels(-1.0);
-        overallLodType.setMaxLodPixels(OverAllMin);
-        overallRegionType.setLod(overallLodType);
         // placemarks
+        Entity prevPlacemark = null;
         Entity lastPlacemark = null;
         LatLonAltBox overallBox = new LatLonAltBox();
         for (Entity placemark : ds.fetchPlacemarks())
@@ -196,8 +175,39 @@ public class KMLServlet extends HttpServlet implements BlogConstants
             GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
             if (location != null)
             {
-                overallBox.add(location);
-                overallCoordinates.add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
+                if (prevPlacemark != null)
+                {
+                    GeoPt prevLocation = (GeoPt) prevPlacemark.getProperty(LocationProperty);
+                    // overall placemark
+                    PlacemarkType overallPlacemarkType = factory.createPlacemarkType();
+                    JAXBElement<PlacemarkType> overallPlacemark = factory.createPlacemark(overallPlacemarkType);
+                    abstractFeatureGroup.add(overallPlacemark);
+                    // linestring
+                    overallPlacemarkType.setStyleUrl('#'+PathStyleId);
+                    LineStringType overallLineStringType = factory.createLineStringType();
+                    JAXBElement<LineStringType> overallLineString = factory.createLineString(overallLineStringType);
+                    overallPlacemarkType.setAbstractGeometryGroup(overallLineString);
+                    List<String> overallCoordinates = overallLineStringType.getCoordinates();
+                    // region
+                    RegionType overallRegionType = factory.createRegionType();
+                    overallPlacemarkType.setRegion(overallRegionType);
+                    // latlonaltbox
+                    LatLonAltBoxType overallLatLonAltBoxType = factory.createLatLonAltBoxType();
+                    overallRegionType.setLatLonAltBox(overallLatLonAltBoxType);
+                    overallBox.clear();
+                    overallBox.add(prevLocation);
+                    overallBox.add(location);
+                    overallBox.populate(overallLatLonAltBoxType);
+                    overallCoordinates.add(String.format(Locale.US, "%1$f,%2$f,0", prevLocation.getLongitude(), prevLocation.getLatitude()));
+                    overallCoordinates.add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
+                    // lod
+                    LodType overallLodType = factory.createLodType();
+                    overallLodType.setMinLodPixels(-1.0);
+                    double area = 1000*overallBox.getArea();
+                    overallLodType.setMaxLodPixels(area);
+                    overallLodType.setMaxFadeExtent(area*0.8);
+                    overallRegionType.setLod(overallLodType);
+                }
                 // network link
                 NetworkLinkType networkLinkType = factory.createNetworkLinkType();
                 // region
@@ -205,10 +215,8 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                 networkLinkType.setRegion(regionType);
                 // latlonalt
                 LatLonAltBoxType latLonAltBoxType = factory.createLatLonAltBoxType();
-                latLonAltBoxType.setNorth((double)location.getLatitude()+0.001);
-                latLonAltBoxType.setSouth((double)location.getLatitude());
-                latLonAltBoxType.setWest((double)location.getLongitude());
-                latLonAltBoxType.setEast((double)location.getLongitude()+0.001);
+                LatLonAltBox box = new LatLonAltBox(location, 1.0);
+                box.populate(latLonAltBoxType);
                 regionType.setLatLonAltBox(latLonAltBoxType);
                 // lod
                 LodType lodType = factory.createLodType();
@@ -223,12 +231,12 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                 networkLinkType.setLink(linkType);
                 JAXBElement<NetworkLinkType> networkLink = factory.createNetworkLink(networkLinkType);
                 abstractFeatureGroup.add(networkLink);
+                prevPlacemark = placemark;
                 lastPlacemark = placemark;
             }
         }
         if (lastPlacemark != null)
         {
-            overallBox.populate(overallLatLonAltBoxType);
             // lookAt
             GeoPt location = (GeoPt) lastPlacemark.getProperty(LocationProperty);
             LookAtType lookAtType = factory.createLookAtType();
