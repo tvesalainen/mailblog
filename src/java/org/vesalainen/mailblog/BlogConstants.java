@@ -37,6 +37,9 @@ public interface BlogConstants
     static final String KeywordKind = "Settings";
     static final String CommentsKind = "Comments";
     static final String PlacemarkKind = "Placemarks";
+    static final String TrackKind = "Track";
+    static final String TrackSeqKind = "TrackSeq";
+    static final String TrackPointKind = "TrackPoint";
     
     static final String TitleProperty = "Title";
     static final String DescriptionProperty = "Description";
@@ -76,6 +79,10 @@ public interface BlogConstants
     static final String SpotCustomIconProperty = "SpotCustomIcon";
     static final String SpotHelpIconProperty = "SpotHelpIcon";
     static final String DontSendEmailProperty = "DontSendEmail";
+    static final String SouthWestProperty = "SouthWest";
+    static final String NorthEastProperty = "NorthEast";
+    static final String TrackBearingToleranceProperty = "TrackBearingTolerance";
+    static final String TrackMinDistanceProperty = "TrackMinDistance";
     // Maidenhead properties
     static final String FieldProperty = "Field";
     static final String SquareProperty = "Square";

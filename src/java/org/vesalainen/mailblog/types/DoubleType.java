@@ -44,4 +44,10 @@ public class DoubleType extends PropertyType<Double>
         return "";
     }
 
+    @Override
+    public String getDefaultInputType()
+    {
+        return "number";
+    }
+
 }

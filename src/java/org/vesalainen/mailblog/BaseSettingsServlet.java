@@ -29,6 +29,7 @@ import java.util.TimeZone;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import static org.vesalainen.mailblog.BlogConstants.TrackBearingToleranceProperty;
 
 /**
  *
@@ -84,9 +85,12 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
         addProperty(SpotCustomIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100");
-        addProperty(SpotHelpIconProperty)
-                .setType(Link.class)
-                .setAttribute("size", "100");
+        addProperty(TrackBearingToleranceProperty)
+                .setType(Double.class)
+                .setTooltip("If bearing changes less than given degrees, no new trackpoint is created");
+        addProperty(TrackMinDistanceProperty)
+                .setType(Double.class)
+                .setTooltip("Minimum distance for two trackpoints");
     }
 
     @Override

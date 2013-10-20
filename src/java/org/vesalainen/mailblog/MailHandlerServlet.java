@@ -77,6 +77,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
+import org.vesalainen.gpx.GPX;
 import org.vesalainen.kml.KML;
 import org.vesalainen.kml.KMZ;
 import static org.vesalainen.mailblog.BlogConstants.DateProperty;
@@ -235,7 +236,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             try
             {
                 String htmlBody = getHtmlBody(bodyPartList);
-                if (htmlBody != null)
+                if (htmlBody != null && htmlBody.length() > 10)
                 {
                     boolean publishImmediately = settings.isPublishImmediately();
                     Entity blog = createBlog(blogKey, message, htmlBody, publishImmediately, senderEmail);
@@ -370,7 +371,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         }
         return MimeUtility.decodeText(header[0]);
     }
-    private Collection<Future<HTTPResponse>> handleBodyPart(HttpServletRequest request, Key blogKey, BodyPart bodyPart, Settings settings) throws MessagingException, IOException
+    private Collection<Future<HTTPResponse>> handleBodyPart(HttpServletRequest request, Key blogKey, BodyPart bodyPart, final Settings settings) throws MessagingException, IOException
     {
         ImagesService imagesService = ImagesServiceFactory.getImagesService();
         DS ds = DS.get();
@@ -438,6 +439,33 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     KMZ kmz = new KMZ(is);
                     PlacemarkUpdater pu = new PlacemarkUpdater(ds, kmz, LocatorLevel.Field);
                     pu.visit(kmz, null);
+                }
+                catch (JAXBException ex)
+                {
+                    log("reading kmz failed", ex);
+                }
+            }        
+            if (filename.endsWith(".gpx"))
+            {
+                try
+                {
+                    InputStream is = (InputStream) content;
+                    final GPX gpx = new GPX(is);
+                    final OpenCPNTrackHandler handler = new OpenCPNTrackHandler(ds);
+                    RunInNamespace rin = new RunInNamespace() 
+                    {
+                        @Override
+                        protected Object run()
+                        {
+                            gpx.browse(
+                                    settings.getTrackBearingTolerance(), 
+                                    settings.getTrackMinimumDistance(), 
+                                    handler
+                                    );
+                            return null;
+                        }
+                    };
+                    rin.doIt(null, settings.isCommonPlacemarks());
                 }
                 catch (JAXBException ex)
                 {

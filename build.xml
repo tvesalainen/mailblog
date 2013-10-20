@@ -53,6 +53,7 @@
         </copy>
         <copy file="${appengine.api.jar}" todir="build/WEB-INF/lib"/>
         <copy file="${kml22.jar}" todir="build/WEB-INF/lib"/>
+        <copy file="${gpx11.jar}" todir="build/WEB-INF/lib"/>
         <copy file="${rss.jar}" todir="build/WEB-INF/lib"/>
         <copy file="${javalpg.jar}" todir="build/WEB-INF/lib"/>
         <copy file="${parsers.jar}" todir="build/WEB-INF/lib"/>

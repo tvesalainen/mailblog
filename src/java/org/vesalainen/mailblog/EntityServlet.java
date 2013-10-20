@@ -347,6 +347,10 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
             }
             return this;
         }
+        public Property setTooltip(String text)
+        {
+            return setAttribute("title", text);
+        }
         public Property setAttribute(String name, String value)
         {
             attributes.put(name, value);

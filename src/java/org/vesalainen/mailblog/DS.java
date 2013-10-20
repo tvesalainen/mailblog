@@ -97,6 +97,7 @@ import net.opengis.kml.TimeSpanType;
 import net.opengis.kml.TimeStampType;
 import org.vesalainen.kml.KMZ;
 import static org.vesalainen.mailblog.BlogConstants.BaseKey;
+import static org.vesalainen.mailblog.BlogConstants.BlogKind;
 import static org.vesalainen.mailblog.BlogConstants.DescriptionProperty;
 import static org.vesalainen.mailblog.BlogConstants.LocationProperty;
 import static org.vesalainen.mailblog.BlogConstants.PlacemarkKind;
@@ -369,6 +370,11 @@ public class DS extends CachingDatastoreService implements BlogConstants
     public Key getBlogKey(String messageId)
     {
         return KeyFactory.createKey(getRootKey(), BlogKind, messageId);
+    }
+
+    public Key getTrackKey(String guid)
+    {
+        return KeyFactory.createKey(getRootKey(), TrackKind, guid);
     }
 
     public Entity getBlogFromMessageId(String messageId)

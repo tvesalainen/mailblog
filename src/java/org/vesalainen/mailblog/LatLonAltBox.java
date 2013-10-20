@@ -102,6 +102,14 @@ public class LatLonAltBox
         }
         return abs*(north-south);
     }
+    public GeoPt getSouthWest()
+    {
+        return new GeoPt((float)south, (float)west);
+    }
+    public GeoPt getNorthEast()
+    {
+        return new GeoPt((float)north, (float)east);
+    }
     private static final double normalize(double val)
     {
         return ((val + HalfCircle + FullCircle) % FullCircle) - HalfCircle;

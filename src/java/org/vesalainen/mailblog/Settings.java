@@ -33,9 +33,11 @@ import java.util.Map;
 import java.util.TimeZone;
 import static org.vesalainen.mailblog.BlogConstants.FixPicProperty;
 import static org.vesalainen.mailblog.BlogConstants.NicknameProperty;
+import static org.vesalainen.mailblog.BlogConstants.PicMaxWidthProperty;
 import static org.vesalainen.mailblog.BlogConstants.SpotCustomIconProperty;
 import static org.vesalainen.mailblog.BlogConstants.SpotHelpIconProperty;
 import static org.vesalainen.mailblog.BlogConstants.SpotOkIconProperty;
+import static org.vesalainen.mailblog.BlogConstants.TrackBearingToleranceProperty;
 import static org.vesalainen.mailblog.SpotType.Ok;
 import org.vesalainen.mailblog.types.LocaleHelp;
 
@@ -180,6 +182,16 @@ public class Settings implements BlogConstants, Serializable
         return l.intValue();
     }
 
+    public double getTrackBearingTolerance()
+    {
+        Double d = (Double) Objects.nonNull(map.get(TrackBearingToleranceProperty));
+        return d.doubleValue();
+    }
+    public double getTrackMinimumDistance()
+    {
+        Double d = (Double) Objects.nonNull(map.get(TrackMinDistanceProperty));
+        return d.doubleValue();
+    }
     private static final String DefaultIcon = "http://maps.google.com/mapfiles/kml/shapes/info.png";
     public String getSpotOkIcon()
     {
