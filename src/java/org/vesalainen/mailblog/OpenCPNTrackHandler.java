@@ -25,9 +25,8 @@ import org.w3c.dom.Element;
 public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
 {
     private DS ds;
-    private Entity track;
-    private Entity trackSeq;
-    private List<Entity> entities = new ArrayList<>();
+    private Key trackKey;
+    private Key trackSeqKey;
     private LatLonAltBox box = new LatLonAltBox();
 
     public OpenCPNTrackHandler(DS ds)
@@ -50,8 +49,8 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
             catch (EntityNotFoundException ex)
             {
             }
-            track = new Entity(trackKey);
-            ds.put(track);
+            Entity track = new Entity(trackKey);
+            trackKey = ds.put(track);
             return true;
         }
         else
@@ -64,31 +63,27 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
     @Override
     public void endTrack()
     {
-        Transaction tr = ds.beginTransaction();
-        try
-        {
-            ds.put(entities);
-            tr.commit();
-        }
-        finally
-        {
-            entities.clear();
-            if (tr.isActive())
-            {
-                tr.rollback();
-            }
-        }
     }
 
     @Override
     public void startTrackSeq()
     {
-        trackSeq = new Entity(TrackSeqKind, track.getKey());
+        Entity trackSeq = new Entity(TrackSeqKind, trackKey);
+        trackSeqKey = ds.put(trackSeq);
     }
 
     @Override
     public void endTrackSeq()
     {
+        Entity trackSeq;
+        try
+        {
+            trackSeq = ds.get(trackSeqKey);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
         trackSeq.setProperty(SouthWestProperty, box.getSouthWest());
         trackSeq.setProperty(NorthEastProperty, box.getNorthEast());
         box.clear();
@@ -99,9 +94,18 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
     @Override
     public void trackPoint(double latitude, double longitude, long time)
     {
-        Entity point = new Entity(TrackPointKind, time, trackSeq.getKey());
+        box.add(latitude, longitude);
+        Entity point = new Entity(TrackPointKind, time, trackSeqKey);
         point.setProperty(LocationProperty, new GeoPt((float)latitude, (float)longitude));
-        ds.put(point);
+        try
+        {
+            ds.put(point);
+        }
+        catch (IllegalArgumentException ex)
+        {
+            System.err.println(point);
+            throw ex;
+        }
     }
     public static String getGuid(Collection<Object> extensions)
     {
