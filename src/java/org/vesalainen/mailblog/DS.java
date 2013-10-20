@@ -824,10 +824,8 @@ public class DS extends CachingDatastoreService implements BlogConstants
             for (Entity entity : prepared.asIterable())
             {
                 delete(entity.getKey());
-                System.err.println("delete " + entity.getKey());
             }
             delete(key);
-            System.err.println("delete " + key);
             tr.commit();
         }
         finally

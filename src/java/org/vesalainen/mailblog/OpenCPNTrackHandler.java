@@ -84,7 +84,6 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
     public void startTrackSeq()
     {
         trackSeq = new Entity(TrackSeqKind, track.getKey());
-        ds.put(trackSeq);
     }
 
     @Override
@@ -93,6 +92,7 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
         trackSeq.setProperty(SouthWestProperty, box.getSouthWest());
         trackSeq.setProperty(NorthEastProperty, box.getNorthEast());
         box.clear();
+        ds.put(trackSeq);
         trackSeq = null;
     }
 
