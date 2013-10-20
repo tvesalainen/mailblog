@@ -27,6 +27,7 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
     private DS ds;
     private Key trackKey;
     private Key trackSeqKey;
+    private List<Entity> trackPoints = new ArrayList<>();
     private LatLonAltBox box = new LatLonAltBox();
 
     public OpenCPNTrackHandler(DS ds)
@@ -40,7 +41,7 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
         String guid = getGuid(extensions);
         if (guid != null)
         {
-            Key trackKey = ds.getTrackKey(guid);
+            trackKey = ds.getTrackKey(guid);
             try
             {
                 ds.get(trackKey);
@@ -88,6 +89,8 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
         trackSeq.setProperty(NorthEastProperty, box.getNorthEast());
         box.clear();
         ds.put(trackSeq);
+        ds.put(trackPoints);
+        trackPoints.clear();
         trackSeq = null;
     }
 
@@ -97,15 +100,7 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
         box.add(latitude, longitude);
         Entity point = new Entity(TrackPointKind, time, trackSeqKey);
         point.setProperty(LocationProperty, new GeoPt((float)latitude, (float)longitude));
-        try
-        {
-            ds.put(point);
-        }
-        catch (IllegalArgumentException ex)
-        {
-            System.err.println(point);
-            throw ex;
-        }
+        trackPoints.add(point);
     }
     public static String getGuid(Collection<Object> extensions)
     {
