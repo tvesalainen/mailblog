@@ -192,7 +192,14 @@ public class Exif2Entity
                     Object date = ioa.getValue();
                     if (date instanceof Date)
                     {
-                        entity.setUnindexedProperty(rule.property, date);
+                        if ("DateTimeOriginal".equals(rule.property))
+                        {
+                            entity.setProperty(rule.property, date);
+                        }
+                        else
+                        {
+                            entity.setUnindexedProperty(rule.property, date);
+                        }
                     }
                     break;
                 case 270:
