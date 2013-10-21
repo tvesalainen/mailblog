@@ -29,6 +29,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -72,6 +73,7 @@ import org.vesalainen.mailblog.DS.CacheOutputStream;
 public class KMLServlet extends HttpServlet implements BlogConstants
 {
     private static final String PathStyleId = "path-style";
+    private static final String ImageStyleId = "image-style";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -93,7 +95,7 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                             writePlacemark(key, cos);
                             break;
                         case "TrackSeq":
-                            writeTrackSeq(key, cos);
+                            writeTrackSeq(key, request, cos);
                             break;
                     }
                     cos.cache();
@@ -158,7 +160,7 @@ public class KMLServlet extends HttpServlet implements BlogConstants
         kmz.write(out);
     }
 
-    private void writeTrackSeq(Key trackSeqKey, CacheOutputStream out) throws IOException
+    private void writeTrackSeq(Key trackSeqKey, HttpServletRequest request, CacheOutputStream out) throws IOException
     {
         DS ds = DS.get();
         Iterable<Entity> trackPointIterator = ds.fetchTrackPoints(trackSeqKey);
@@ -177,7 +179,7 @@ public class KMLServlet extends HttpServlet implements BlogConstants
         {
             return;
         }
-        Iterable<Entity> imageMetadataIterator = ds.fetchImageMetadata(begin, end);
+        Iterable<Entity> imageMetadataIterable = ds.fetchImageMetadata(begin, end);
 
         Settings settings = ds.getSettings();
         KMZ kmz = new KMZ();
@@ -188,29 +190,57 @@ public class KMLServlet extends HttpServlet implements BlogConstants
         kmz.getKml().getValue().setAbstractFeatureGroup(document);
         // styles
         setStyles(documentType, factory, settings);
+        // metadata
+        Iterator<Entity> imageMetadataIterator = imageMetadataIterable.iterator();
+        Entity imageMetadata = null;
+        if (imageMetadataIterator.hasNext())
+        {
+            imageMetadata = imageMetadataIterator.next();
+        }
         // trackPoints
-        GeoPt prevLocation = null;
+        PlacemarkType trackPointPlacemarkType = factory.createPlacemarkType();
+        JAXBElement<PlacemarkType> trackPointPlacemark = factory.createPlacemark(trackPointPlacemarkType);
+        abstractFeatureGroup.add(trackPointPlacemark);
+        trackPointPlacemarkType.setStyleUrl('#'+PathStyleId);
+        LineStringType trackPointLineStringType = factory.createLineStringType();
+        JAXBElement<LineStringType> trackPointLineString = factory.createLineString(trackPointLineStringType);
+        trackPointPlacemarkType.setAbstractGeometryGroup(trackPointLineString);
+        List<String> trackPointCoordinates = trackPointLineStringType.getCoordinates();
         for (Entity trackPoint : trackPointIterator)
         {
             GeoPt location = (GeoPt) trackPoint.getProperty(LocationProperty);
             if (location != null)
             {
-                if (prevLocation != null)
+                // image
+                if (imageMetadata != null)
                 {
-                    PlacemarkType trackPointPlacemarkType = factory.createPlacemarkType();
-                    JAXBElement<PlacemarkType> trackPointPlacemark = factory.createPlacemark(trackPointPlacemarkType);
-                    abstractFeatureGroup.add(trackPointPlacemark);
-                    // linestring
-                    trackPointPlacemarkType.setStyleUrl('#'+PathStyleId);
-                    LineStringType trackPointLineStringType = factory.createLineStringType();
-                    JAXBElement<LineStringType> trackPointLineString = factory.createLineString(trackPointLineStringType);
-                    trackPointPlacemarkType.setAbstractGeometryGroup(trackPointLineString);
-                    List<String> trackPointCoordinates = trackPointLineStringType.getCoordinates();
-                    trackPointCoordinates.add(String.format(Locale.US, "%1$f,%2$f,0", prevLocation.getLongitude(), prevLocation.getLatitude()));
-                    trackPointCoordinates.add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
+                    Date trackDate = new Date(trackPoint.getKey().getId());
+                    Date imageDate = (Date) imageMetadata.getProperty("DateTimeOriginal");
+                    if (trackDate.after(imageDate))
+                    {
+                        String sha1 = imageMetadata.getKey().getName();
+                        PlacemarkType imagePlacemarkType = factory.createPlacemarkType();
+                        JAXBElement<PlacemarkType> imagePlacemark = factory.createPlacemark(imagePlacemarkType);
+                        abstractFeatureGroup.add(imagePlacemark);
+                        imagePlacemarkType.setStyleUrl("#"+ImageStyleId);
+                        imagePlacemarkType.setDescription("<img src=\""+getBase(request)+"/blob?sha1="+sha1+"\"></img>");
+                        PointType pointType = factory.createPointType();
+                        JAXBElement<PointType> point = factory.createPoint(pointType);
+                        imagePlacemarkType.setAbstractGeometryGroup(point);
+                        pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
+                        if (imageMetadataIterator.hasNext())
+                        {
+                            imageMetadata = imageMetadataIterator.next();
+                        }
+                        else
+                        {
+                            imageMetadata = null;
+                        }
+                    }
                 }
+               // linestring
+                trackPointCoordinates.add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
             }
-            prevLocation = location;
         }
         // write
         kmz.write(out);
@@ -360,6 +390,22 @@ public class KMLServlet extends HttpServlet implements BlogConstants
         pathStyleType.setLineStyle(lineStyleType);
         JAXBElement<StyleType> pathStyle = factory.createStyle(pathStyleType);
         abstractStyleSelectorGroup.add(pathStyle);
+        // imagestyle
+        StyleType imageStyleType = factory.createStyleType();
+        JAXBElement<StyleType> imageStyle = factory.createStyle(imageStyleType);
+        abstractStyleSelectorGroup.add(imageStyle);
+        imageStyleType.setId(ImageStyleId);
+
+        BalloonStyleType imageBalloonStyle = factory.createBalloonStyleType();
+        imageBalloonStyle.setText("$[name]<div>$[description]</div>");
+        imageStyleType.setBalloonStyle(imageBalloonStyle);
+
+        LinkType imageIcon = factory.createLinkType();
+        imageIcon.setHref(settings.getSpotCustomIcon());
+        IconStyleType imageIconStyle = factory.createIconStyleType();
+        imageIconStyle.setIcon(imageIcon);
+        imageStyleType.setIconStyle(imageIconStyle);
+        
         // spot styles
         for (SpotType type : SpotType.values())
         {
