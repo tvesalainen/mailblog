@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
+ * @deprecated This unnecessary
  * @author Timo Vesalainen
  */
 public class CachingPreparedQuery implements PreparedQuery, Serializable

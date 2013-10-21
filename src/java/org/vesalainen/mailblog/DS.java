@@ -97,12 +97,15 @@ import net.opengis.kml.TimeSpanType;
 import net.opengis.kml.TimeStampType;
 import org.vesalainen.kml.KMZ;
 import static org.vesalainen.mailblog.BlogConstants.BaseKey;
+import static org.vesalainen.mailblog.BlogConstants.BeginProperty;
 import static org.vesalainen.mailblog.BlogConstants.BlogKind;
 import static org.vesalainen.mailblog.BlogConstants.DescriptionProperty;
 import static org.vesalainen.mailblog.BlogConstants.LocationProperty;
 import static org.vesalainen.mailblog.BlogConstants.PlacemarkKind;
 import static org.vesalainen.mailblog.BlogConstants.TimestampProperty;
 import static org.vesalainen.mailblog.BlogConstants.TitleProperty;
+import static org.vesalainen.mailblog.BlogConstants.TrackPointKind;
+import static org.vesalainen.mailblog.BlogConstants.TrackSeqKind;
 import static org.vesalainen.mailblog.CachingDatastoreService.getRootKey;
 import org.vesalainen.mailblog.types.GeoPtType;
 import org.vesalainen.rss.Channel;
@@ -1051,22 +1054,68 @@ public class DS extends CachingDatastoreService implements BlogConstants
         return rin.doIt(null, settings.isCommonPlacemarks());
     }
 
-    public List<Entity> fetchPlacemarks()
+    public Iterable<Entity> fetchPlacemarks()
     {
         Settings settings = getSettings();
-        RunInNamespace<List<Entity>> rin = new RunInNamespace()
+        RunInNamespace<Iterable<Entity>> rin = new RunInNamespace()
         {
             @Override
-            protected List<Entity> run()
+            protected Iterable<Entity> run()
             {
                 Query placemarkQuery = new Query(PlacemarkKind);
                 placemarkQuery.addSort(TimestampProperty);
-                System.err.println(placemarkQuery);
                 PreparedQuery placemarkPrepared = prepare(placemarkQuery);
-                return placemarkPrepared.asList(FetchOptions.Builder.withDefaults());
+                return placemarkPrepared.asIterable();
             }
         };
         return rin.doIt(null, settings.isCommonPlacemarks());
+    }
+
+    public Iterable<Entity> fetchTrackSeqs()
+    {
+        Settings settings = getSettings();
+        RunInNamespace<Iterable<Entity>> rin = new RunInNamespace()
+        {
+            @Override
+            protected Iterable<Entity> run()
+            {
+                Query trackSeqQuery = new Query(TrackSeqKind);
+                PreparedQuery trackSeqPrepared = prepare(trackSeqQuery);
+                return trackSeqPrepared.asIterable();
+            }
+        };
+        return rin.doIt(null, settings.isCommonPlacemarks());
+    }
+
+    public Iterable<Entity> fetchTrackPoints(final Key trackSeqKey)
+    {
+        Settings settings = getSettings();
+        RunInNamespace<Iterable<Entity>> rin = new RunInNamespace()
+        {
+            @Override
+            protected Iterable<Entity> run()
+            {
+                Query trackPointQuery = new Query(TrackPointKind);
+                trackPointQuery.setAncestor(trackSeqKey);
+                trackPointQuery.addSort(Entity.KEY_RESERVED_PROPERTY);
+                PreparedQuery trackPointPrepared = prepare(trackPointQuery);
+                return trackPointPrepared.asIterable();
+            }
+        };
+        return rin.doIt(null, settings.isCommonPlacemarks());
+    }
+
+    public Iterable<Entity> fetchImageMetadata(Date begin, Date end)
+    {
+        Query metadataQuery = new Query(MetadataKind);
+        List<Filter> filters = new ArrayList<>();
+        filters.add(new FilterPredicate("DateTimeOriginal", Query.FilterOperator.GREATER_THAN_OR_EQUAL, begin));
+        filters.add(new FilterPredicate("DateTimeOriginal", Query.FilterOperator.LESS_THAN_OR_EQUAL, end));
+        CompositeFilter compositeFilter = new CompositeFilter(CompositeFilterOperator.AND, filters);
+        metadataQuery.setFilter(compositeFilter);
+        metadataQuery.addSort("DateTimeOriginal");
+        PreparedQuery metadataPrepared = prepare(metadataQuery);
+        return metadataPrepared.asIterable();
     }
 
     public Entity findBlogFor(Entity placemark)

@@ -12,10 +12,13 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.Transaction;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.vesalainen.gpx.TrackHandler;
+import static org.vesalainen.mailblog.BlogConstants.BeginProperty;
+import static org.vesalainen.mailblog.BlogConstants.NorthEastProperty;
 import static org.vesalainen.mailblog.BlogConstants.SouthWestProperty;
 import org.w3c.dom.Element;
 
@@ -29,6 +32,8 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
     private Key trackSeqKey;
     private List<Entity> trackPoints = new ArrayList<>();
     private LatLonAltBox box = new LatLonAltBox();
+    private long begin = Long.MAX_VALUE;
+    private long end = Long.MIN_VALUE;
 
     public OpenCPNTrackHandler(DS ds)
     {
@@ -88,6 +93,10 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
         trackSeq.setProperty(SouthWestProperty, box.getSouthWest());
         trackSeq.setProperty(NorthEastProperty, box.getNorthEast());
         box.clear();
+        trackSeq.setProperty(BeginProperty, new Date(begin));
+        trackSeq.setProperty(EndProperty, new Date(end));
+        begin = Long.MAX_VALUE;
+        end = Long.MIN_VALUE;
         ds.put(trackSeq);
         ds.put(trackPoints);
         trackPoints.clear();
@@ -98,6 +107,8 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
     public void trackPoint(double latitude, double longitude, long time)
     {
         box.add(latitude, longitude);
+        begin = Math.min(begin, time);
+        end = Math.max(end, time);
         Entity point = new Entity(TrackPointKind, time, trackSeqKey);
         point.setProperty(LocationProperty, new GeoPt((float)latitude, (float)longitude));
         trackPoints.add(point);

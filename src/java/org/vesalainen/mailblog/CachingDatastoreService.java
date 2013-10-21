@@ -129,94 +129,98 @@ public class CachingDatastoreService implements DatastoreService, BlogConstants
         check();
         return version != et;
     }
+    @Override
     public PreparedQuery prepare(Transaction t, Query query)
     {
         return datastore.prepare(t, query);
     }
 
+    @Override
     public PreparedQuery prepare(Query query)
     {
-        check();
-        CachingPreparedQuery pq = (CachingPreparedQuery) cache.get(query);
-        if (pq == null)
-        {
-            pq = new CachingPreparedQuery(datastore, query);
-            cache.put(query, pq);
-        }
-        else
-        {
-            pq.setDatastore(datastore);
-        }
-        return pq;
+        return datastore.prepare(query);
     }
 
+    @Override
     public Transaction getCurrentTransaction(Transaction t)
     {
         return datastore.getCurrentTransaction(t);
     }
 
+    @Override
     public Transaction getCurrentTransaction()
     {
         return datastore.getCurrentTransaction();
     }
 
+    @Override
     public Collection<Transaction> getActiveTransactions()
     {
         return datastore.getActiveTransactions();
     }
 
+    @Override
     public List<Key> put(Transaction t, Iterable<Entity> itrbl)
     {
         checkEntities(itrbl);
         return datastore.put(t, itrbl);
     }
 
+    @Override
     public List<Key> put(Iterable<Entity> itrbl)
     {
         checkEntities(itrbl);
         return datastore.put(itrbl);
     }
 
+    @Override
     public Key put(Transaction t, Entity entity)
     {
         check(entity);
         return datastore.put(t, entity);
     }
 
+    @Override
     public Key put(Entity entity)
     {
         check(entity);
         return datastore.put(entity);
     }
 
+    @Override
     public Map<Index, IndexState> getIndexes()
     {
         check();
         return datastore.getIndexes();
     }
 
+    @Override
     public DatastoreAttributes getDatastoreAttributes()
     {
         return datastore.getDatastoreAttributes();
     }
 
+    @Override
     public Map<Key, Entity> get(Transaction t, Iterable<Key> itrbl)
     {
         checkKeys(itrbl);
         return datastore.get(t, itrbl);
     }
 
+    @Override
     public Map<Key, Entity> get(Iterable<Key> itrbl)
     {
         checkKeys(itrbl);
         return datastore.get(itrbl);
     }
 
+    @Override
     public Entity get(Transaction t, Key key) throws EntityNotFoundException
     {
         return datastore.get(t, key);
     }
 
+    @Override
     public Entity get(Key key) throws EntityNotFoundException
     {
         check();
@@ -230,50 +234,59 @@ public class CachingDatastoreService implements DatastoreService, BlogConstants
         return e;
     }
 
+    @Override
     public void delete(Transaction t, Iterable<Key> itrbl)
     {
         checkKeys(itrbl);
         datastore.delete(t, itrbl);
     }
 
+    @Override
     public void delete(Iterable<Key> itrbl)
     {
         checkKeys(itrbl);
         datastore.delete(itrbl);
     }
 
+    @Override
     public void delete(Transaction t, Key... keys)
     {
         check(keys);
         datastore.delete(t, keys);
     }
 
+    @Override
     public void delete(Key... keys)
     {
         check(keys);
         datastore.delete(keys);
     }
 
+    @Override
     public Transaction beginTransaction(TransactionOptions to)
     {
         return datastore.beginTransaction(to);
     }
 
+    @Override
     public Transaction beginTransaction()
     {
         return datastore.beginTransaction();
     }
 
+    @Override
     public KeyRange allocateIds(Key key, String string, long l)
     {
         return datastore.allocateIds(key, string, l);
     }
 
+    @Override
     public KeyRange allocateIds(String string, long l)
     {
         return datastore.allocateIds(string, l);
     }
 
+    @Override
     public KeyRangeState allocateIdRange(KeyRange kr)
     {
         return datastore.allocateIdRange(kr);

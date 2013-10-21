@@ -83,6 +83,8 @@ public interface BlogConstants
     static final String NorthEastProperty = "NorthEast";
     static final String TrackBearingToleranceProperty = "TrackBearingTolerance";
     static final String TrackMinDistanceProperty = "TrackMinDistance";
+    static final String BeginProperty = "Begin";
+    static final String EndProperty = "End";
     // Maidenhead properties
     static final String FieldProperty = "Field";
     static final String SquareProperty = "Square";

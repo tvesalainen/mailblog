@@ -28,6 +28,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
@@ -52,18 +53,18 @@ import net.opengis.kml.NetworkLinkType;
 import net.opengis.kml.ObjectFactory;
 import net.opengis.kml.PlacemarkType;
 import net.opengis.kml.PointType;
-import net.opengis.kml.RefreshModeEnumType;
 import net.opengis.kml.RegionType;
 import net.opengis.kml.StyleType;
 import net.opengis.kml.ViewRefreshModeEnumType;
-import org.vesalainen.kml.KML;
 import org.vesalainen.kml.KMZ;
+import static org.vesalainen.mailblog.BlogConstants.BeginProperty;
 import static org.vesalainen.mailblog.BlogConstants.DescriptionProperty;
 import static org.vesalainen.mailblog.BlogConstants.LocationProperty;
 import static org.vesalainen.mailblog.BlogConstants.NamespaceParameter;
+import static org.vesalainen.mailblog.BlogConstants.NorthEastProperty;
+import static org.vesalainen.mailblog.BlogConstants.SouthWestProperty;
 import static org.vesalainen.mailblog.BlogConstants.TitleProperty;
 import org.vesalainen.mailblog.DS.CacheOutputStream;
-import org.vesalainen.mailblog.DS.CacheWriter;
 
 /**
  * @author Timo Vesalainen
@@ -89,7 +90,10 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                     switch (key.getKind())
                     {
                         case "Placemarks":
-                            writePlacemark(key, request, cos);
+                            writePlacemark(key, cos);
+                            break;
+                        case "TrackSeq":
+                            writeTrackSeq(key, cos);
                             break;
                     }
                     cos.cache();
@@ -107,7 +111,7 @@ public class KMLServlet extends HttpServlet implements BlogConstants
         }
     }
 
-    private void writePlacemark(Key key, HttpServletRequest request, CacheOutputStream out) throws IOException
+    private void writePlacemark(Key key, CacheOutputStream out) throws IOException
     {
         DS ds = DS.get();
         Entity placemark = null;
@@ -154,6 +158,64 @@ public class KMLServlet extends HttpServlet implements BlogConstants
         kmz.write(out);
     }
 
+    private void writeTrackSeq(Key trackSeqKey, CacheOutputStream out) throws IOException
+    {
+        DS ds = DS.get();
+        Iterable<Entity> trackPointIterator = ds.fetchTrackPoints(trackSeqKey);
+        Entity trackSeq = null;
+        try
+        {
+            trackSeq = ds.get(trackSeqKey);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new IOException(ex);
+        }
+        Date begin = (Date) trackSeq.getProperty(BeginProperty);
+        Date end = (Date) trackSeq.getProperty(EndProperty);
+        if (begin == null || end == null)
+        {
+            return;
+        }
+        Iterable<Entity> imageMetadataIterator = ds.fetchImageMetadata(begin, end);
+
+        Settings settings = ds.getSettings();
+        KMZ kmz = new KMZ();
+        ObjectFactory factory = kmz.getFactory();
+        DocumentType documentType = factory.createDocumentType();
+        JAXBElement<DocumentType> document = factory.createDocument(documentType);
+        List<JAXBElement<? extends AbstractFeatureType>> abstractFeatureGroup = documentType.getAbstractFeatureGroup();
+        kmz.getKml().getValue().setAbstractFeatureGroup(document);
+        // styles
+        setStyles(documentType, factory, settings);
+        // trackPoints
+        GeoPt prevLocation = null;
+        for (Entity trackPoint : trackPointIterator)
+        {
+            GeoPt location = (GeoPt) trackPoint.getProperty(LocationProperty);
+            if (location != null)
+            {
+                if (prevLocation != null)
+                {
+                    PlacemarkType trackPointPlacemarkType = factory.createPlacemarkType();
+                    JAXBElement<PlacemarkType> trackPointPlacemark = factory.createPlacemark(trackPointPlacemarkType);
+                    abstractFeatureGroup.add(trackPointPlacemark);
+                    // linestring
+                    trackPointPlacemarkType.setStyleUrl('#'+PathStyleId);
+                    LineStringType trackPointLineStringType = factory.createLineStringType();
+                    JAXBElement<LineStringType> trackPointLineString = factory.createLineString(trackPointLineStringType);
+                    trackPointPlacemarkType.setAbstractGeometryGroup(trackPointLineString);
+                    List<String> trackPointCoordinates = trackPointLineStringType.getCoordinates();
+                    trackPointCoordinates.add(String.format(Locale.US, "%1$f,%2$f,0", prevLocation.getLongitude(), prevLocation.getLatitude()));
+                    trackPointCoordinates.add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
+                }
+            }
+            prevLocation = location;
+        }
+        // write
+        kmz.write(out);
+    }
+
     private void writeRegions(HttpServletRequest request, CacheOutputStream out) throws IOException
     {
         DS ds = DS.get();
@@ -170,7 +232,9 @@ public class KMLServlet extends HttpServlet implements BlogConstants
         Entity prevPlacemark = null;
         Entity lastPlacemark = null;
         LatLonAltBox overallBox = new LatLonAltBox();
-        for (Entity placemark : ds.fetchPlacemarks())
+        Iterable<Entity> placemarkIterator = ds.fetchPlacemarks();
+        Iterable<Entity> trackSeqIterator = ds.fetchTrackSeqs();
+        for (Entity placemark : placemarkIterator)
         {
             GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
             if (location != null)
@@ -245,6 +309,41 @@ public class KMLServlet extends HttpServlet implements BlogConstants
             lookAtType.setRange(2000.0);
             JAXBElement<LookAtType> lookAt = factory.createLookAt(lookAtType);
             documentType.setAbstractViewGroup(lookAt);
+        }
+        for (Entity trackSeq : trackSeqIterator)
+        {
+            GeoPt sw = (GeoPt) trackSeq.getProperty(SouthWestProperty);
+            GeoPt ne = (GeoPt) trackSeq.getProperty(NorthEastProperty);
+            if (sw != null && ne != null)
+            {
+                // network link
+                NetworkLinkType networkLinkType = factory.createNetworkLinkType();
+                // region
+                RegionType regionType = factory.createRegionType();
+                networkLinkType.setRegion(regionType);
+                // latlonalt
+                LatLonAltBoxType latLonAltBoxType = factory.createLatLonAltBoxType();
+                LatLonAltBox box = new LatLonAltBox();
+                box.add(sw);
+                box.add(ne);
+                box.populate(latLonAltBoxType);
+                regionType.setLatLonAltBox(latLonAltBoxType);
+                // lod
+                LodType lodType = factory.createLodType();
+                double area = 1000*box.getArea();
+                lodType.setMinLodPixels(area);
+                lodType.setMinFadeExtent(area*0.2);
+                lodType.setMaxLodPixels(-1.0);
+                regionType.setLod(lodType);
+                // link
+                LinkType linkType = factory.createLinkType();
+                linkType.setHref(getRequestUrl(request));
+                linkType.setHttpQuery("key="+KeyFactory.keyToString(trackSeq.getKey()));
+                linkType.setViewRefreshMode(ViewRefreshModeEnumType.ON_REGION);
+                networkLinkType.setLink(linkType);
+                JAXBElement<NetworkLinkType> networkLink = factory.createNetworkLink(networkLinkType);
+                abstractFeatureGroup.add(networkLink);
+            }
         }
         // write
         kmz.write(out);
