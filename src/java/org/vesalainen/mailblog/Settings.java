@@ -193,6 +193,32 @@ public class Settings implements BlogConstants, Serializable
         return d.doubleValue();
     }
     private static final String DefaultIcon = "http://maps.google.com/mapfiles/kml/shapes/info.png";
+    public String getBlogIcon()
+    {
+        Link link = (Link) map.get(BlogIconProperty);
+        if (link != null)
+        {
+            return link.getValue();
+        }
+        else
+        {
+            return DefaultIcon;
+        }
+    }
+
+    public String getImageIcon()
+    {
+        Link link = (Link) map.get(ImageIconProperty);
+        if (link != null)
+        {
+            return link.getValue();
+        }
+        else
+        {
+            return DefaultIcon;
+        }
+    }
+
     public String getSpotOkIcon()
     {
         return getSpotIcon(SpotOkIconProperty);

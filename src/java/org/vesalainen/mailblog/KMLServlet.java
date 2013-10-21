@@ -74,6 +74,7 @@ public class KMLServlet extends HttpServlet implements BlogConstants
 {
     private static final String PathStyleId = "path-style";
     private static final String ImageStyleId = "image-style";
+    private static final String BlogStyleId = "blog-style";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -223,7 +224,7 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                         JAXBElement<PlacemarkType> imagePlacemark = factory.createPlacemark(imagePlacemarkType);
                         abstractFeatureGroup.add(imagePlacemark);
                         imagePlacemarkType.setStyleUrl("#"+ImageStyleId);
-                        imagePlacemarkType.setDescription("<img src=\""+getBase(request)+"/blob?sha1="+sha1+"\"></img>");
+                        imagePlacemarkType.setDescription("<img src=\""+getBase(request)+"/blob?sha1="+sha1+"\" alt=\"loading...\"></img>");
                         PointType pointType = factory.createPointType();
                         JAXBElement<PointType> point = factory.createPoint(pointType);
                         imagePlacemarkType.setAbstractGeometryGroup(point);
@@ -401,10 +402,26 @@ public class KMLServlet extends HttpServlet implements BlogConstants
         imageStyleType.setBalloonStyle(imageBalloonStyle);
 
         LinkType imageIcon = factory.createLinkType();
-        imageIcon.setHref(settings.getSpotCustomIcon());
+        imageIcon.setHref(settings.getImageIcon());
         IconStyleType imageIconStyle = factory.createIconStyleType();
         imageIconStyle.setIcon(imageIcon);
         imageStyleType.setIconStyle(imageIconStyle);
+        
+        // blog style
+        StyleType blogStyleType = factory.createStyleType();
+        JAXBElement<StyleType> blogStyle = factory.createStyle(blogStyleType);
+        abstractStyleSelectorGroup.add(blogStyle);
+        blogStyleType.setId(ImageStyleId);
+
+        BalloonStyleType blogBalloonStyle = factory.createBalloonStyleType();
+        blogBalloonStyle.setText("$[name]<div>$[description]</div>");
+        blogStyleType.setBalloonStyle(blogBalloonStyle);
+
+        LinkType blogIcon = factory.createLinkType();
+        blogIcon.setHref(settings.getBlogIcon());
+        IconStyleType blogIconStyle = factory.createIconStyleType();
+        blogIconStyle.setIcon(blogIcon);
+        blogStyleType.setIconStyle(blogIconStyle);
         
         // spot styles
         for (SpotType type : SpotType.values())

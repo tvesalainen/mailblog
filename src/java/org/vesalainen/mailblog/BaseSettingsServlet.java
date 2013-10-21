@@ -29,6 +29,8 @@ import java.util.TimeZone;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import static org.vesalainen.mailblog.BlogConstants.SpotCustomIconProperty;
+import static org.vesalainen.mailblog.BlogConstants.SpotOkIconProperty;
 import static org.vesalainen.mailblog.BlogConstants.TrackBearingToleranceProperty;
 
 /**
@@ -78,13 +80,28 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
         addProperty(FixPicProperty)
                 .setType(Boolean.class);
         addProperty(CommonPlacemarksProperty)
-                .setType(Boolean.class);
+                .setType(Boolean.class)
+                .setTooltip("If true the placemarks and tracks are stored in empty namespace");
+        addProperty(BlogIconProperty)
+                .setType(Link.class)
+                .setAttribute("size", "100")
+                .setTooltip("Used to show blogs place (GoogleEarth)");
+        addProperty(ImageIconProperty)
+                .setType(Link.class)
+                .setAttribute("size", "100")
+                .setTooltip("Used to show image (GoogleEarth)");
         addProperty(SpotOkIconProperty)
                 .setType(Link.class)
-                .setAttribute("size", "100");
+                .setAttribute("size", "100")
+                .setTooltip("Used to show a place where Spot Ok button was pressed (GoogleEarth)");
         addProperty(SpotCustomIconProperty)
                 .setType(Link.class)
-                .setAttribute("size", "100");
+                .setAttribute("size", "100")
+                .setTooltip("Used to show a place where Spot Custom button was pressed (GoogleEarth)");
+        addProperty(SpotHelpIconProperty)
+                .setType(Link.class)
+                .setAttribute("size", "100")
+                .setTooltip("Used to show a place where Spot Help button was pressed (GoogleEarth)");
         addProperty(TrackBearingToleranceProperty)
                 .setType(Double.class)
                 .setTooltip("If bearing changes less than given degrees, no new trackpoint is created");
