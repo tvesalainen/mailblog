@@ -39,8 +39,8 @@
         <servlet-class>org.vesalainen.mailblog.BaseSettingsServlet</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>BloggerSettingsServlet</servlet-name>
-        <servlet-class>org.vesalainen.mailblog.BloggerSettingsServlet</servlet-class>
+        <servlet-name>CommonSettingsServlet</servlet-name>
+        <servlet-class>org.vesalainen.mailblog.CommonSettingsServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>BlogEditServlet</servlet-name>
@@ -91,10 +91,6 @@
         <url-pattern>/admin/settings/base/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>BloggerSettingsServlet</servlet-name>
-        <url-pattern>/admin/settings/blogger/*</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
         <servlet-name>PageServlet</servlet-name>
         <url-pattern>/admin/settings/page/*</url-pattern>
     </servlet-mapping>
@@ -121,6 +117,10 @@
     <servlet-mapping>
         <servlet-name>LastPositionServlet</servlet-name>
         <url-pattern>/lastPosition/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CommonSettingsServlet</servlet-name>
+        <url-pattern>/admin/settings/common/*</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

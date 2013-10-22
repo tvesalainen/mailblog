@@ -21,9 +21,12 @@ import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
+import java.awt.Color;
+import java.io.IOException;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -31,13 +34,19 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.servlet.ServletException;
+import static org.vesalainen.mailblog.BlogConstants.BaseKey;
 import static org.vesalainen.mailblog.BlogConstants.FixPicProperty;
 import static org.vesalainen.mailblog.BlogConstants.NicknameProperty;
 import static org.vesalainen.mailblog.BlogConstants.PicMaxWidthProperty;
+import static org.vesalainen.mailblog.BlogConstants.SettingsKind;
 import static org.vesalainen.mailblog.BlogConstants.SpotCustomIconProperty;
 import static org.vesalainen.mailblog.BlogConstants.SpotHelpIconProperty;
 import static org.vesalainen.mailblog.BlogConstants.SpotOkIconProperty;
 import static org.vesalainen.mailblog.BlogConstants.TrackBearingToleranceProperty;
+import static org.vesalainen.mailblog.CachingDatastoreService.getRootKey;
 import static org.vesalainen.mailblog.SpotType.Ok;
 import org.vesalainen.mailblog.types.LocaleHelp;
 
@@ -49,8 +58,28 @@ public class Settings implements BlogConstants, Serializable
     private static final long serialVersionUID = 2L;
     private Map<String,Object> map = new HashMap<String,Object>();
 
-    Settings(DS db, Entity entity) throws EntityNotFoundException
+    Settings(final DS db, Entity entity) throws EntityNotFoundException
     {
+        assert SettingsKind.equals(entity.getKind());
+        RunInNamespace rin = new RunInNamespace() 
+        {
+            @Override
+            protected Object run()
+            {
+                Key key = KeyFactory.createKey(DS.getRootKey(), SettingsKind, BaseKey);
+                try
+                {
+                    Entity entity = db.get(key);
+                    map.putAll(entity.getProperties());
+                }
+                catch (EntityNotFoundException ex)
+                {
+                }
+                return null;
+            }
+        };
+        rin.doIt(null);
+        
         populate(db, entity);
     }
     
@@ -262,6 +291,18 @@ public class Settings implements BlogConstants, Serializable
         }
     }
     
+    public Color getPathColor()
+    {
+        Long l = (Long) Objects.nonNull(map.get(PathColorProperty));
+        return new Color(l.intValue());
+    }
+
+    public Color getTrackColor()
+    {
+        Long l = (Long) Objects.nonNull(map.get(TrackColorProperty));
+        return new Color(l.intValue());
+    }
+
     @Override
     public String toString()
     {

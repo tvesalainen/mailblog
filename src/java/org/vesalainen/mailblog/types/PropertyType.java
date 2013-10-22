@@ -24,6 +24,7 @@ import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.datastore.PhoneNumber;
 import com.google.appengine.api.datastore.Rating;
 import com.google.appengine.api.datastore.Text;
+import java.awt.Color;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Locale;
@@ -148,6 +149,10 @@ public abstract class PropertyType<T>
         if (TimeZone.class.isAssignableFrom(type))
         {
             return new TimeZoneType();
+        }
+        if (Color.class.isAssignableFrom(type))
+        {
+            return new ColorType();
         }
         throw new IllegalArgumentException("unsupported type "+type);
     }

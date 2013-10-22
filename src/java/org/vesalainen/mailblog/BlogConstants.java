@@ -87,6 +87,8 @@ public interface BlogConstants
     static final String TrackMinDistanceProperty = "TrackMinDistance";
     static final String BeginProperty = "Begin";
     static final String EndProperty = "End";
+    static final String PathColorProperty = "PathColor";
+    static final String TrackColorProperty = "TrackColor";
     // Maidenhead properties
     static final String FieldProperty = "Field";
     static final String SquareProperty = "Square";

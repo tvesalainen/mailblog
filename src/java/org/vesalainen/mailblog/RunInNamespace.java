@@ -24,6 +24,10 @@ import com.google.appengine.api.NamespaceManager;
  */
 public abstract class RunInNamespace<T>
 {
+    public T doIt(String namespace)
+    {
+        return doIt(namespace, true);
+    }
     public T doIt(String namespace, boolean change)
     {
         if (change)

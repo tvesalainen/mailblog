@@ -288,7 +288,7 @@ public abstract class EntityServlet extends HttpServlet implements BlogConstants
     {
         private PropertyType type;
         private boolean indexed;
-        private Map<String, String> attributes = new HashMap<String, String>();
+        private Map<String, String> attributes = new HashMap<>();
 
         protected Property(String name)
         {

@@ -23,6 +23,7 @@ import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
+import java.awt.Color;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -82,6 +83,12 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
         addProperty(CommonPlacemarksProperty)
                 .setType(Boolean.class)
                 .setTooltip("If true the placemarks and tracks are stored in empty namespace");
+        addProperty(PathColorProperty)
+                .setType(Color.class)
+                .setTooltip("Color used for path between placemarks");
+        addProperty(TrackColorProperty)
+                .setType(Color.class)
+                .setTooltip("Color used for track");
         addProperty(BlogIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")

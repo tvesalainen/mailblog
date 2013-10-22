@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 import static org.vesalainen.mailblog.BlogConstants.FixPicProperty;
 
 /**
- *
+ * @deprecated 
  * @author Timo Vesalainen
  */
 public class BloggerSettingsServlet extends SettingsServlet implements BlogConstants
