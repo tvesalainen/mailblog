@@ -242,6 +242,7 @@ public class KMLServlet extends HttpServlet
                 }
                 Date timestamp = new Date(trackPoint.getKey().getId());
                 // hi-lite placemarks
+                /* they are too slow
                 PlacemarkType hiLitePlacemarkType = factory.createPlacemarkType();
                 JAXBElement<PlacemarkType> hiLitePlacemark = factory.createPlacemark(hiLitePlacemarkType);
                 abstractFeatureGroup.add(hiLitePlacemark);
@@ -261,6 +262,7 @@ public class KMLServlet extends HttpServlet
                 StringBuilder sb = new StringBuilder();
                 ds.describeLocation(trackPoint, sb);
                 hiLitePlacemarkType.setDescription(sb.toString());
+                */
                // linestring
                 trackPointCoordinates.add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
             }
