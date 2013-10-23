@@ -58,19 +58,13 @@ import net.opengis.kml.RegionType;
 import net.opengis.kml.StyleType;
 import net.opengis.kml.ViewRefreshModeEnumType;
 import org.vesalainen.kml.KMZ;
-import static org.vesalainen.mailblog.BlogConstants.BeginProperty;
-import static org.vesalainen.mailblog.BlogConstants.DescriptionProperty;
-import static org.vesalainen.mailblog.BlogConstants.LocationProperty;
-import static org.vesalainen.mailblog.BlogConstants.NamespaceParameter;
-import static org.vesalainen.mailblog.BlogConstants.NorthEastProperty;
-import static org.vesalainen.mailblog.BlogConstants.SouthWestProperty;
-import static org.vesalainen.mailblog.BlogConstants.TitleProperty;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.mailblog.DS.CacheOutputStream;
 
 /**
  * @author Timo Vesalainen
  */
-public class KMLServlet extends HttpServlet implements BlogConstants
+public class KMLServlet extends HttpServlet
 {
     private static final String PathStyleId = "path-style";
     private static final String ImageStyleId = "image-style";
@@ -202,7 +196,7 @@ public class KMLServlet extends HttpServlet implements BlogConstants
         PlacemarkType trackPointPlacemarkType = factory.createPlacemarkType();
         JAXBElement<PlacemarkType> trackPointPlacemark = factory.createPlacemark(trackPointPlacemarkType);
         abstractFeatureGroup.add(trackPointPlacemark);
-        trackPointPlacemarkType.setStyleUrl('#'+PathStyleId);
+        trackPointPlacemarkType.setStyleUrl('#'+ImageStyleId);
         LineStringType trackPointLineStringType = factory.createLineStringType();
         JAXBElement<LineStringType> trackPointLineString = factory.createLineString(trackPointLineStringType);
         trackPointPlacemarkType.setAbstractGeometryGroup(trackPointLineString);
@@ -298,9 +292,9 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                     // lod
                     LodType overallLodType = factory.createLodType();
                     overallLodType.setMinLodPixels(-1.0);
-                    double area = 1000*overallBox.getArea();
+                    double area = overallBox.getArea()/settings.getTrackMinimumDistance();
                     overallLodType.setMaxLodPixels(area);
-                    overallLodType.setMaxFadeExtent(area*0.8);
+                    overallLodType.setMaxFadeExtent(area*0.5);
                     overallRegionType.setLod(overallLodType);
                 }
                 // network link
@@ -361,9 +355,9 @@ public class KMLServlet extends HttpServlet implements BlogConstants
                 regionType.setLatLonAltBox(latLonAltBoxType);
                 // lod
                 LodType lodType = factory.createLodType();
-                double area = 1000*box.getArea();
+                double area = box.getArea()/settings.getTrackMinimumDistance();
                 lodType.setMinLodPixels(area);
-                lodType.setMinFadeExtent(area*0.2);
+                lodType.setMinFadeExtent(area*0.5);
                 lodType.setMaxLodPixels(-1.0);
                 regionType.setLod(lodType);
                 // link
@@ -383,14 +377,22 @@ public class KMLServlet extends HttpServlet implements BlogConstants
     private void setStyles(DocumentType documentType, ObjectFactory factory, Settings settings)
     {
         List<JAXBElement<? extends AbstractStyleSelectorType>> abstractStyleSelectorGroup = documentType.getAbstractStyleSelectorGroup();
-        // line style
+        // path style
         StyleType pathStyleType = factory.createStyleType();
         pathStyleType.setId(PathStyleId);
-        LineStyleType lineStyleType = factory.createLineStyleType();
-        lineStyleType.setColor(new byte[] {(byte)255, 0, 0, (byte)255});
-        pathStyleType.setLineStyle(lineStyleType);
+        LineStyleType pathLineStyleType = factory.createLineStyleType();
+        pathLineStyleType.setColor(settings.getPathColor());
+        pathStyleType.setLineStyle(pathLineStyleType);
         JAXBElement<StyleType> pathStyle = factory.createStyle(pathStyleType);
         abstractStyleSelectorGroup.add(pathStyle);
+        // track style
+        StyleType trackStyleType = factory.createStyleType();
+        trackStyleType.setId(PathStyleId);
+        LineStyleType trackLineStyleType = factory.createLineStyleType();
+        trackLineStyleType.setColor(settings.getTrackColor());
+        trackStyleType.setLineStyle(trackLineStyleType);
+        JAXBElement<StyleType> trackStyle = factory.createStyle(trackStyleType);
+        abstractStyleSelectorGroup.add(trackStyle);
         // imagestyle
         StyleType imageStyleType = factory.createStyleType();
         JAXBElement<StyleType> imageStyle = factory.createStyle(imageStyleType);

@@ -25,8 +25,6 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
-import java.awt.Color;
-import java.io.IOException;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -34,9 +32,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.servlet.ServletException;
 import static org.vesalainen.mailblog.BlogConstants.BaseKey;
 import static org.vesalainen.mailblog.BlogConstants.FixPicProperty;
 import static org.vesalainen.mailblog.BlogConstants.NicknameProperty;
@@ -46,7 +41,6 @@ import static org.vesalainen.mailblog.BlogConstants.SpotCustomIconProperty;
 import static org.vesalainen.mailblog.BlogConstants.SpotHelpIconProperty;
 import static org.vesalainen.mailblog.BlogConstants.SpotOkIconProperty;
 import static org.vesalainen.mailblog.BlogConstants.TrackBearingToleranceProperty;
-import static org.vesalainen.mailblog.CachingDatastoreService.getRootKey;
 import static org.vesalainen.mailblog.SpotType.Ok;
 import org.vesalainen.mailblog.types.LocaleHelp;
 
@@ -291,18 +285,26 @@ public class Settings implements BlogConstants, Serializable
         }
     }
     
-    public Color getPathColor()
+    public byte[] getPathColor()
     {
         Long l = (Long) Objects.nonNull(map.get(PathColorProperty));
-        return new Color(l.intValue());
+        return rgbToArray(l.intValue());
     }
 
-    public Color getTrackColor()
+    public byte[] getTrackColor()
     {
         Long l = (Long) Objects.nonNull(map.get(TrackColorProperty));
-        return new Color(l.intValue());
+        return rgbToArray(l.intValue());
     }
-
+    private byte[] rgbToArray(int i)
+    {
+        return new byte[] {
+            (byte)0xff, 
+            (byte)(i >> 16), 
+            (byte)((i >> 8) & 0xff), 
+            (byte)(i & 0xff)
+        };
+    }
     @Override
     public String toString()
     {
