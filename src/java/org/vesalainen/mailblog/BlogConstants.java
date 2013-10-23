@@ -77,6 +77,7 @@ public interface BlogConstants
     static final String CommonPlacemarksProperty = "CommonPlacemarks";
     static final String BlogIconProperty = "BlogIcon";
     static final String ImageIconProperty = "ImageIcon";
+    static final String HiLiteIconProperty = "HiLiteIcon";
     static final String SpotOkIconProperty = "SpotOkIcon";
     static final String SpotCustomIconProperty = "SpotCustomIcon";
     static final String SpotHelpIconProperty = "SpotHelpIcon";

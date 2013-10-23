@@ -60,16 +60,12 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -81,31 +77,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 import net.opengis.kml.AbstractStyleSelectorType;
 import net.opengis.kml.BalloonStyleType;
 import net.opengis.kml.DocumentType;
 import net.opengis.kml.IconStyleType;
-import net.opengis.kml.LineStringType;
 import net.opengis.kml.LinkType;
-import net.opengis.kml.LookAtType;
 import net.opengis.kml.ObjectFactory;
 import net.opengis.kml.PlacemarkType;
 import net.opengis.kml.PointType;
 import net.opengis.kml.StyleType;
-import net.opengis.kml.TimeSpanType;
-import net.opengis.kml.TimeStampType;
 import org.vesalainen.kml.KMZ;
-import static org.vesalainen.mailblog.BlogConstants.BaseKey;
-import static org.vesalainen.mailblog.BlogConstants.BeginProperty;
-import static org.vesalainen.mailblog.BlogConstants.BlogKind;
-import static org.vesalainen.mailblog.BlogConstants.DescriptionProperty;
-import static org.vesalainen.mailblog.BlogConstants.LocationProperty;
-import static org.vesalainen.mailblog.BlogConstants.PlacemarkKind;
-import static org.vesalainen.mailblog.BlogConstants.TimestampProperty;
-import static org.vesalainen.mailblog.BlogConstants.TitleProperty;
-import static org.vesalainen.mailblog.BlogConstants.TrackPointKind;
-import static org.vesalainen.mailblog.BlogConstants.TrackSeqKind;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import static org.vesalainen.mailblog.CachingDatastoreService.getRootKey;
 import org.vesalainen.mailblog.types.GeoPtType;
 import org.vesalainen.rss.Channel;
@@ -115,7 +97,7 @@ import org.vesalainen.rss.RSS;
 /**
  * @author Timo Vesalainen
  */
-public class DS extends CachingDatastoreService implements BlogConstants
+public class DS extends CachingDatastoreService
 {
 
     private static Map<String, DS> nsMap = new HashMap<>();
@@ -1012,27 +994,41 @@ public class DS extends CachingDatastoreService implements BlogConstants
         Entity lastPlacemark = fetchLastPlacemark(settings);
         if (lastPlacemark != null)
         {
-            Date timestamp = (Date) lastPlacemark.getProperty(TimestampProperty);
-            GeoPt location = (GeoPt) lastPlacemark.getProperty(LocationProperty);
-            String locator = (String) lastPlacemark.getProperty(SubsquareProperty);
-            if (timestamp != null && location != null)
-            {
-                cacheWriter.append("<div>");
-                DateFormat dateFormat = settings.getDateFormat();
-                cacheWriter.append(dateFormat.format(timestamp));
-                cacheWriter.append("</div>");
-                cacheWriter.append("<div>");
-                String locationString = GeoPtType.getString(location);
-                cacheWriter.append(locationString);
-                cacheWriter.append("</div>");
-                cacheWriter.append("<div title=\"Maidenhead Locator\">");
-                cacheWriter.append(locator);
-                cacheWriter.append("</div>");
-                cacheWriter.cache();
-            }
+            describeLocation(lastPlacemark, cacheWriter);
         }
+        cacheWriter.cache();
     }
 
+    public void describeLocation(Entity placemark, Appendable out) throws IOException
+    {
+        Settings settings = getSettings();
+        Date timestamp = null;
+        if (TrackPointKind.equals(placemark.getKind()))
+        {
+            timestamp = new Date(placemark.getKey().getId());
+        }
+        else
+        {
+            timestamp = (Date) placemark.getProperty(TimestampProperty);
+        }
+        GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
+        MaidenheadLocator2 ml = new MaidenheadLocator2(location);
+        String locator = ml.getSubsquare();
+        if (timestamp != null && location != null)
+        {
+            out.append("<div>");
+            DateFormat dateFormat = settings.getDateFormat();
+            out.append(dateFormat.format(timestamp));
+            out.append("</div>");
+            out.append("<div>");
+            String locationString = GeoPtType.getString(location);
+            out.append(locationString);
+            out.append("</div>");
+            out.append("<div title=\"Maidenhead Locator\">");
+            out.append(locator);
+            out.append("</div>");
+       }
+    }
     public Entity fetchLastPlacemark(Settings settings)
     {
         RunInNamespace<Entity> rin = new RunInNamespace()

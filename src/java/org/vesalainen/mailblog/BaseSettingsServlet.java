@@ -97,6 +97,10 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
                 .setType(Link.class)
                 .setAttribute("size", "100")
                 .setTooltip("Used to show image (GoogleEarth)");
+        addProperty(HiLiteIconProperty)
+                .setType(Link.class)
+                .setAttribute("size", "100")
+                .setTooltip("Used to show when point in time is used (GoogleEarth)");
         addProperty(SpotOkIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")

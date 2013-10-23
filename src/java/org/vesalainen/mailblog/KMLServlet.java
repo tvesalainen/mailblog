@@ -29,19 +29,21 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import net.opengis.kml.AbstractFeatureType;
 import net.opengis.kml.AbstractStyleSelectorType;
 import net.opengis.kml.BalloonStyleType;
+import net.opengis.kml.ColorModeEnumType;
 import net.opengis.kml.DocumentType;
 import net.opengis.kml.IconStyleType;
 import net.opengis.kml.LatLonAltBoxType;
@@ -56,6 +58,7 @@ import net.opengis.kml.PlacemarkType;
 import net.opengis.kml.PointType;
 import net.opengis.kml.RegionType;
 import net.opengis.kml.StyleType;
+import net.opengis.kml.TimeStampType;
 import net.opengis.kml.ViewRefreshModeEnumType;
 import org.vesalainen.kml.KMZ;
 import static org.vesalainen.mailblog.BlogConstants.*;
@@ -67,8 +70,10 @@ import org.vesalainen.mailblog.DS.CacheOutputStream;
 public class KMLServlet extends HttpServlet
 {
     private static final String PathStyleId = "path-style";
+    private static final String TrackStyleId = "track-style";
     private static final String ImageStyleId = "image-style";
     private static final String BlogStyleId = "blog-style";
+    private static final String HiLiteStyleId = "hi-lite-style";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -137,9 +142,7 @@ public class KMLServlet extends HttpServlet
         String description = (String) placemark.getProperty(DescriptionProperty);
         SpotType spotType = SpotType.getSpotType(description);
         placemarkType.setStyleUrl("#"+SpotType.getSpotStyleId(spotType));
-        String title = (String) placemark.getProperty(TitleProperty);
-        //placemarkType.setName(title);
-        //placemarkType.setDescription(description);
+
         String id = KeyFactory.keyToString(placemark.getKey());
 
         placemarkType.setId(id);
@@ -150,6 +153,9 @@ public class KMLServlet extends HttpServlet
             PointType pointType = factory.createPointType();
             pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
             placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
+            StringBuilder sb = new StringBuilder();
+            ds.describeLocation(placemark, sb);
+            placemarkType.setDescription(sb.toString());
         }
         // write
         kmz.write(out);
@@ -179,6 +185,7 @@ public class KMLServlet extends HttpServlet
         Settings settings = ds.getSettings();
         KMZ kmz = new KMZ();
         ObjectFactory factory = kmz.getFactory();
+        DatatypeFactory dtFactory = kmz.getDtFactory();
         DocumentType documentType = factory.createDocumentType();
         JAXBElement<DocumentType> document = factory.createDocument(documentType);
         List<JAXBElement<? extends AbstractFeatureType>> abstractFeatureGroup = documentType.getAbstractFeatureGroup();
@@ -196,7 +203,7 @@ public class KMLServlet extends HttpServlet
         PlacemarkType trackPointPlacemarkType = factory.createPlacemarkType();
         JAXBElement<PlacemarkType> trackPointPlacemark = factory.createPlacemark(trackPointPlacemarkType);
         abstractFeatureGroup.add(trackPointPlacemark);
-        trackPointPlacemarkType.setStyleUrl('#'+ImageStyleId);
+        trackPointPlacemarkType.setStyleUrl('#'+TrackStyleId);
         LineStringType trackPointLineStringType = factory.createLineStringType();
         JAXBElement<LineStringType> trackPointLineString = factory.createLineString(trackPointLineStringType);
         trackPointPlacemarkType.setAbstractGeometryGroup(trackPointLineString);
@@ -233,6 +240,27 @@ public class KMLServlet extends HttpServlet
                         }
                     }
                 }
+                Date timestamp = new Date(trackPoint.getKey().getId());
+                // hi-lite placemarks
+                PlacemarkType hiLitePlacemarkType = factory.createPlacemarkType();
+                JAXBElement<PlacemarkType> hiLitePlacemark = factory.createPlacemark(hiLitePlacemarkType);
+                abstractFeatureGroup.add(hiLitePlacemark);
+                hiLitePlacemarkType.setStyleUrl("#"+HiLiteStyleId);
+                PointType hiLitePointType = factory.createPointType();
+                JAXBElement<PointType> hiLitePoint = factory.createPoint(hiLitePointType);
+                hiLitePlacemarkType.setAbstractGeometryGroup(hiLitePoint);
+                hiLitePointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
+                // timestamp
+                TimeStampType timeStampType = factory.createTimeStampType();
+                GregorianCalendar cal = new GregorianCalendar();
+                cal.setTime(timestamp);
+                XMLGregorianCalendar xmlGregorianCalendar = dtFactory.newXMLGregorianCalendar(cal);
+                timeStampType.setWhen(xmlGregorianCalendar.toXMLFormat());
+                JAXBElement<TimeStampType> timeStamp = factory.createTimeStamp(timeStampType);
+                hiLitePlacemarkType.setAbstractTimePrimitiveGroup(timeStamp);
+                StringBuilder sb = new StringBuilder();
+                ds.describeLocation(trackPoint, sb);
+                hiLitePlacemarkType.setDescription(sb.toString());
                // linestring
                 trackPointCoordinates.add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
             }
@@ -387,7 +415,7 @@ public class KMLServlet extends HttpServlet
         abstractStyleSelectorGroup.add(pathStyle);
         // track style
         StyleType trackStyleType = factory.createStyleType();
-        trackStyleType.setId(PathStyleId);
+        trackStyleType.setId(TrackStyleId);
         LineStyleType trackLineStyleType = factory.createLineStyleType();
         trackLineStyleType.setColor(settings.getTrackColor());
         trackStyleType.setLineStyle(trackLineStyleType);
@@ -413,7 +441,7 @@ public class KMLServlet extends HttpServlet
         StyleType blogStyleType = factory.createStyleType();
         JAXBElement<StyleType> blogStyle = factory.createStyle(blogStyleType);
         abstractStyleSelectorGroup.add(blogStyle);
-        blogStyleType.setId(ImageStyleId);
+        blogStyleType.setId(BlogStyleId);
 
         BalloonStyleType blogBalloonStyle = factory.createBalloonStyleType();
         blogBalloonStyle.setText("$[name]<div>$[description]</div>");
@@ -424,6 +452,22 @@ public class KMLServlet extends HttpServlet
         IconStyleType blogIconStyle = factory.createIconStyleType();
         blogIconStyle.setIcon(blogIcon);
         blogStyleType.setIconStyle(blogIconStyle);
+        
+        // hi-lite style
+        StyleType hiLiteStyleType = factory.createStyleType();
+        JAXBElement<StyleType> hiLiteStyle = factory.createStyle(hiLiteStyleType);
+        abstractStyleSelectorGroup.add(hiLiteStyle);
+        hiLiteStyleType.setId(HiLiteStyleId);
+
+        BalloonStyleType hiLiteBalloonStyle = factory.createBalloonStyleType();
+        hiLiteBalloonStyle.setText("$[name]<div>$[description]</div>");
+        hiLiteStyleType.setBalloonStyle(hiLiteBalloonStyle);
+
+        LinkType hiLiteIcon = factory.createLinkType();
+        hiLiteIcon.setHref(settings.getBlogIcon());
+        IconStyleType hiLiteIconStyle = factory.createIconStyleType();
+        hiLiteIconStyle.setIcon(hiLiteIcon);
+        hiLiteStyleType.setIconStyle(hiLiteIconStyle);
         
         // spot styles
         for (SpotType type : SpotType.values())
