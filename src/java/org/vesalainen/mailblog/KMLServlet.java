@@ -224,8 +224,8 @@ public class KMLServlet extends HttpServlet
                         PlacemarkType imagePlacemarkType = factory.createPlacemarkType();
                         JAXBElement<PlacemarkType> imagePlacemark = factory.createPlacemark(imagePlacemarkType);
                         abstractFeatureGroup.add(imagePlacemark);
+                        imagePlacemarkType.setId(sha1);
                         imagePlacemarkType.setStyleUrl("#"+ImageStyleId);
-                        imagePlacemarkType.setDescription("<img src=\""+getBase(request)+"/blob?sha1="+sha1+"\" alt=\"loading...\"></img>");
                         PointType pointType = factory.createPointType();
                         JAXBElement<PointType> point = factory.createPoint(pointType);
                         imagePlacemarkType.setAbstractGeometryGroup(point);
@@ -240,9 +240,9 @@ public class KMLServlet extends HttpServlet
                         }
                     }
                 }
-                Date timestamp = new Date(trackPoint.getKey().getId());
                 // hi-lite placemarks
                 /* they are too slow
+                Date timestamp = new Date(trackPoint.getKey().getId());
                 PlacemarkType hiLitePlacemarkType = factory.createPlacemarkType();
                 JAXBElement<PlacemarkType> hiLitePlacemark = factory.createPlacemark(hiLitePlacemarkType);
                 abstractFeatureGroup.add(hiLitePlacemark);
@@ -430,7 +430,7 @@ public class KMLServlet extends HttpServlet
         imageStyleType.setId(ImageStyleId);
 
         BalloonStyleType imageBalloonStyle = factory.createBalloonStyleType();
-        imageBalloonStyle.setText("$[name]<div>$[description]</div>");
+        imageBalloonStyle.setText("<img src=\"/blob?sha1=$[id]\" alt=\"loading...\"></img>");
         imageStyleType.setBalloonStyle(imageBalloonStyle);
 
         LinkType imageIcon = factory.createLinkType();
@@ -446,7 +446,7 @@ public class KMLServlet extends HttpServlet
         blogStyleType.setId(BlogStyleId);
 
         BalloonStyleType blogBalloonStyle = factory.createBalloonStyleType();
-        blogBalloonStyle.setText("$[name]<div>$[description]</div>");
+        blogBalloonStyle.setText("<iframe src=\"/index.html?blog=$[id]\"></iframe>");
         blogStyleType.setBalloonStyle(blogBalloonStyle);
 
         LinkType blogIcon = factory.createLinkType();

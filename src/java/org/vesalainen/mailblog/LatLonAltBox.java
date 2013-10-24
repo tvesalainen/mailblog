@@ -100,7 +100,7 @@ public class LatLonAltBox
         {
             abs = FullCircle - abs;
         }
-        return abs*(north-south);
+        return abs*(north-south)*Math.cos((north+south)/2);
     }
     public GeoPt getSouthWest()
     {

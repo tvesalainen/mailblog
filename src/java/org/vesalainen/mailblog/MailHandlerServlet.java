@@ -716,6 +716,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                         return null;
                     }
                     DS ds = DS.get();
+                    Settings settings = ds.getSettings();
                     Entity blog;
                     try
                     {
@@ -746,13 +747,13 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     setProperty(message, DateProperty, blog, true);
                     blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
                     blog.setProperty(TimestampProperty, new Date());
-                    Entity placemark = ds.findPlacemarkFor(blog);
+                    Entity placemark = ds.fetchLastPlacemark(settings);
                     if (placemark != null)
                     {
-                        List<GeoPt> coordinates = ds.getCoordinates(placemark);
-                        if (!coordinates.isEmpty())
+                        GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
+                        if (location != null)
                         {
-                            blog.setProperty(LocationProperty, DS.center(coordinates));
+                            blog.setProperty(LocationProperty, location);
                         }
                     }
                     ds.saveBlog(blog);

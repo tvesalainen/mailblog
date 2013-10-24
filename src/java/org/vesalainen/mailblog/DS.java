@@ -1114,121 +1114,6 @@ public class DS extends CachingDatastoreService
         return metadataPrepared.asIterable();
     }
 
-    public Entity findBlogFor(Entity placemark)
-    {
-        Query blogQuery = new Query(BlogKind);
-        List<Filter> blogFilters = new ArrayList<>();
-        blogFilters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
-        List<Date> timestamp = getTimestamp(placemark);
-        if (timestamp.isEmpty())
-        {
-            return null;
-        }
-        else
-        {
-            if (timestamp.size() == 1)
-            {
-                blogFilters.add(new FilterPredicate(DateProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, addHours(timestamp.get(0), -12)));
-                blogFilters.add(new FilterPredicate(DateProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, addHours(timestamp.get(0), 12)));
-            }
-            else
-            {
-                blogFilters.add(new FilterPredicate(DateProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, timestamp.get(0)));
-                blogFilters.add(new FilterPredicate(DateProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, timestamp.get(timestamp.size() - 1)));
-            }
-        }
-        blogQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, blogFilters));
-        System.err.println(blogQuery);
-        PreparedQuery blogPrepared = prepare(blogQuery);
-        Entity blog = null;
-        for (Entity b : blogPrepared.asIterable(FetchOptions.Builder.withDefaults()))
-        {
-            if (blog == null)
-            {
-                blog = b;
-            }
-            else
-            {
-                if (timeDiff(placemark, blog) > timeDiff(placemark, b))
-                {
-                    blog = b;
-                }
-            }
-        }
-        return blog;
-    }
-
-    public Entity findPlacemarkFor(Entity blog)
-    {
-        Query placemarkQuery = new Query(PlacemarkKind);
-        List<Filter> placemarkFilters = new ArrayList<>();
-        List<Date> timestamp = getTimestamp(blog);
-        if (timestamp.isEmpty())
-        {
-            return null;
-        }
-        else
-        {
-            if (timestamp.size() == 1)
-            {
-                placemarkFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, addHours(timestamp.get(0), -12)));
-                placemarkFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, addHours(timestamp.get(0), 12)));
-            }
-            else
-            {
-                placemarkFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, timestamp.get(0)));
-                placemarkFilters.add(new FilterPredicate(TimestampProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, timestamp.get(timestamp.size() - 1)));
-            }
-        }
-        placemarkQuery.setFilter(new CompositeFilter(CompositeFilterOperator.AND, placemarkFilters));
-        System.err.println(placemarkQuery);
-        PreparedQuery placemarkPrepared = prepare(placemarkQuery);
-        Entity placemark = null;
-        for (Entity b : placemarkPrepared.asIterable(FetchOptions.Builder.withDefaults()))
-        {
-            if (placemark == null)
-            {
-                placemark = b;
-            }
-            else
-            {
-                if (timeDiff(placemark, placemark) > timeDiff(placemark, b))
-                {
-                    placemark = b;
-                }
-            }
-        }
-        return placemark;
-    }
-
-    private long timeDiff(Entity e1, Entity e2)
-    {
-        List<Date> ts1 = getTimestamp(e1);
-        if (ts1 == null || ts1.isEmpty())
-        {
-            return Long.MAX_VALUE;
-        }
-        List<Date> ts2 = getTimestamp(e2);
-        if (ts2 == null || ts2.isEmpty())
-        {
-            return Long.MAX_VALUE;
-        }
-        return Math.abs(center(ts1) - center(ts2));
-    }
-
-    private long center(List<Date> ts)
-    {
-        return (ts.get(0).getTime() + ts.get(ts.size() - 1).getTime()) / 2;
-    }
-
-    private Date addHours(Date date, int hours)
-    {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        cal.add(Calendar.HOUR_OF_DAY, hours);
-        return cal.getTime();
-    }
-
     private void populatePlacemark(PlacemarkType placemarkType, Entity placemark, ObjectFactory factory, DatatypeFactory dtFactory)
     {
         String description = (String) placemark.getProperty(DescriptionProperty);
@@ -1347,7 +1232,6 @@ public class DS extends CachingDatastoreService
             }
         };
         placemark = rin.doIt(null, settings.isCommonPlacemarks());
-        updateBlogCoordinate(placemark);
         clearPlacemarkCache();
     }
 
@@ -1364,7 +1248,6 @@ public class DS extends CachingDatastoreService
             }
         };
         rin.doIt(null, settings.isCommonPlacemarks());
-        updateBlogCoordinate(placemark);
         clearPlacemarkCache();
     }
 
@@ -1380,25 +1263,6 @@ public class DS extends CachingDatastoreService
             }
         };
         return rin.doIt(null, settings.isCommonPlacemarks());
-    }
-
-    private void updateBlogCoordinate(Entity placemark)
-    {
-        DS ds = DS.get();
-        Entity blog = ds.findBlogFor(placemark);
-        if (blog != null)
-        {
-            Entity placemarkFor = ds.findPlacemarkFor(blog);
-            if (placemark.equals(placemarkFor))
-            {
-                List<GeoPt> coordinates = ds.getCoordinates(placemark);
-                if (!coordinates.isEmpty())
-                {
-                    blog.setProperty(LocationProperty, DS.center(coordinates));
-                    put(blog);
-                }
-            }
-        }
     }
 
     private void clearPlacemarkCache()
