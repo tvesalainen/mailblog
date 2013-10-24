@@ -91,12 +91,17 @@ public class KMLServlet extends HttpServlet
                     log("writeDetails "+key);
                     switch (key.getKind())
                     {
-                        case "Placemarks":
+                        case PlacemarkKind:
                             writePlacemark(key, cos);
                             break;
-                        case "TrackSeq":
+                        case BlogKind:
+                            writeBlogLocation(key, cos);
+                            break;
+                        case TrackSeqKind:
                             writeTrackSeq(key, request, cos);
                             break;
+                        default:
+                            log("unexcpected key "+key);
                     }
                     cos.cache();
                 }
@@ -159,6 +164,52 @@ public class KMLServlet extends HttpServlet
         }
         // write
         kmz.write(out);
+    }
+
+    private void writeBlogLocation(Key key, CacheOutputStream cos) throws IOException
+    {
+        DS ds = DS.get();
+        Entity blog = null;
+        try
+        {
+            blog = ds.get(key);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new IOException(ex);
+        }
+        Settings settings = ds.getSettings();
+        KMZ kmz = new KMZ();
+        ObjectFactory factory = kmz.getFactory();
+        DocumentType documentType = factory.createDocumentType();
+        JAXBElement<DocumentType> document = factory.createDocument(documentType);
+        List<JAXBElement<? extends AbstractFeatureType>> abstractFeatureGroup = documentType.getAbstractFeatureGroup();
+        kmz.getKml().getValue().setAbstractFeatureGroup(document);
+        // styles
+        setStyles(documentType, factory, settings);
+        
+        PlacemarkType placemarkType = factory.createPlacemarkType();
+        JAXBElement<PlacemarkType> aPlacemark = factory.createPlacemark(placemarkType);
+        abstractFeatureGroup.add(aPlacemark);
+        
+        placemarkType.setStyleUrl("#"+BlogStyleId);
+
+        String id = KeyFactory.keyToString(blog.getKey());
+
+        placemarkType.setId(id);
+
+        String subject = (String) blog.getProperty(SubjectProperty);
+        placemarkType.setName(subject);
+        
+        GeoPt location = (GeoPt) blog.getProperty(LocationProperty);
+        if (location != null)
+        {
+            PointType pointType = factory.createPointType();
+            pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
+            placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
+        }
+        // write
+        kmz.write(cos);
     }
 
     private void writeTrackSeq(Key trackSeqKey, HttpServletRequest request, CacheOutputStream out) throws IOException
@@ -240,29 +291,6 @@ public class KMLServlet extends HttpServlet
                         }
                     }
                 }
-                // hi-lite placemarks
-                /* they are too slow
-                Date timestamp = new Date(trackPoint.getKey().getId());
-                PlacemarkType hiLitePlacemarkType = factory.createPlacemarkType();
-                JAXBElement<PlacemarkType> hiLitePlacemark = factory.createPlacemark(hiLitePlacemarkType);
-                abstractFeatureGroup.add(hiLitePlacemark);
-                hiLitePlacemarkType.setStyleUrl("#"+HiLiteStyleId);
-                PointType hiLitePointType = factory.createPointType();
-                JAXBElement<PointType> hiLitePoint = factory.createPoint(hiLitePointType);
-                hiLitePlacemarkType.setAbstractGeometryGroup(hiLitePoint);
-                hiLitePointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
-                // timestamp
-                TimeStampType timeStampType = factory.createTimeStampType();
-                GregorianCalendar cal = new GregorianCalendar();
-                cal.setTime(timestamp);
-                XMLGregorianCalendar xmlGregorianCalendar = dtFactory.newXMLGregorianCalendar(cal);
-                timeStampType.setWhen(xmlGregorianCalendar.toXMLFormat());
-                JAXBElement<TimeStampType> timeStamp = factory.createTimeStamp(timeStampType);
-                hiLitePlacemarkType.setAbstractTimePrimitiveGroup(timeStamp);
-                StringBuilder sb = new StringBuilder();
-                ds.describeLocation(trackPoint, sb);
-                hiLitePlacemarkType.setDescription(sb.toString());
-                */
                // linestring
                 trackPointCoordinates.add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
             }
@@ -284,19 +312,19 @@ public class KMLServlet extends HttpServlet
         // styles
         setStyles(documentType, factory, settings);
         // placemarks
-        Entity prevPlacemark = null;
         Entity lastPlacemark = null;
         LatLonAltBox overallBox = new LatLonAltBox();
         Iterable<Entity> placemarkIterator = ds.fetchPlacemarks();
         Iterable<Entity> trackSeqIterator = ds.fetchTrackSeqs();
+        Iterable<Entity> blogLocationIterator = ds.fetchBlogLocations();
         for (Entity placemark : placemarkIterator)
         {
             GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
             if (location != null)
             {
-                if (prevPlacemark != null)
+                if (lastPlacemark != null)
                 {
-                    GeoPt prevLocation = (GeoPt) prevPlacemark.getProperty(LocationProperty);
+                    GeoPt prevLocation = (GeoPt) lastPlacemark.getProperty(LocationProperty);
                     // overall placemark
                     PlacemarkType overallPlacemarkType = factory.createPlacemarkType();
                     JAXBElement<PlacemarkType> overallPlacemark = factory.createPlacemark(overallPlacemarkType);
@@ -334,7 +362,7 @@ public class KMLServlet extends HttpServlet
                 networkLinkType.setRegion(regionType);
                 // latlonalt
                 LatLonAltBoxType latLonAltBoxType = factory.createLatLonAltBoxType();
-                LatLonAltBox box = new LatLonAltBox(location, 1.0);
+                LatLonAltBox box = new LatLonAltBox(location, settings.getTrackMinimumDistance());
                 box.populate(latLonAltBoxType);
                 regionType.setLatLonAltBox(latLonAltBoxType);
                 // lod
@@ -350,7 +378,6 @@ public class KMLServlet extends HttpServlet
                 networkLinkType.setLink(linkType);
                 JAXBElement<NetworkLinkType> networkLink = factory.createNetworkLink(networkLinkType);
                 abstractFeatureGroup.add(networkLink);
-                prevPlacemark = placemark;
                 lastPlacemark = placemark;
             }
         }
@@ -400,6 +427,33 @@ public class KMLServlet extends HttpServlet
                 abstractFeatureGroup.add(networkLink);
             }
         }
+        for (Entity blogLocation : blogLocationIterator)
+        {
+            GeoPt location = (GeoPt) blogLocation.getProperty(LocationProperty);
+            // network link
+            NetworkLinkType networkLinkType = factory.createNetworkLinkType();
+            // region
+            RegionType regionType = factory.createRegionType();
+            networkLinkType.setRegion(regionType);
+            // latlonalt
+            LatLonAltBoxType latLonAltBoxType = factory.createLatLonAltBoxType();
+            LatLonAltBox box = new LatLonAltBox(location, settings.getTrackMinimumDistance());
+            box.populate(latLonAltBoxType);
+            regionType.setLatLonAltBox(latLonAltBoxType);
+            // lod
+            LodType lodType = factory.createLodType();
+            lodType.setMinLodPixels(10.0);
+            lodType.setMaxLodPixels(-1.0);
+            regionType.setLod(lodType);
+            // link
+            LinkType linkType = factory.createLinkType();
+            linkType.setHref(getRequestUrl(request));
+            linkType.setHttpQuery("key="+KeyFactory.keyToString(blogLocation.getKey()));
+            linkType.setViewRefreshMode(ViewRefreshModeEnumType.ON_REGION);
+            networkLinkType.setLink(linkType);
+            JAXBElement<NetworkLinkType> networkLink = factory.createNetworkLink(networkLinkType);
+            abstractFeatureGroup.add(networkLink);
+        }
         // write
         kmz.write(out);
 
@@ -446,7 +500,7 @@ public class KMLServlet extends HttpServlet
         blogStyleType.setId(BlogStyleId);
 
         BalloonStyleType blogBalloonStyle = factory.createBalloonStyleType();
-        blogBalloonStyle.setText("<iframe src=\"/index.html?blog=$[id]\"></iframe>");
+        blogBalloonStyle.setText("<a href=\"/index.html?blog=$[id]\">$[name]</a>");
         blogStyleType.setBalloonStyle(blogBalloonStyle);
 
         LinkType blogIcon = factory.createLinkType();
