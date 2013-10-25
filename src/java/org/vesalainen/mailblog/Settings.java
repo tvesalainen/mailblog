@@ -32,22 +32,14 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import static org.vesalainen.mailblog.BlogConstants.BaseKey;
-import static org.vesalainen.mailblog.BlogConstants.FixPicProperty;
-import static org.vesalainen.mailblog.BlogConstants.NicknameProperty;
-import static org.vesalainen.mailblog.BlogConstants.PicMaxWidthProperty;
-import static org.vesalainen.mailblog.BlogConstants.SettingsKind;
-import static org.vesalainen.mailblog.BlogConstants.SpotCustomIconProperty;
-import static org.vesalainen.mailblog.BlogConstants.SpotHelpIconProperty;
-import static org.vesalainen.mailblog.BlogConstants.SpotOkIconProperty;
-import static org.vesalainen.mailblog.BlogConstants.TrackBearingToleranceProperty;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import static org.vesalainen.mailblog.SpotType.Ok;
 import org.vesalainen.mailblog.types.LocaleHelp;
 
 /**
  * @author Timo Vesalainen
  */
-public class Settings implements BlogConstants, Serializable
+public class Settings implements Serializable
 {
     private static final long serialVersionUID = 2L;
     private Map<String,Object> map = new HashMap<String,Object>();
@@ -139,12 +131,6 @@ public class Settings implements BlogConstants, Serializable
         TimeZone timeZone = getTimeZone();
         dateFormat.setTimeZone(timeZone);
         return dateFormat;
-    }
-    public String getBlogAreaTemplate()
-    {
-        Text text = (Text) Objects.nonNull(map.get(BlogAreaTemplateProperty));
-        String tmpl = text.getValue();
-        return tmpl;
     }
     public String getBlogTemplate()
     {

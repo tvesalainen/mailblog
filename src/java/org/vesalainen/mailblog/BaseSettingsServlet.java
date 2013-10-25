@@ -19,26 +19,22 @@ package org.vesalainen.mailblog;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
-import java.awt.Color;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.TimeZone;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import static org.vesalainen.mailblog.BlogConstants.SpotCustomIconProperty;
-import static org.vesalainen.mailblog.BlogConstants.SpotOkIconProperty;
-import static org.vesalainen.mailblog.BlogConstants.TrackBearingToleranceProperty;
+import static org.vesalainen.mailblog.BlogConstants.*;
 
 /**
  *
  * @author Timo Vesalainen
  */
-public class BaseSettingsServlet extends SettingsServlet implements BlogConstants
+public class BaseSettingsServlet extends SettingsServlet
 {
 
     public BaseSettingsServlet()
@@ -50,21 +46,6 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
                 .setType(Boolean.class);
         addProperty(ShowCountProperty)
                 .setType(Long.class)
-                .setMandatory();
-        addProperty(BlogAreaTemplateProperty)
-                .setType(Text.class)
-                .setAttribute("rows", "10")
-                .setAttribute("cols", "80")
-                .setMandatory();
-        addProperty(BlogTemplateProperty)
-                .setType(Text.class)
-                .setAttribute("rows", "10")
-                .setAttribute("cols", "80")
-                .setMandatory();
-        addProperty(CommentTemplateProperty)
-                .setType(Text.class)
-                .setAttribute("rows", "6")
-                .setAttribute("cols", "80")
                 .setMandatory();
         addProperty(LocaleProperty)
                 .setType(Locale.class)
@@ -83,42 +64,6 @@ public class BaseSettingsServlet extends SettingsServlet implements BlogConstant
         addProperty(CommonPlacemarksProperty)
                 .setType(Boolean.class)
                 .setTooltip("If true the placemarks and tracks are stored in empty namespace");
-        addProperty(PathColorProperty)
-                .setType(Color.class)
-                .setTooltip("Color used for path between placemarks");
-        addProperty(TrackColorProperty)
-                .setType(Color.class)
-                .setTooltip("Color used for track");
-        addProperty(BlogIconProperty)
-                .setType(Link.class)
-                .setAttribute("size", "100")
-                .setTooltip("Used to show blogs place (GoogleEarth)");
-        addProperty(ImageIconProperty)
-                .setType(Link.class)
-                .setAttribute("size", "100")
-                .setTooltip("Used to show image (GoogleEarth)");
-        addProperty(HiLiteIconProperty)
-                .setType(Link.class)
-                .setAttribute("size", "100")
-                .setTooltip("Used to show when point in time is used (GoogleEarth)");
-        addProperty(SpotOkIconProperty)
-                .setType(Link.class)
-                .setAttribute("size", "100")
-                .setTooltip("Used to show a place where Spot Ok button was pressed (GoogleEarth)");
-        addProperty(SpotCustomIconProperty)
-                .setType(Link.class)
-                .setAttribute("size", "100")
-                .setTooltip("Used to show a place where Spot Custom button was pressed (GoogleEarth)");
-        addProperty(SpotHelpIconProperty)
-                .setType(Link.class)
-                .setAttribute("size", "100")
-                .setTooltip("Used to show a place where Spot Help button was pressed (GoogleEarth)");
-        addProperty(TrackBearingToleranceProperty)
-                .setType(Double.class)
-                .setTooltip("If bearing changes less than given degrees, no new trackpoint is created");
-        addProperty(TrackMinDistanceProperty)
-                .setType(Double.class)
-                .setTooltip("Minimum distance for two trackpoints");
     }
 
     @Override

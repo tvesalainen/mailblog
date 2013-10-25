@@ -53,7 +53,6 @@ public interface BlogConstants
     static final String ContentTypeProperty = "ContentType";
     static final String EmailProperty = "Email";
     static final String NicknameProperty = "Nickname";
-    static final String BlogAreaTemplateProperty = "BlogAreaTemplate";
     static final String BlogTemplateProperty = "BlogTemplate";
     static final String CommentTemplateProperty = "CommentTemplate";
     static final String PublishImmediatelyProperty = "PublishImmediately";

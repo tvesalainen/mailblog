@@ -16,52 +16,40 @@
  */
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
-import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import java.io.IOException;
+import java.util.Locale;
+import java.util.TimeZone;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import static org.vesalainen.mailblog.BlogConstants.FixPicProperty;
+import static org.vesalainen.mailblog.BlogConstants.*;
 
 /**
- * @deprecated 
+ *
  * @author Timo Vesalainen
  */
-public class BloggerSettingsServlet extends SettingsServlet implements BlogConstants
+public class TemplateSettingsServlet extends SettingsServlet
 {
 
-    public BloggerSettingsServlet()
+    public TemplateSettingsServlet()
     {
         super(SettingsKind);
-        addProperty(NicknameProperty)
-                .setMandatory();
-        addProperty(PublishImmediatelyProperty)
-                .setType(Boolean.class);
-        addProperty(BlogAreaTemplateProperty)
-                .setType(Text.class)
-                .setAttribute("rows", "10")
-                .setAttribute("cols", "80");
         addProperty(BlogTemplateProperty)
                 .setType(Text.class)
-                .setAttribute("rows", "10")
-                .setAttribute("cols", "80");
+                .setAttribute("rows", "20")
+                .setAttribute("cols", "80")
+                .setMandatory();
         addProperty(CommentTemplateProperty)
                 .setType(Text.class)
-                .setAttribute("rows", "6")
-                .setAttribute("cols", "80");
-        addProperty(PicMaxHeightProperty)
-                .setType(Long.class);
-        addProperty(PicMaxWidthProperty)
-                .setType(Long.class);
-        addProperty(DontSendEmailProperty)
-                .setType(Boolean.class);
+                .setAttribute("rows", "15")
+                .setAttribute("cols", "80")
+                .setMandatory();
     }
 
     @Override
@@ -70,7 +58,14 @@ public class BloggerSettingsServlet extends SettingsServlet implements BlogConst
         UserService userService = UserServiceFactory.getUserService();
         if (userService.isUserLoggedIn())
         {
-            super.doGet(req, resp);
+            if (userService.isUserAdmin())
+            {
+                super.doGet(req, resp);
+            }
+            else
+            {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+            }
         }
         else
         {
@@ -85,7 +80,14 @@ public class BloggerSettingsServlet extends SettingsServlet implements BlogConst
         UserService userService = UserServiceFactory.getUserService();
         if (userService.isUserLoggedIn())
         {
-            super.doPost(req, resp);
+            if (userService.isUserAdmin())
+            {
+                super.doPost(req, resp);
+            }
+            else
+            {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+            }
         }
         else
         {
@@ -97,10 +99,8 @@ public class BloggerSettingsServlet extends SettingsServlet implements BlogConst
     @Override
     protected Key getKey(HttpServletRequest req) throws HttpException
     {
-        UserService userService = UserServiceFactory.getUserService();
-        User user = userService.getCurrentUser();
-        Key baseKey = KeyFactory.createKey(DS.getRootKey(), kind, BaseKey);
-        Key key = KeyFactory.createKey(baseKey, kind, user.getEmail());
+        DS ds = DS.get();
+        Key key = KeyFactory.createKey(DS.getRootKey(), kind, BaseKey);
         String keyString = req.getParameter(Key);
         if (keyString != null)
         {
@@ -116,12 +116,7 @@ public class BloggerSettingsServlet extends SettingsServlet implements BlogConst
     @Override
     protected String getTitle(Entity entity)
     {
-        Email email = (Email) entity.getProperty("Email");
-        if (email == null)
-        {
-            throw new IllegalArgumentException("Email not found");
-        }
-        return email.getEmail();
+        return BaseKey;
     }
 
 }

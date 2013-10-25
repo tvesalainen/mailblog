@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <title></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css"/>
+        <link rel="stylesheet" href="./admin.css"/>
         <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
         <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
         <script src="/admin/entity.js"></script>
@@ -35,8 +36,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <li><a href="#tabs-1">Blogs</a></li>
                 <li><a href="#tabs-2">Pages</a></li>
                 <li><a href="#tabs-3">Files</a></li>
-                <li><a href="#tabs-4">Base Settings</a></li>
-                <li><a href="#tabs-5">Common Settings</a></li>
+                <li><a href="#tabs-4">Templates</a></li>
+                <li><a href="#tabs-5">Base</a></li>
+                <li><a href="#tabs-6">Common</a></li>
             </ul>
             <div id="tabs-1">
                 <form action="/admin/settings/blog" method="post">
@@ -58,12 +60,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <a href="/admin/settings/fileupload">Upload file</a>
             </div>
             <div id="tabs-4">
-                <form action="/admin/settings/base" method="post">
+                <form action="/admin/settings/template" method="post">
                     <div class="fields"></div>
                     <div><button class="submit">Submit</button></div>
                 </form>
             </div>
             <div id="tabs-5">
+                <form action="/admin/settings/base" method="post">
+                    <div class="fields"></div>
+                    <div><button class="submit">Submit</button></div>
+                </form>
+            </div>
+            <div id="tabs-6">
                 <form action="/admin/settings/common" method="post">
                     <div class="fields"></div>
                     <div><button class="submit">Submit</button></div>
