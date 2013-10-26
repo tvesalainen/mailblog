@@ -211,6 +211,11 @@ public class Settings implements Serializable
         Double d = (Double) Objects.nonNull(map.get(TrackMinDistanceProperty));
         return d.doubleValue();
     }
+    public double getEyeAltitude()
+    {
+        Double d = (Double) Objects.nonNull(map.get(EyeAltitudeProperty));
+        return d.doubleValue();
+    }
     private static final String DefaultIcon = "http://maps.google.com/mapfiles/kml/shapes/info.png";
     public String getBlogIcon()
     {

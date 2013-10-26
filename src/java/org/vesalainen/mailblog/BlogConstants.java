@@ -85,6 +85,7 @@ public interface BlogConstants
     static final String NorthEastProperty = "NorthEast";
     static final String TrackBearingToleranceProperty = "TrackBearingTolerance";
     static final String TrackMinDistanceProperty = "TrackMinDistance";
+    static final String EyeAltitudeProperty = "EyeAltitude";
     static final String BeginProperty = "Begin";
     static final String EndProperty = "End";
     static final String PathColorProperty = "PathColor";

@@ -482,7 +482,7 @@ public class KMLServlet extends HttpServlet
             LookAtType lookAtType = factory.createLookAtType();
             lookAtType.setLatitude((double)location.getLatitude());
             lookAtType.setLongitude((double)location.getLongitude());
-            lookAtType.setRange(2000.0);
+            lookAtType.setRange(settings.getEyeAltitude());
             JAXBElement<LookAtType> lookAt = factory.createLookAt(lookAtType);
             documentType.setAbstractViewGroup(lookAt);
         }

@@ -21,13 +21,10 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Link;
-import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import java.awt.Color;
 import java.io.IOException;
-import java.util.Locale;
-import java.util.TimeZone;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -82,6 +79,9 @@ public class CommonSettingsServlet extends EntityServlet
         addProperty(TrackMinDistanceProperty)
                 .setType(Double.class)
                 .setTooltip("Minimum distance for two trackpoints");
+        addProperty(EyeAltitudeProperty)
+                .setType(Double.class)
+                .setTooltip("Eye altitude in meters in Google Earth lookat");
     }
 
     @Override
