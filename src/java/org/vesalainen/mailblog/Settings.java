@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TimeZone;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import static org.vesalainen.mailblog.SpotType.Ok;
@@ -56,7 +57,7 @@ public class Settings implements Serializable
                 try
                 {
                     Entity entity = db.get(key);
-                    map.putAll(entity.getProperties());
+                    putAll(entity.getProperties());
                 }
                 catch (EntityNotFoundException ex)
                 {
@@ -77,9 +78,18 @@ public class Settings implements Serializable
             Entity ent = db.get(parent);
             populate(db, ent);
         }
-        map.putAll(entity.getProperties());
+        putAll(entity.getProperties());
     }
-
+    private void putAll(Map<String,Object> m)
+    {
+        for (Entry<String,Object> e : m.entrySet())
+        {
+            if (e.getValue() != null)
+            {
+                map.put(e.getKey(), e.getValue());
+            }
+        }
+    }
     public Map<String, Object> getMap()
     {
         return map;

@@ -120,6 +120,9 @@ public interface BlogConstants
     static final String PublishParameter = "publish";
     static final String BoundingBoxParameter = "bbox";
     static final String EmailParameter = "email";
+    static final String KeyParameter = "key";
+    
+    static final String StylePath = "/style.kmz";
     
     static final String BaseKey = "base";
     
