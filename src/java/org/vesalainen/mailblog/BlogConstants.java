@@ -122,8 +122,12 @@ public interface BlogConstants
     static final String BoundingBoxParameter = "bbox";
     static final String EmailParameter = "email";
     static final String KeyParameter = "key";
+    static final String LookAtParameter = "lookAt";
     
     static final String StylePath = "/style.kmz";
+    static final String PlacemarkPath = "/placemarkPath.kmz";
+    static final String TrackSeqPath = "/trackSeq.kmz";
+    static final String BlogLocationPath = "/blogLocation.kmz";
     
     static final String BaseKey = "base";
     
