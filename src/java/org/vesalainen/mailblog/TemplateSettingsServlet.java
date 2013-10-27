@@ -34,7 +34,7 @@ import static org.vesalainen.mailblog.BlogConstants.*;
  *
  * @author Timo Vesalainen
  */
-public class TemplateSettingsServlet extends SettingsServlet
+public class TemplateSettingsServlet extends EntityServlet
 {
 
     public TemplateSettingsServlet()

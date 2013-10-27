@@ -152,6 +152,7 @@ public class Settings implements Serializable
         tmpl = tmpl.replace("${Blog}", "%4$s");
         tmpl = tmpl.replace("${Url}", "%5$s");
         tmpl = tmpl.replace("${Id}", "%6$s");
+        tmpl = tmpl.replace("${Location}", "%7$s");
         return tmpl;
     }
     public String getCommentTemplate()

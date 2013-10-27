@@ -663,23 +663,46 @@ public class DS extends CachingDatastoreService
         Date date = (Date) Objects.nonNull(entity.getProperty(DateProperty));
         Email sender = (Email) Objects.nonNull(entity.getProperty(SenderProperty));
         Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
-        return getBlog(sender, subject, date, body.getValue(), KeyFactory.keyToString(entity.getKey()), base);
+        GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
+        return getBlog(sender, subject, date, body.getValue(), KeyFactory.keyToString(entity.getKey()), base, location);
     }
 
     public String getBlog(String sender, String subject, Date date, String body, String key, URL base) throws HttpException
     {
-        return getBlog(new Email(sender), subject, date, body, key, base);
+        return getBlog(new Email(sender), subject, date, body, key, base, null);
     }
 
-    public String getBlog(Email sender, String subject, Date date, String body, String key, URL base) throws HttpException
+    private String getBlog(Email sender, String subject, Date date, String body, String key, URL base, GeoPt location) throws HttpException
     {
         Settings senderSettings = Objects.nonNull(getSettingsFor(sender));
         Locale locale = senderSettings.getLocale();
         DateFormat dateFormat = senderSettings.getDateFormat();
         String dateString = dateFormat.format(date);
-        return String.format(locale, senderSettings.getBlogTemplate(), subject, dateString, senderSettings.getNickname(), body, base.toString(), key);
+        String locationString = getLocationString(location, key);
+        return String.format(
+                locale, 
+                senderSettings.getBlogTemplate(), 
+                subject, 
+                dateString, 
+                senderSettings.getNickname(), 
+                body, 
+                base.toString(), 
+                key, 
+                locationString
+        );
     }
 
+    private String getLocationString(GeoPt location, String key)
+    {
+        if (location != null)
+        {
+            return "<a class=\"LookAt\"href=\"/kml?"+LookAtParameter+"="+key+"\">"+GeoPtType.getString(location)+"</a>";
+        }
+        else
+        {
+            return "";
+        }
+    }
     public void getCalendar(CacheWriter cw) throws IOException
     {
         Settings settings = getSettings();
