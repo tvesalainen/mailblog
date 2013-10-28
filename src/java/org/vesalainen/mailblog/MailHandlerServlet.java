@@ -92,6 +92,7 @@ import org.vesalainen.mailblog.exif.ExifParser;
 public class MailHandlerServlet extends HttpServlet implements BlogConstants
 {
     private static final String CRLF = "\r\n";
+    private static final String WinlinkSuffix = "winlink.org>";
 
     /**
      * Handles the HTTP
@@ -858,14 +859,16 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
     private String getMessageId(MimeMessage message) throws IOException, MessagingException
     {
         String messageID = (String) getHeader(message, "Message-ID");
-        if (messageID.endsWith("winlink.org"))
+        System.err.println(messageID);
+        if (messageID.endsWith(WinlinkSuffix))
         {
             int idx = messageID.indexOf("@");
             if (idx != -1)
             {
-                messageID = messageID.substring(0, idx)+"@winlink.org";
+                messageID = messageID.substring(0, idx+1)+WinlinkSuffix;
             }
         }
+        System.err.println(messageID);
         return messageID;
     }
 
