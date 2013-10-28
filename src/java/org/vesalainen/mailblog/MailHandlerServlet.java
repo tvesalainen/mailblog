@@ -84,6 +84,7 @@ import static org.vesalainen.mailblog.BlogConstants.DateProperty;
 import static org.vesalainen.mailblog.BlogConstants.OriginalSizeProperty;
 import org.vesalainen.mailblog.MaidenheadLocator.LocatorLevel;
 import org.vesalainen.mailblog.exif.ExifParser;
+import org.vesalainen.mailblog.types.ContentCounter;
 
 /**
  *
@@ -187,16 +188,16 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         Properties props = new Properties();
         Session session = Session.getDefaultInstance(props, null);
         MimeMessage message = new MimeMessage(session, request.getInputStream());
-        String messageID = getMessageId(message);
+        String messageId = getMessageId(message);
         String contentType = message.getContentType();
         
-        if (messageID == null)
+        if (messageId == null)
         {
             log("messageID missing");
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
             return;
         }
-        log("Message-ID="+messageID);
+        log("Message-ID="+messageId);
         // TODO authorization
         if (handleSpot(message))
         {
@@ -226,7 +227,6 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return;
         }
-        Key blogKey = ds.getBlogKey(messageID);
         String[] ripperDate = message.getHeader(BlogRipper+"Date");
         boolean ripping = ripperDate != null && ripperDate.length > 0;
         Object content = message.getContent();
@@ -236,11 +236,12 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             List<BodyPart> bodyPartList = findParts(multipart);
             try
             {
+                Entity blog = null;
                 String htmlBody = getHtmlBody(bodyPartList);
                 if (htmlBody != null && htmlBody.length() > 10)
                 {
                     boolean publishImmediately = settings.isPublishImmediately();
-                    Entity blog = createBlog(blogKey, message, htmlBody, publishImmediately, senderEmail);
+                    blog = updateBlog(messageId, message, htmlBody, publishImmediately, senderEmail);
                     if (!ripping)
                     {
                         if (blog != null)
@@ -260,7 +261,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                 List<Future<HTTPResponse>> futureList = new ArrayList<Future<HTTPResponse>>();
                 for (BodyPart bodyPart : bodyPartList)
                 {
-                    Collection<Future<HTTPResponse>> futures = handleBodyPart(request, blogKey, bodyPart, settings);
+                    Collection<Future<HTTPResponse>> futures = handleBodyPart(request, blog, bodyPart, settings);
                     if (futures != null)
                     {
                         futureList.addAll(futures);
@@ -304,7 +305,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                     bodyPart = textPlainToHtml(bodyPart);
                 }
                 boolean publishImmediately = settings.isPublishImmediately();
-                Entity blog = createBlog(blogKey, message, bodyPart, publishImmediately, senderEmail);
+                Entity blog = updateBlog(messageId, message, bodyPart, publishImmediately, senderEmail);
                 if (blog != null)
                 {
                     sendMail(request, blogAuthor, blog, settings);
@@ -372,7 +373,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         }
         return MimeUtility.decodeText(header[0]);
     }
-    private Collection<Future<HTTPResponse>> handleBodyPart(HttpServletRequest request, Key blogKey, BodyPart bodyPart, final Settings settings) throws MessagingException, IOException
+    private Collection<Future<HTTPResponse>> handleBodyPart(HttpServletRequest request, Entity blog, BodyPart bodyPart, final Settings settings) throws MessagingException, IOException
     {
         ImagesService imagesService = ImagesServiceFactory.getImagesService();
         DS ds = DS.get();
@@ -389,7 +390,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
             String[] cids = bodyPart.getHeader("Content-ID");
             if (cids != null && cids.length > 0)
             {
-                replaceBlogRef(blogKey, cids[0], digestString);
+                replaceBlogRef(blog, cids[0], digestString);
             }
             if (contentType.startsWith("image/"))
             {
@@ -624,56 +625,60 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         }
     }
 
-    private void replaceBlogRef(final Key blogKey, final String cidStr, final String sha1) throws IOException
+    private void replaceBlogRef(final Entity origBlog, final String cidStr, final String sha1) throws IOException
     {
-        Updater<Object> updater = new Updater<Object>()
+        if (origBlog != null)
         {
-            @Override
-            protected Object update() throws IOException
+            final Key blogKey = origBlog.getKey();
+            Updater<Object> updater = new Updater<Object>()
             {
-                DS ds = DS.get();
-                Entity blog;
-                try
+                @Override
+                protected Object update() throws IOException
                 {
-                    blog = ds.get(blogKey);
-                }
-                catch (EntityNotFoundException ex)
-                {
-                    throw new IOException(ex);
-                }
-                Collection<Key> attachments = (Collection<Key>) blog.getProperty(AttachmentsProperty);
-                if (attachments == null)
-                {
-                    attachments = new HashSet<Key>();
-                    blog.setUnindexedProperty(AttachmentsProperty, attachments);
-                }
-                attachments.add(ds.getMetadataKey(sha1));
-                String cid = cidStr;
-                if (cid.startsWith("<") && cid.endsWith(">"))
-                {
-                    cid = cid.substring(1, cid.length()-1);
-                }
-                Text text = (Text) blog.getProperty(HtmlProperty);
-                String body = text.getValue();
-                int start = body.indexOf("cid:"+cid);
-                if (start != -1)
-                {
-                    int end = body.indexOf(">", start);
-                    start = body.lastIndexOf("<img", start);
-                    if (start != -1 && end != -1)
+                    DS ds = DS.get();
+                    Entity blog;
+                    try
                     {
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(body.substring(0, start));
-                        sb.append("<img src=\"/blob?"+Sha1Parameter+"="+sha1+"\">");
-                        sb.append(body.substring(end+1));
-                        blog.setUnindexedProperty(HtmlProperty, new Text(sb.toString()));
+                        blog = ds.get(blogKey);
                     }
+                    catch (EntityNotFoundException ex)
+                    {
+                        throw new IOException(ex);
+                    }
+                    Collection<Key> attachments = (Collection<Key>) blog.getProperty(AttachmentsProperty);
+                    if (attachments == null)
+                    {
+                        attachments = new HashSet<Key>();
+                        blog.setUnindexedProperty(AttachmentsProperty, attachments);
+                    }
+                    attachments.add(ds.getMetadataKey(sha1));
+                    String cid = cidStr;
+                    if (cid.startsWith("<") && cid.endsWith(">"))
+                    {
+                        cid = cid.substring(1, cid.length()-1);
+                    }
+                    Text text = (Text) blog.getProperty(HtmlProperty);
+                    String body = text.getValue();
+                    int start = body.indexOf("cid:"+cid);
+                    if (start != -1)
+                    {
+                        int end = body.indexOf(">", start);
+                        start = body.lastIndexOf("<img", start);
+                        if (start != -1 && end != -1)
+                        {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append(body.substring(0, start));
+                            sb.append("<img src=\"/blob?"+Sha1Parameter+"="+sha1+"\">");
+                            sb.append(body.substring(end+1));
+                            blog.setUnindexedProperty(HtmlProperty, new Text(sb.toString()));
+                        }
+                    }
+                    ds.put(blog);
+                    return null;
                 }
-                ds.put(blog);
-                return null;
-            }
-        };
-        updater.start();
+            };
+            updater.start();
+        }
     }
 
     private String getHtmlBody(List<BodyPart> bodyPartList) throws MessagingException, IOException
@@ -702,7 +707,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
         return htmlBody;
     }
 
-    private Entity createBlog(final Key blogKey, final MimeMessage message, final String htmlBody, final boolean publishImmediately, final Email senderEmail) throws IOException
+    private Entity updateBlog(final String messageId, final MimeMessage message, final String htmlBody, final boolean publishImmediately, final Email senderEmail) throws IOException
     {
         Updater<Entity> updater = new Updater<Entity>()
         {
@@ -712,20 +717,22 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                 try
                 {
                     String subject = (String) getHeader(message, SubjectProperty);
-                    if (subject == null || subject.length() < 2)
+                    if (subject.startsWith("//WL2K "))
                     {
-                        return null;
+                        subject = subject.substring(7);
                     }
                     DS ds = DS.get();
                     Settings settings = ds.getSettings();
-                    Entity blog;
-                    try
+                    Entity blog = ds.getBlogEntity(messageId, subject);
+                    if (
+                            subject == null || 
+                            subject.length() < 2 ||
+                            htmlBody == null ||
+                            ContentCounter.countChars(htmlBody) < 5
+                            )
                     {
-                        blog = ds.get(blogKey);
-                    }
-                    catch (EntityNotFoundException ex)
-                    {
-                        blog = new Entity(blogKey);
+                        ds.delete(blog.getKey());
+                        return null;
                     }
                     int idx = subject.indexOf('{');
                     if (idx != -1)
@@ -736,10 +743,6 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                         {
                             blog.setProperty(KeywordsProperty, keywords);
                         }
-                    }
-                    if (subject.startsWith("//WL2K "))
-                    {
-                        subject = subject.substring(7);
                     }
                     blog.setProperty(SubjectProperty, subject);
                     blog.setProperty(PublishProperty, publishImmediately);

@@ -1193,6 +1193,23 @@ public class DS extends CachingDatastoreService
         };
         rfan.start(this);
     }
+    private static final long DayInMillis = 24*60*60*1000;
+    public Entity getBlogEntity(String messageId, String subject)
+    {
+        Date yesterday = new Date(System.currentTimeMillis()-DayInMillis);
+        Query query = new Query(BlogKind);
+        query.setFilter(new FilterPredicate(TimestampProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, yesterday));
+        PreparedQuery prepared = prepare(query);
+        for (Entity blog : prepared.asIterable())
+        {
+            String sub = (String) blog.getProperty(SubjectProperty);
+            if (subject.equals(sub))
+            {
+                return blog;
+            }
+        }
+        return getBlogFromMessageId(messageId);
+    }
 
     public class CacheWriter extends Writer
     {
