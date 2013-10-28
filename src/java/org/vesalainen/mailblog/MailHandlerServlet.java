@@ -731,7 +731,7 @@ public class MailHandlerServlet extends HttpServlet implements BlogConstants
                             ContentCounter.countChars(htmlBody) < 5
                             )
                     {
-                        ds.delete(blog.getKey());
+                        ds.deleteWithChilds(blog.getKey());
                         return null;
                     }
                     int idx = subject.indexOf('{');
