@@ -90,6 +90,7 @@ public interface BlogConstants
     static final String EndProperty = "End";
     static final String PathColorProperty = "PathColor";
     static final String TrackColorProperty = "TrackColor";
+    static final String NameProperty = "Name";
     // Maidenhead properties
     static final String FieldProperty = "Field";
     static final String SquareProperty = "Square";

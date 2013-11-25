@@ -9,13 +9,10 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.GeoPt;
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.Transaction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.vesalainen.gpx.TrackHandler;
 import static org.vesalainen.mailblog.BlogConstants.BeginProperty;
 import static org.vesalainen.mailblog.BlogConstants.NorthEastProperty;
@@ -41,7 +38,7 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
     }
     
     @Override
-    public boolean startTrack(Collection<Object> extensions)
+    public boolean startTrack(String name, Collection<Object> extensions)
     {
         String guid = getGuid(extensions);
         if (guid != null)
@@ -56,6 +53,10 @@ public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
             {
             }
             Entity track = new Entity(trackKey);
+            if (name != null)
+            {
+                track.setProperty(NameProperty, name);
+            }
             trackKey = ds.put(track);
             return true;
         }
