@@ -37,16 +37,17 @@ import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import static org.vesalainen.mailblog.BlogConstants.*;
 
 /**
  * @author Timo Vesalainen
  */
-public class CachingDatastoreService implements DatastoreService, BlogConstants
+public class CachingDatastoreService implements DatastoreService
 {
     protected DatastoreService datastore;
     protected MemcacheService cache;
     private long version;
-    private Key entityGroupKey;
+    private final Key entityGroupKey;
 
     protected CachingDatastoreService()
     {
@@ -239,6 +240,7 @@ public class CachingDatastoreService implements DatastoreService, BlogConstants
     {
         checkKeys(itrbl);
         datastore.delete(t, itrbl);
+        deleted(itrbl);
     }
 
     @Override
@@ -246,6 +248,7 @@ public class CachingDatastoreService implements DatastoreService, BlogConstants
     {
         checkKeys(itrbl);
         datastore.delete(itrbl);
+        deleted(itrbl);
     }
 
     @Override
@@ -253,6 +256,7 @@ public class CachingDatastoreService implements DatastoreService, BlogConstants
     {
         check(keys);
         datastore.delete(t, keys);
+        deleted(keys);
     }
 
     @Override
@@ -260,6 +264,7 @@ public class CachingDatastoreService implements DatastoreService, BlogConstants
     {
         check(keys);
         datastore.delete(keys);
+        deleted(keys);
     }
 
     @Override
@@ -290,6 +295,29 @@ public class CachingDatastoreService implements DatastoreService, BlogConstants
     public KeyRangeState allocateIdRange(KeyRange kr)
     {
         return datastore.allocateIdRange(kr);
+    }
+
+    private void deleted(Key... keys)
+    {
+        for (Key key : keys)
+        {
+            afterDeleted(key);
+        }
+    }
+
+    private void deleted(Iterable<Key> itrbl)
+    {
+        for (Key key : itrbl)
+        {
+            afterDeleted(key);
+        }
+    }
+    /**
+     * Called after key has been deleted
+     * @param key 
+     */
+    protected void afterDeleted(Key key)
+    {
     }
     
 }

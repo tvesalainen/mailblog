@@ -14,15 +14,13 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import org.vesalainen.gpx.TrackHandler;
-import static org.vesalainen.mailblog.BlogConstants.BeginProperty;
-import static org.vesalainen.mailblog.BlogConstants.NorthEastProperty;
-import static org.vesalainen.mailblog.BlogConstants.SouthWestProperty;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import org.w3c.dom.Element;
 
 /**
  * @author Timo Vesalainen
  */
-public class OpenCPNTrackHandler implements TrackHandler, BlogConstants
+public class OpenCPNTrackHandler implements TrackHandler
 {
     private DS ds;
     private Key trackKey;

@@ -154,23 +154,20 @@ public class BlogServlet extends HttpServlet implements BlogConstants
         try
         {
             URL base = getBase(request);
-            response.setHeader("Cache-Control", "private, max-age=0, no-cache");
             DS ds = DS.get();
             String search = request.getParameter(SearchParameter);
             if (search != null)
             {
-                if (!ds.sameETagOrCached(request, response))
+                BlogCursor bc = new BlogCursor()
+                        .setSearch(search);
+                try (CacheWriter cacheWriter = ds.createCacheWriter(request, response).setPrivate(true))
                 {
-                    BlogCursor bc = new BlogCursor()
-                            .setSearch(search);
-                    try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
-                    {
-                        ds.getBlogList(bc.getWebSafe(), base, false, cacheWriter);
-                    }
+                    ds.getBlogList(bc.getWebSafe(), base, false, cacheWriter);
                 }
             }
             else
             {
+                response.setHeader("Cache-Control", "private, max-age=0, no-cache");
                 String blogKeyString = request.getParameter(BlogParameter);
                 if (blogKeyString != null)
                 {
@@ -226,11 +223,7 @@ public class BlogServlet extends HttpServlet implements BlogConstants
             URI uri = new URI(request.getRequestURL().toString());
             return uri.resolve("/").toURL();
         }
-        catch (MalformedURLException ex)
-        {
-            throw new IOException(ex);
-        }
-        catch (URISyntaxException ex)
+        catch (MalformedURLException | URISyntaxException ex)
         {
             throw new IOException(ex);
         }

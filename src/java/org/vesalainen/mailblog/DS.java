@@ -67,6 +67,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -242,21 +244,25 @@ public class DS extends CachingDatastoreService
     {
         response.setContentType(contentType);
         response.setCharacterEncoding(charset);
-        return new CacheWriter(request, response, isPrivate);
+        return new CacheWriter(request, response)
+                .setPrivate(isPrivate);
     }
 
     public CacheWriter createCacheWriter(HttpServletRequest request, HttpServletResponse response, String eTag, String contentType, String charset, boolean isPrivate) throws IOException
     {
         response.setContentType(contentType);
         response.setCharacterEncoding(charset);
-        return new CacheWriter(request, response, eTag, isPrivate);
+        return new CacheWriter(request, response)
+                .setETag(eTag)
+                .setPrivate(isPrivate);
     }
 
     public CacheOutputStream createCacheOutputStream(HttpServletRequest request, HttpServletResponse response, String contentType, String charset, boolean isPrivate) throws IOException
     {
         response.setContentType(contentType);
         response.setCharacterEncoding(charset);
-        return new CacheOutputStream(request, response, isPrivate);
+        return new CacheOutputStream(request, response)
+                .setPrivate(isPrivate);
     }
 
     public boolean sameETagOrCached(HttpServletRequest request, HttpServletResponse response) throws IOException
@@ -1211,6 +1217,30 @@ public class DS extends CachingDatastoreService
         return getBlogFromMessageId(messageId);
     }
 
+    public Entity getEntityForKey(String keyString)
+    {
+        Key key = KeyFactory.stringToKey(keyString);
+        try
+        {
+            return datastore.get(key);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            return null;
+        }
+    }
+
+    @Override
+    protected void afterDeleted(Key key)
+    {
+        switch (key.getKind())
+        {
+            case BlogKind:
+                Searches.deleteBlog(key);
+                break;
+        }
+    }
+    
     public class CacheWriter extends Writer
     {
 
@@ -1222,27 +1252,32 @@ public class DS extends CachingDatastoreService
         private boolean isPrivate;
         private boolean cached;
 
-        private CacheWriter(HttpServletRequest request, HttpServletResponse response, boolean isPrivate) throws IOException
-        {
-            this(request, response, getETag(), isPrivate);
-        }
-
-        private CacheWriter(HttpServletRequest request, HttpServletResponse response, String eTag, boolean isPrivate) throws IOException
+        private CacheWriter(HttpServletRequest request, HttpServletResponse response) throws IOException
         {
             out = response.getWriter();
             this.cacheKey = getCacheKey(request);
             this.response = response;
+        }
+
+        public CacheWriter setETag(String eTag)
+        {
             this.eTag = eTag;
-            this.isPrivate = isPrivate;
             response.setHeader("ETag", eTag);
+            return this;
+        }
+
+        public CacheWriter setPrivate(boolean isPrivate)
+        {
+            this.isPrivate = isPrivate;
             if (isPrivate)
             {
-                response.setHeader("Cache-Control", "private");
+                response.setHeader("Cache-Control", "private, max-age=0, no-cache");
             }
             else
             {
                 response.setHeader("Cache-Control", "public");
             }
+            return this;
         }
 
         public void cache()
@@ -1298,27 +1333,32 @@ public class DS extends CachingDatastoreService
         private boolean isPrivate;
         private boolean cached;
 
-        private CacheOutputStream(HttpServletRequest request, HttpServletResponse response, boolean isPrivate) throws IOException
-        {
-            this(request, response, getETag(), isPrivate);
-        }
-
-        private CacheOutputStream(HttpServletRequest request, HttpServletResponse response, String eTag, boolean isPrivate) throws IOException
+        private CacheOutputStream(HttpServletRequest request, HttpServletResponse response) throws IOException
         {
             out = response.getOutputStream();
             this.cacheKey = getCacheKey(request);
             this.response = response;
+        }
+
+        public CacheOutputStream setETag(String eTag)
+        {
             this.eTag = eTag;
-            this.isPrivate = isPrivate;
             response.setHeader("ETag", eTag);
+            return this;
+        }
+
+        public CacheOutputStream setPrivate(boolean isPrivate)
+        {
+            this.isPrivate = isPrivate;
             if (isPrivate)
             {
-                response.setHeader("Cache-Control", "private");
+                response.setHeader("Cache-Control", "private, max-age=0, no-cache");
             }
             else
             {
                 response.setHeader("Cache-Control", "public");
             }
+            return this;
         }
 
         public void cache()

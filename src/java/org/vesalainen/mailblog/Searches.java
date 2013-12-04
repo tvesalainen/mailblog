@@ -20,6 +20,7 @@ package org.vesalainen.mailblog;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.search.Cursor;
@@ -39,16 +40,20 @@ import java.net.URL;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.mailblog.DS.CacheWriter;
 
 /**
  * @author Timo Vesalainen
  */
-public class Searches implements BlogConstants
+public class Searches
 {
 
-    static void saveBlog(Entity blog)
+    public static void saveBlog(Entity blog)
     {
+        SearchService searchService = SearchServiceFactory.getSearchService();
+        Index index = searchService.getIndex(IndexSpec.newBuilder().setName(BlogIndex));        
+        String id = KeyFactory.keyToString(blog.getKey());
         Boolean publish = (Boolean) blog.getProperty(PublishProperty);
         if (publish != null && publish)
         {
@@ -61,7 +66,7 @@ public class Searches implements BlogConstants
             Date date = (Date) blog.getProperty(DateProperty);
             Set<String> keywords = (Set) blog.getProperty(KeywordsProperty);
             Document.Builder builder = Document.newBuilder();
-            builder.setId(KeyFactory.keyToString(blog.getKey()));
+            builder.setId(id);
             builder.setLocale(locale);
             builder.addField(Field.newBuilder()
                     .setName(SubjectProperty)
@@ -93,12 +98,22 @@ public class Searches implements BlogConstants
                 }
             }
             Document document = builder.build();
-            SearchService searchService = SearchServiceFactory.getSearchService();
-            Index index = searchService.getIndex(IndexSpec.newBuilder().setName(BlogIndex));        
             index.put(document);
+        }
+        else
+        {
+            index.delete(id);
         }
     }
 
+    public static void deleteBlog(Key blogKey)
+    {
+        SearchService searchService = SearchServiceFactory.getSearchService();
+        Index index = searchService.getIndex(IndexSpec.newBuilder().setName(BlogIndex));        
+        String id = KeyFactory.keyToString(blogKey);
+        index.delete(id);
+    }
+    
     public static void getBlogListFromSearch(BlogCursor bc, URL base, CacheWriter sb) throws HttpException, IOException
     {
         DS ds = DS.get();
@@ -118,14 +133,17 @@ public class Searches implements BlogConstants
         Results<ScoredDocument> result = index.search(query);
         for (ScoredDocument sd : result)
         {
-            sb.append(ds.getBlog(
-                    sd.getOnlyField(SenderProperty).getText(), 
-                    sd.getOnlyField(SubjectProperty).getText(), 
-                    sd.getOnlyField(DateProperty).getDate(), 
-                    sd.getOnlyField(HtmlProperty).getHTML(),
-                    sd.getId(),
-                    base
-                    ));
+            String id = sd.getId();
+            Entity blog = ds.getEntityForKey(id);
+            if (blog != null)
+            {
+                sb.append(ds.getBlog(blog, base));
+            }
+            else
+            {
+                System.err.println("deleting missing blog id="+id+" in search");
+                index.delete(id);
+            }
         }
         bc.setSearchCursor(result.getCursor());
         sb.append("<span id=\"nextPage\" class=\"hidden\">"+bc.getWebSafe()+"</span>");
