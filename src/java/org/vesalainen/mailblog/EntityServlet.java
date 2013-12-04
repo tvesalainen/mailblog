@@ -34,12 +34,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.mailblog.types.PropertyType;
 
 /**
  * @author Timo Vesalainen
  */
-public abstract class EntityServlet extends HttpServlet implements BlogConstants
+public abstract class EntityServlet extends HttpServlet
 {
     public static final String Key = "key";
     public static final String Select = "select";

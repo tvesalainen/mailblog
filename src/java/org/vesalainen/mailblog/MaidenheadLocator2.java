@@ -22,12 +22,13 @@ import com.google.appengine.api.datastore.Query;
 import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
+import static org.vesalainen.mailblog.BlogConstants.*;
 
 /**
  * @author Timo Vesalainen
  * @see <a href="http://en.wikipedia.org/wiki/Maidenhead_Locator_System">Maidenhead Locator System</a>
  */
-public class MaidenheadLocator2 extends MaidenheadLocator implements BlogConstants
+public class MaidenheadLocator2 extends MaidenheadLocator
 {
     private static final int LIMIT = 30;
 

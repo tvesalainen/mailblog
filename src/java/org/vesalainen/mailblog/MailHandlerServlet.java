@@ -80,8 +80,7 @@ import javax.xml.bind.JAXBException;
 import org.vesalainen.gpx.GPX;
 import org.vesalainen.kml.KML;
 import org.vesalainen.kml.KMZ;
-import static org.vesalainen.mailblog.BlogConstants.DateProperty;
-import static org.vesalainen.mailblog.BlogConstants.OriginalSizeProperty;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.mailblog.MaidenheadLocator.LocatorLevel;
 import org.vesalainen.mailblog.exif.ExifParser;
 import org.vesalainen.mailblog.types.ContentCounter;
@@ -90,7 +89,7 @@ import org.vesalainen.mailblog.types.ContentCounter;
  *
  * @author Timo Vesalainen
  */
-public class MailHandlerServlet extends HttpServlet implements BlogConstants
+public class MailHandlerServlet extends HttpServlet
 {
     private static final String CRLF = "\r\n";
     private static final String WinlinkSuffix = "winlink.org>";

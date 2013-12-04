@@ -19,13 +19,14 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.mailblog.DS.CacheWriter;
 
 /**
  *
  * @author Timo Vesalainen
  */
-public class BlogServlet extends HttpServlet implements BlogConstants
+public class BlogServlet extends HttpServlet
 {
     /*
     private DS db;
@@ -158,11 +159,22 @@ public class BlogServlet extends HttpServlet implements BlogConstants
             String search = request.getParameter(SearchParameter);
             if (search != null)
             {
-                BlogCursor bc = new BlogCursor()
-                        .setSearch(search);
-                try (CacheWriter cacheWriter = ds.createCacheWriter(request, response).setPrivate(true))
+                if (search.isEmpty())
                 {
-                    ds.getBlogList(bc.getWebSafe(), base, false, cacheWriter);
+                    // empty string in search field
+                    try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
+                    {
+                        ds.getBlogList(null, base, false, cacheWriter);
+                    }
+                }
+                else
+                {
+                    BlogCursor bc = new BlogCursor()
+                            .setSearch(search);
+                    try (CacheWriter cacheWriter = ds.createCacheWriter(request, response).setPrivate(true))
+                    {
+                        ds.getBlogList(bc.getWebSafe(), base, false, cacheWriter);
+                    }
                 }
             }
             else

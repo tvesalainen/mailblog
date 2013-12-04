@@ -31,12 +31,13 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import static org.vesalainen.mailblog.BlogConstants.*;
 
 /**
  *
  * @author Timo Vesalainen
  */
-public class ContentServlet extends HttpServlet implements BlogConstants
+public class ContentServlet extends HttpServlet
 {
     private BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
     /**

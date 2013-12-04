@@ -29,12 +29,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
-import static org.vesalainen.mailblog.BlogConstants.NicknameProperty;
+import static org.vesalainen.mailblog.BlogConstants.*;
 
 /**
  * @author Timo Vesalainen
  */
-public class Bloggers implements BlogConstants
+public class Bloggers
 {
     public static final String Blogger = "Blogger";
     public static final String Nickname = "Nickname";

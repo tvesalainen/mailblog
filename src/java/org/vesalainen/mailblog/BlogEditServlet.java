@@ -24,11 +24,12 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Text;
 import java.util.Date;
 import java.util.HashSet;
+import static org.vesalainen.mailblog.BlogConstants.*;
 
 /**
  * @author Timo Vesalainen
  */
-public class BlogEditServlet extends EntityServlet implements BlogConstants
+public class BlogEditServlet extends EntityServlet
 {
 
     public BlogEditServlet()

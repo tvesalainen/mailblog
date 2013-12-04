@@ -33,12 +33,13 @@ import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import static org.vesalainen.mailblog.BlogConstants.*;
 
 /**
  *
  * @author Timo Vesalainen
  */
-public class PageServlet extends EntityServlet implements BlogConstants
+public class PageServlet extends EntityServlet
 {
     
     public PageServlet()

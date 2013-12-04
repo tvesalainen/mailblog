@@ -24,12 +24,13 @@ import net.opengis.kml.TimeSpanType;
 import net.opengis.kml.TimeStampType;
 import org.vesalainen.kml.FeatureVisitor;
 import org.vesalainen.kml.KML;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.mailblog.MaidenheadLocator.LocatorLevel;
 
 /**
  * @author Timo Vesalainen
  */
-public class PlacemarkUpdater extends FeatureVisitor<Entity> implements BlogConstants
+public class PlacemarkUpdater extends FeatureVisitor<Entity>
 {
     private DS ds;
     private KML kml;
