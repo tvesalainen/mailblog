@@ -20,12 +20,14 @@ package org.vesalainen.mailblog;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.GeoPt;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.search.Cursor;
 import com.google.appengine.api.search.Document;
 import com.google.appengine.api.search.Field;
+import com.google.appengine.api.search.GeoPoint;
 import com.google.appengine.api.search.Index;
 import com.google.appengine.api.search.IndexSpec;
 import com.google.appengine.api.search.Query;
@@ -66,13 +68,14 @@ public class Searches
             Email sender = (Email) blog.getProperty(SenderProperty);
             Text html = (Text) blog.getProperty(HtmlProperty);
             Date date = (Date) blog.getProperty(DateProperty);
+            GeoPt location = (GeoPt) blog.getProperty(LocationProperty);
             Set<String> keywords = (Set) blog.getProperty(KeywordsProperty);
-            Document.Builder builder = Document.newBuilder();
-            builder.setId(id);
-            builder.setLocale(locale);
-            builder.addField(Field.newBuilder()
-                    .setName(SubjectProperty)
-                    .setText(subject));
+            Document.Builder builder = Document.newBuilder()
+                .setId(id)
+                .setLocale(locale)
+                .addField(Field.newBuilder()
+                        .setName(SubjectProperty)
+                        .setText(subject));
             if (sender != null)
             {
                 String senderEmail = sender.getEmail();
@@ -98,6 +101,12 @@ public class Searches
                             .setName(KeywordProperty)
                             .setAtom(kw));
                 }
+            }
+            if (location != null)
+            {
+                builder.addField(Field.newBuilder()
+                        .setName(LocationProperty)
+                        .setGeoPoint(new GeoPoint(location.getLatitude(), location.getLongitude())));
             }
             Document document = builder.build();
             index.put(document);
