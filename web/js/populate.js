@@ -74,6 +74,7 @@ $(document).ready(function(){
     });
 
     $("body").on("change", ".search", function(event){        
+        $("#blog").html("");
         var search = $(this).val();
         $.post("/blog", {search: search }, function(data){
             $("#blog").html(data);

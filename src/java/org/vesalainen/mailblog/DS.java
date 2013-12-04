@@ -665,32 +665,40 @@ public class DS extends CachingDatastoreService
 
     public String getBlog(Entity entity, URL base) throws HttpException, IOException
     {
+        Settings settings = getSettings();
         String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
         Date date = (Date) Objects.nonNull(entity.getProperty(DateProperty));
         Email sender = (Email) Objects.nonNull(entity.getProperty(SenderProperty));
         Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
         GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
-        return getBlog(sender, subject, date, body.getValue(), KeyFactory.keyToString(entity.getKey()), base, location);
+        return getBlog(settings.getBlogTemplate(), sender, subject, date, body.getValue(), KeyFactory.keyToString(entity.getKey()), base, location);
     }
 
     public String getBlog(String sender, String subject, Date date, String body, String key, URL base) throws HttpException
     {
-        return getBlog(new Email(sender), subject, date, body, key, base, null);
+        Settings settings = getSettings();
+        return getBlog(settings.getBlogTemplate(), new Email(sender), subject, date, body, key, base, null);
     }
 
-    private String getBlog(Email sender, String subject, Date date, String body, String key, URL base, GeoPt location) throws HttpException
+    public String getSearchResults(String sender, String subject, Date date, String body, String key, URL base) throws HttpException
     {
-        Settings senderSettings = Objects.nonNull(getSettingsFor(sender));
-        Locale locale = senderSettings.getLocale();
-        DateFormat dateFormat = senderSettings.getDateFormat();
+        Settings settings = getSettings();
+        return getBlog(settings.getSearchResultTemplate(), new Email(sender), subject, date, body, key, base, null);
+    }
+
+    private String getBlog(String tmpl, Email sender, String subject, Date date, String body, String key, URL base, GeoPt location) throws HttpException
+    {
+        Settings settings = getSettings();
+        Locale locale = settings.getLocale();
+        DateFormat dateFormat = settings.getDateFormat();
         String dateString = dateFormat.format(date);
         String locationString = getLocationString(location, key);
         return String.format(
                 locale, 
-                senderSettings.getBlogTemplate(), 
+                tmpl, 
                 subject, 
                 dateString, 
-                senderSettings.getNickname(), 
+                settings.getNickname(), 
                 body, 
                 base.toString(), 
                 key, 

@@ -144,7 +144,16 @@ public class Settings implements Serializable
     }
     public String getBlogTemplate()
     {
-        Text text = (Text) Objects.nonNull(map.get(BlogTemplateProperty));
+        return getBlogTemplate(BlogTemplateProperty);
+    }
+    public String getSearchResultTemplate()
+    {
+        return getBlogTemplate(SearchResultsTemplateProperty);
+    }
+
+    private String getBlogTemplate(String tmplName)
+    {
+        Text text = (Text) Objects.nonNull(map.get(tmplName));
         String tmpl = text.getValue();
         tmpl = tmpl.replace("${Subject}", "%1$s");
         tmpl = tmpl.replace("${Date}", "%2$s");

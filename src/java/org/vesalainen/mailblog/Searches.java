@@ -35,6 +35,8 @@ import com.google.appengine.api.search.Results;
 import com.google.appengine.api.search.ScoredDocument;
 import com.google.appengine.api.search.SearchService;
 import com.google.appengine.api.search.SearchServiceFactory;
+import com.google.appengine.api.search.SortExpression;
+import com.google.appengine.api.search.SortOptions;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
@@ -121,8 +123,9 @@ public class Searches
         SearchService searchService = SearchServiceFactory.getSearchService();
         Index index = searchService.getIndex(IndexSpec.newBuilder().setName(BlogIndex));
         Builder optionsBuilder = QueryOptions.newBuilder();
-        optionsBuilder.setLimit(settings.getShowCount());
-        optionsBuilder.setFieldsToReturn(SubjectProperty, DateProperty, SenderProperty, HtmlProperty);
+        //optionsBuilder.setLimit(settings.getShowCount());
+        optionsBuilder.setFieldsToReturn(SubjectProperty, DateProperty, SenderProperty);
+        optionsBuilder.setFieldsToSnippet(HtmlProperty);
         Cursor searchCursor = bc.getSearchCursor();
         if (searchCursor != null)
         {
@@ -137,7 +140,14 @@ public class Searches
             Entity blog = ds.getEntityForKey(id);
             if (blog != null)
             {
-                sb.append(ds.getBlog(blog, base));
+                sb.append(ds.getSearchResults(
+                        sd.getOnlyField(SenderProperty).getText(), 
+                        sd.getOnlyField(SubjectProperty).getText(), 
+                        sd.getOnlyField(DateProperty).getDate(), 
+                        sd.getExpressions().get(0).getHTML(),
+                        id,
+                        base
+                        ));
             }
             else
             {

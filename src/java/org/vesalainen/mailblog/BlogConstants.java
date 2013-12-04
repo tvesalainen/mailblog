@@ -54,6 +54,7 @@ public interface BlogConstants
     static final String EmailProperty = "Email";
     static final String NicknameProperty = "Nickname";
     static final String BlogTemplateProperty = "BlogTemplate";
+    static final String SearchResultsTemplateProperty = "SearchResultsTemplate";
     static final String CommentTemplateProperty = "CommentTemplate";
     static final String PublishImmediatelyProperty = "PublishImmediately";
     static final String LocaleProperty = "Locale";

@@ -23,8 +23,6 @@ import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import java.io.IOException;
-import java.util.Locale;
-import java.util.TimeZone;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,6 +34,14 @@ import static org.vesalainen.mailblog.BlogConstants.*;
  */
 public class TemplateSettingsServlet extends EntityServlet
 {
+    private static final String Help = "Following expressions are available:\n"+
+        "${Subject} Blog subject\n"+
+        "${Date} Blog date\n"+
+        "${Sender} Sender\n"+
+        "${Blog} Blog content\n"+
+        "${Url} Direct blog Url\n"+
+        "${Id} Blog datastore id as string\n"+
+        "${Location} Coordinates\n";
 
     public TemplateSettingsServlet()
     {
@@ -44,12 +50,20 @@ public class TemplateSettingsServlet extends EntityServlet
                 .setType(Text.class)
                 .setAttribute("rows", "20")
                 .setAttribute("cols", "80")
-                .setMandatory();
+                .setMandatory()
+                .setTooltip(Help);
         addProperty(CommentTemplateProperty)
                 .setType(Text.class)
                 .setAttribute("rows", "15")
                 .setAttribute("cols", "80")
-                .setMandatory();
+                .setMandatory()
+                .setTooltip(Help);
+        addProperty(SearchResultsTemplateProperty)
+                .setType(Text.class)
+                .setAttribute("rows", "15")
+                .setAttribute("cols", "80")
+                .setMandatory()
+                .setTooltip(Help);
     }
 
     @Override
