@@ -674,21 +674,23 @@ public class DS extends CachingDatastoreService
         return getBlog(settings.getBlogTemplate(), sender, subject, date, body.getValue(), KeyFactory.keyToString(entity.getKey()), base, location);
     }
 
-    public String getBlog(String sender, String subject, Date date, String body, String key, URL base) throws HttpException
+    public String getBlog(String sendFrom, String subject, Date date, String body, String key, URL base) throws HttpException
     {
-        Settings settings = getSettings();
-        return getBlog(settings.getBlogTemplate(), new Email(sender), subject, date, body, key, base, null);
+        Email sender = new Email(sendFrom);
+        Settings settings = getSettingsFor(sender);
+        return getBlog(settings.getBlogTemplate(), sender, subject, date, body, key, base, null);
     }
 
-    public String getSearchResults(String sender, String subject, Date date, String body, String key, URL base) throws HttpException
+    public String getSearchResults(String sendFrom, String subject, Date date, String body, String key, URL base) throws HttpException
     {
-        Settings settings = getSettings();
-        return getBlog(settings.getSearchResultTemplate(), new Email(sender), subject, date, body, key, base, null);
+        Email sender = new Email(sendFrom);
+        Settings settings = getSettingsFor(sender);
+        return getBlog(settings.getSearchResultTemplate(), sender, subject, date, body, key, base, null);
     }
 
     private String getBlog(String tmpl, Email sender, String subject, Date date, String body, String key, URL base, GeoPt location) throws HttpException
     {
-        Settings settings = getSettings();
+        Settings settings = getSettingsFor(sender);
         Locale locale = settings.getLocale();
         DateFormat dateFormat = settings.getDateFormat();
         String dateString = dateFormat.format(date);
