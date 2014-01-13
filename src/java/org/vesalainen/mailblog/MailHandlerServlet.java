@@ -239,7 +239,7 @@ public class MailHandlerServlet extends HttpServlet
                 String htmlBody = getHtmlBody(bodyPartList);
                 if (htmlBody != null && htmlBody.length() > 10)
                 {
-                    boolean publishImmediately = settings.isPublishImmediately();
+                    boolean publishImmediately = true;  //settings.isPublishImmediately();
                     blog = updateBlog(messageId, message, htmlBody, publishImmediately, senderEmail);
                     if (!ripping)
                     {
@@ -376,7 +376,7 @@ public class MailHandlerServlet extends HttpServlet
     {
         ImagesService imagesService = ImagesServiceFactory.getImagesService();
         DS ds = DS.get();
-        Collection<Future<HTTPResponse>> futures = new ArrayList<Future<HTTPResponse>>();
+        Collection<Future<HTTPResponse>> futures = new ArrayList<>();
         String contentType = bodyPart.getContentType();
         log(contentType);
         Object content = bodyPart.getContent();
