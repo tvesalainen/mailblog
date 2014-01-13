@@ -164,28 +164,36 @@ public class CachingDatastoreService implements DatastoreService
     public List<Key> put(Transaction t, Iterable<Entity> itrbl)
     {
         checkEntities(itrbl);
-        return datastore.put(t, itrbl);
+        List<Key> res = datastore.put(t, itrbl);
+        afterPut(itrbl);
+        return res;
     }
 
     @Override
     public List<Key> put(Iterable<Entity> itrbl)
     {
         checkEntities(itrbl);
-        return datastore.put(itrbl);
+        List<Key> res = datastore.put(itrbl);
+        afterPut(itrbl);
+        return res;
     }
 
     @Override
     public Key put(Transaction t, Entity entity)
     {
         check(entity);
-        return datastore.put(t, entity);
+        Key res = datastore.put(t, entity);
+        afterPut(entity);
+        return res;
     }
 
     @Override
     public Key put(Entity entity)
     {
         check(entity);
-        return datastore.put(entity);
+        Key res = datastore.put(entity);
+        afterPut(entity);
+        return res;
     }
 
     @Override
@@ -317,6 +325,18 @@ public class CachingDatastoreService implements DatastoreService
      * @param key 
      */
     protected void afterDeleted(Key key)
+    {
+    }
+
+    private void afterPut(Iterable<Entity> itrbl)
+    {
+        for (Entity entity : itrbl)
+        {
+            afterPut(entity);
+        }
+    }
+
+    protected void afterPut(Entity entity)
     {
     }
     

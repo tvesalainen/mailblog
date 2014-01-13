@@ -759,7 +759,7 @@ public class MailHandlerServlet extends HttpServlet
                             blog.setProperty(LocationProperty, location);
                         }
                     }
-                    ds.saveBlog(blog);
+                    ds.put(blog);
                     return blog;
                 }
                 catch (MessagingException ex)

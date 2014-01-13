@@ -862,13 +862,6 @@ public class DS extends CachingDatastoreService
         }
     }
 
-    public void saveBlog(Entity blog)
-    {
-        assert BlogKind.equals(blog.getKind());
-        put(blog);
-        Searches.saveBlog(blog);
-    }
-
     public void getKeywordSelect(CacheWriter cw) throws IOException
     {   // TODO performance
         Query query = new Query(BlogKind);
@@ -1247,6 +1240,25 @@ public class DS extends CachingDatastoreService
         {
             case BlogKind:
                 Searches.deleteBlog(key);
+                break;
+        }
+    }
+
+    @Override
+    protected void afterPut(Entity entity)
+    {
+        switch (entity.getKind())
+        {
+            case BlogKind:
+                Boolean publish = (Boolean) entity.getProperty(PublishProperty);
+                if (publish != null && publish)
+                {
+                    Searches.saveBlog(entity);
+                }
+                else
+                {
+                    Searches.deleteBlog(entity.getKey());
+                }
                 break;
         }
     }
