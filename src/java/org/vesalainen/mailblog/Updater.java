@@ -18,6 +18,7 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.Transaction;
+import com.google.appengine.api.datastore.TransactionOptions;
 import com.google.apphosting.api.ApiProxy;
 import java.io.IOException;
 import java.util.ConcurrentModificationException;
@@ -45,7 +46,7 @@ public abstract class Updater<T>
     private T updateWithTransaction() throws IOException
     {
         DS ds = DS.get();
-        Transaction tr = ds.beginTransaction();
+        Transaction tr = ds.beginTransaction(TransactionOptions.Builder.withXG(true));
         try
         {
             T result = update();
