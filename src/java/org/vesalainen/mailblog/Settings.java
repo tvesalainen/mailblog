@@ -43,7 +43,7 @@ import org.vesalainen.mailblog.types.LocaleHelp;
 public class Settings implements Serializable
 {
     private static final long serialVersionUID = 2L;
-    private Map<String,Object> map = new HashMap<String,Object>();
+    private Map<String,Object> map = new HashMap<>();
 
     Settings(final DS db, Entity entity) throws EntityNotFoundException
     {
