@@ -105,14 +105,14 @@ public class Settings implements Serializable
     }
     public Email getEmail()
     {
-        return (Email) Objects.nonNull(map.get(EmailProperty));
+        return (Email) map.get(EmailProperty);
     }
     public String getNickname()
     {
         String nickname = (String) map.get(NicknameProperty);
         if (nickname != null)
         {
-            return (String) Objects.nonNull(map.get(NicknameProperty));
+            return (String) map.get(NicknameProperty);
         }
         else
         {
@@ -153,7 +153,7 @@ public class Settings implements Serializable
 
     private String getBlogTemplate(String tmplName)
     {
-        Text text = (Text) Objects.nonNull(map.get(tmplName));
+        Text text = (Text) map.get(tmplName);
         String tmpl = text.getValue();
         tmpl = tmpl.replace("${Subject}", "%1$s");
         tmpl = tmpl.replace("${Date}", "%2$s");
@@ -166,7 +166,7 @@ public class Settings implements Serializable
     }
     public String getCommentTemplate()
     {
-        Text text = (Text) Objects.nonNull(map.get(CommentTemplateProperty));
+        Text text = (Text) map.get(CommentTemplateProperty);
         String tmpl = text.getValue();
         tmpl = tmpl.replace("${Nickname}", "%1$s");
         tmpl = tmpl.replace("${Date}", "%2$s");
@@ -197,33 +197,33 @@ public class Settings implements Serializable
     }
     public int getPicMaxHeight()
     {
-        Long l = (Long) Objects.nonNull(map.get(PicMaxHeightProperty));
+        Long l = (Long) map.get(PicMaxHeightProperty);
         return l.intValue();
     }
     public int getPicMaxWidth()
     {
-        Long l = (Long) Objects.nonNull(map.get(PicMaxWidthProperty));
+        Long l = (Long) map.get(PicMaxWidthProperty);
         return l.intValue();
     }
     public int getShowCount()
     {
-        Long l = (Long) Objects.nonNull(map.get(ShowCountProperty));
+        Long l = (Long) map.get(ShowCountProperty);
         return l.intValue();
     }
 
     public double getTrackBearingTolerance()
     {
-        Double d = (Double) Objects.nonNull(map.get(TrackBearingToleranceProperty));
+        Double d = (Double) map.get(TrackBearingToleranceProperty);
         return d.doubleValue();
     }
     public double getTrackMinimumDistance()
     {
-        Double d = (Double) Objects.nonNull(map.get(TrackMinDistanceProperty));
+        Double d = (Double) map.get(TrackMinDistanceProperty);
         return d.doubleValue();
     }
     public double getEyeAltitude()
     {
-        Double d = (Double) Objects.nonNull(map.get(EyeAltitudeProperty));
+        Double d = (Double) map.get(EyeAltitudeProperty);
         return d.doubleValue();
     }
     private static final String DefaultIcon = "http://maps.google.com/mapfiles/kml/shapes/info.png";
@@ -298,13 +298,13 @@ public class Settings implements Serializable
     
     public byte[] getPathColor()
     {
-        Long l = (Long) Objects.nonNull(map.get(PathColorProperty));
+        Long l = (Long) map.get(PathColorProperty);
         return rgbToArray(l.intValue());
     }
 
     public byte[] getTrackColor()
     {
-        Long l = (Long) Objects.nonNull(map.get(TrackColorProperty));
+        Long l = (Long) map.get(TrackColorProperty);
         return rgbToArray(l.intValue());
     }
     private byte[] rgbToArray(int i)

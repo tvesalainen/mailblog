@@ -418,13 +418,13 @@ public class DS extends CachingDatastoreService
             PreparedQuery prepared = prepare(query);
             for (Entity blog : prepared.asIterable())
             {
-                String subject = (String) Objects.nonNull(blog.getProperty(SubjectProperty));
-                Date date = (Date) Objects.nonNull(blog.getProperty(DateProperty));
+                String subject = (String) blog.getProperty(SubjectProperty);
+                Date date = (Date) blog.getProperty(DateProperty);
                 if (date.after(last))
                 {
                     last = date;
                 }
-                Email sender = (Email) Objects.nonNull(blog.getProperty(SenderProperty));
+                Email sender = (Email) blog.getProperty(SenderProperty);
                 String nickname = getNickname(sender);
                 Settings bloggerSettings = getSettingsFor(sender);
                 nickname = bloggerSettings.getNickname();
@@ -528,9 +528,9 @@ public class DS extends CachingDatastoreService
         {
             throw new HttpException(HttpServletResponse.SC_NOT_FOUND, blogKey + " not found");
         }
-        Email sender = (Email) Objects.nonNull(blog.getProperty(SenderProperty));
+        Email sender = (Email) blog.getProperty(SenderProperty);
         Settings senderSettings;
-        senderSettings = Objects.nonNull(getSettingsFor(sender));
+        senderSettings = getSettingsFor(sender);
         String commentTemplate = senderSettings.getCommentTemplate();
         Locale locale = senderSettings.getLocale();
         DateFormat dateFormat = senderSettings.getDateFormat();
@@ -666,10 +666,10 @@ public class DS extends CachingDatastoreService
     public String getBlog(Entity entity, URL base) throws HttpException, IOException
     {
         Settings settings = getSettings();
-        String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
-        Date date = (Date) Objects.nonNull(entity.getProperty(DateProperty));
-        Email sender = (Email) Objects.nonNull(entity.getProperty(SenderProperty));
-        Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
+        String subject = (String) entity.getProperty(SubjectProperty);
+        Date date = (Date) entity.getProperty(DateProperty);
+        Email sender = (Email) entity.getProperty(SenderProperty);
+        Text body = (Text) entity.getProperty(HtmlProperty);
         GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
         return getBlog(settings.getBlogTemplate(), sender, subject, date, body.getValue(), KeyFactory.keyToString(entity.getKey()), base, location);
     }
@@ -733,10 +733,10 @@ public class DS extends CachingDatastoreService
         PreparedQuery prepared = prepare(query);
         for (Entity entity : prepared.asIterable(FetchOptions.Builder.withDefaults()))
         {
-            String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
-            Date date = (Date) Objects.nonNull(entity.getProperty(DateProperty));
-            Email sender = (Email) Objects.nonNull(entity.getProperty(SenderProperty));
-            Text body = (Text) Objects.nonNull(entity.getProperty(HtmlProperty));
+            String subject = (String) entity.getProperty(SubjectProperty);
+            Date date = (Date) entity.getProperty(DateProperty);
+            Email sender = (Email) entity.getProperty(SenderProperty);
+            Text body = (Text) entity.getProperty(HtmlProperty);
             calendar.setTime(date);
             int year = calendar.get(Calendar.YEAR);
             int month = calendar.get(Calendar.MONTH);
@@ -768,8 +768,8 @@ public class DS extends CachingDatastoreService
             for (int month : monthMap.keySet())
             {
                 List<Entity> blogList = monthMap.get(month);
-                Date end = (Date) Objects.nonNull(blogList.get(0).getProperty(DateProperty));
-                Date begin = (Date) Objects.nonNull(blogList.get(blogList.size() - 1).getProperty(DateProperty));
+                Date end = (Date) blogList.get(0).getProperty(DateProperty);
+                Date begin = (Date) blogList.get(blogList.size() - 1).getProperty(DateProperty);
                 BlogCursor bc = new BlogCursor()
                         .setBegin(begin)
                         .setEnd(end);
@@ -778,7 +778,7 @@ public class DS extends CachingDatastoreService
                 cw.append("<div class=\"hidden " + monthId + " calendar-indent\">\n");
                 for (Entity entity : blogList)
                 {
-                    String subject = (String) Objects.nonNull(entity.getProperty(SubjectProperty));
+                    String subject = (String) entity.getProperty(SubjectProperty);
                     cw.append("<div class=\"blog-entry\" id=\"" + KeyFactory.keyToString(entity.getKey()) + "\">" + subject + "</div>");
                 }
                 cw.append("</div>\n");
