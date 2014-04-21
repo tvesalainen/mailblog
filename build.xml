@@ -57,6 +57,7 @@
         <copy file="${rss.jar}" todir="build/WEB-INF/lib"/>
         <copy file="${javalpg.jar}" todir="build/WEB-INF/lib"/>
         <copy file="${parsers.jar}" todir="build/WEB-INF/lib"/>
+        <copy file="${nmeaparser.jar}" todir="build/WEB-INF/lib"/>
     </target>
     <target name="run" depends="build">
       <java classpath="${java.classpath}:build/WEB-INF/classes"
@@ -80,6 +81,19 @@
             <arg value="-A"/>
             <arg value="${appid}"/>
             <arg value="update"/>
+            <arg value="build"/>
+        </exec>
+    </target>
+    
+    <target name="rollback" depends="init">
+        <exec executable="cmd" inputstring="4/EHRl9MVIxpZi0vGzd0tKC7bLqGNZ.oqeddmHbA4YROl05ti8ZT3ZVApa4gAI">
+            <arg value="/c"/>
+            <arg value="${appcfg}"/>
+            <arg value="--oauth2"/>
+            <arg value="--use_java7"/>
+            <arg value="-A"/>
+            <arg value="${appid}"/>
+            <arg value="rollback"/>
             <arg value="build"/>
         </exec>
     </target>
