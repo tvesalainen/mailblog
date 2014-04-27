@@ -6,7 +6,7 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.GeoPt;
-import net.opengis.kml.LatLonAltBoxType;
+import org.vesalainen.repacked.net.opengis.kml.LatLonAltBoxType;
 
 /**
  * @author Timo Vesalainen
