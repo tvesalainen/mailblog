@@ -126,9 +126,16 @@ public class CachingDatastoreService implements DatastoreService
     }
     public boolean changedETAG(String etag)
     {
-        long et = Long.parseLong(etag);
-        check();
-        return version != et;
+        try
+        {
+            long et = Long.parseLong(etag);
+            check();
+            return version != et;
+        }
+        catch (NumberFormatException ex)
+        {
+            return true;
+        }
     }
     @Override
     public PreparedQuery prepare(Transaction t, Query query)
