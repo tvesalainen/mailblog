@@ -47,6 +47,8 @@
         <appengine.app.version>1</appengine.app.version>
         <appengine.target.version>1.9.3</appengine.target.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <appengine-web-app.application>adventurersblog</appengine-web-app.application>
+        <appengine-web-app.version>1-0-0</appengine-web-app.version> <!-- this is the same as project.version with dots changed to dashes-->
     </properties>
 
     <dependencies>
@@ -160,5 +162,13 @@
             </plugin>        
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>vanhat</id>
+            <properties>
+                <appengine-web-app.application>vanhatblogit</appengine-web-app.application>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>

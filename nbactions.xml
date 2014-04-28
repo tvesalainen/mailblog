@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>CUSTOM-Update vanhat blogit</actionName>
+            <displayName>Update vanhat blogit</displayName>
+            <goals>
+                <goal>appengine:update</goal>
+            </goals>
+            <activatedProfiles>
+                <activatedProfile>vanhat</activatedProfile>
+            </activatedProfiles>
+        </action>
+    </actions>
