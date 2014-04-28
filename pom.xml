@@ -12,7 +12,7 @@
     <packaging>war</packaging>
     <groupId>org.vesalainen.mailblog</groupId>
     <artifactId>mailblog</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>Mail Blog</name>
     <description>
