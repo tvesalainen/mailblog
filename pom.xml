@@ -12,7 +12,7 @@
     <packaging>war</packaging>
     <groupId>org.vesalainen.mailblog</groupId>
     <artifactId>mailblog</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <name>Mail Blog</name>
     <description>
@@ -45,10 +45,10 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
         <appengine.app.version>1</appengine.app.version>
-        <appengine.target.version>1.9.9</appengine.target.version>
+        <appengine.target.version>1.9.18</appengine.target.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <appengine-web-app.application>adventurersblog</appengine-web-app.application>
-        <appengine-web-app.version>1-0-2</appengine-web-app.version> <!-- this is the same as project.version with dots changed to dashes-->
+        <appengine-web-app.version>1-0-3</appengine-web-app.version> <!-- this is the same as project.version with dots changed to dashes-->
     </properties>
 
     <dependencies>
@@ -97,7 +97,7 @@
         <dependency>
             <groupId>org.vesalainen.gpx</groupId>
             <artifactId>GPX11</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.vesalainen.rss</groupId>
