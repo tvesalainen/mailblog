@@ -14,14 +14,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author tkv
  */
-public class Interoperability implements Comparable<Interoperability>
+public final class Interoperability implements Comparable<Interoperability>
 {
     private static final SimpleDateFormat DATEFORMAT = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
 
@@ -485,7 +483,7 @@ public class Interoperability implements Comparable<Interoperability>
         {
             throw new IllegalArgumentException("Trying to get date for non Date tag "+tag());
         }
-        Date date = null;
+        Date date;
         Object obj = getValue();
         if (obj instanceof Date && count() == 20)
         {
@@ -566,6 +564,7 @@ public class Interoperability implements Comparable<Interoperability>
          */
     }
 
+    @Override
     public int compareTo(Interoperability o)
     {
         return tag() - o.tag();
