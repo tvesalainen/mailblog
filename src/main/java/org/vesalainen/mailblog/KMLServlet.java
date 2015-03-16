@@ -28,12 +28,15 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.DatatypeFactory;
+import org.vesalainen.kml.KMZ;
+import static org.vesalainen.mailblog.BlogConstants.*;
+import org.vesalainen.mailblog.DS.CacheOutputStream;
 import org.vesalainen.repacked.net.opengis.kml.AbstractFeatureType;
 import org.vesalainen.repacked.net.opengis.kml.AbstractStyleSelectorType;
 import org.vesalainen.repacked.net.opengis.kml.BalloonStyleType;
@@ -52,9 +55,6 @@ import org.vesalainen.repacked.net.opengis.kml.PointType;
 import org.vesalainen.repacked.net.opengis.kml.RegionType;
 import org.vesalainen.repacked.net.opengis.kml.StyleType;
 import org.vesalainen.repacked.net.opengis.kml.ViewRefreshModeEnumType;
-import org.vesalainen.kml.KMZ;
-import static org.vesalainen.mailblog.BlogConstants.*;
-import org.vesalainen.mailblog.DS.CacheOutputStream;
 
 /**
  * @author Timo Vesalainen
@@ -66,6 +66,7 @@ public class KMLServlet extends HttpServlet
     private static final String ImageStyleId = "image-style";
     private static final String BlogStyleId = "blog-style";
     private static final String HiLiteStyleId = "hi-lite-style";
+    private static final long YearInMillis = 31536000000L;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -177,6 +178,19 @@ public class KMLServlet extends HttpServlet
         trackStyleType.setLineStyle(trackLineStyleType);
         JAXBElement<StyleType> trackStyle = factory.createStyle(trackStyleType);
         abstractStyleSelectorGroup.add(trackStyle);
+        // alpha track styles
+        byte[] alphaTrackColor = settings.getTrackColor();
+        for (int a=55;a<=255;a++)
+        {
+            StyleType alphaTrackStyleType = factory.createStyleType();
+            alphaTrackStyleType.setId(TrackStyleId+"-"+a);
+            LineStyleType alphaTrackLineStyleType = factory.createLineStyleType();
+            alphaTrackColor[0] = (byte) a;
+            alphaTrackLineStyleType.setColor(alphaTrackColor);
+            alphaTrackStyleType.setLineStyle(alphaTrackLineStyleType);
+            JAXBElement<StyleType> alphaTrackStyle = factory.createStyle(alphaTrackStyleType);
+            abstractStyleSelectorGroup.add(alphaTrackStyle);
+        }
         // imagestyle
         StyleType imageStyleType = factory.createStyleType();
         JAXBElement<StyleType> imageStyle = factory.createStyle(imageStyleType);
@@ -357,6 +371,9 @@ public class KMLServlet extends HttpServlet
         {
             return;
         }
+        // Ageing
+        int age = (int) ((10*(System.currentTimeMillis()-begin.getTime()))/YearInMillis);
+        int alpha = 255-age;
         Iterable<Entity> imageMetadataIterable = ds.fetchImageMetadata(begin, end);
 
         KMZ kmz = new KMZ();
@@ -377,7 +394,7 @@ public class KMLServlet extends HttpServlet
         PlacemarkType trackPointPlacemarkType = factory.createPlacemarkType();
         JAXBElement<PlacemarkType> trackPointPlacemark = factory.createPlacemark(trackPointPlacemarkType);
         abstractFeatureGroup.add(trackPointPlacemark);
-        trackPointPlacemarkType.setStyleUrl(styleUri+'#'+TrackStyleId);
+        trackPointPlacemarkType.setStyleUrl(styleUri+'#'+TrackStyleId+"-"+alpha);
         LineStringType trackPointLineStringType = factory.createLineStringType();
         JAXBElement<LineStringType> trackPointLineString = factory.createLineString(trackPointLineStringType);
         trackPointPlacemarkType.setAbstractGeometryGroup(trackPointLineString);
