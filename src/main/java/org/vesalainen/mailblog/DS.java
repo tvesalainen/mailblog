@@ -67,8 +67,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -78,18 +76,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.DatatypeFactory;
-import org.vesalainen.repacked.net.opengis.kml.AbstractStyleSelectorType;
-import org.vesalainen.repacked.net.opengis.kml.BalloonStyleType;
-import org.vesalainen.repacked.net.opengis.kml.DocumentType;
-import org.vesalainen.repacked.net.opengis.kml.IconStyleType;
-import org.vesalainen.repacked.net.opengis.kml.LinkType;
-import org.vesalainen.repacked.net.opengis.kml.ObjectFactory;
-import org.vesalainen.repacked.net.opengis.kml.PlacemarkType;
-import org.vesalainen.repacked.net.opengis.kml.PointType;
-import org.vesalainen.repacked.net.opengis.kml.StyleType;
-import org.vesalainen.kml.KMZ;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import static org.vesalainen.mailblog.CachingDatastoreService.getRootKey;
 import org.vesalainen.mailblog.types.GeoPtType;
@@ -1030,6 +1016,41 @@ public class DS extends CachingDatastoreService
             }
         };
         return rin.doIt(null, settings.isCommonPlacemarks());
+    }
+    /**
+     * Returns begin of the first TrackSeq or current date if no TrackSeqs found.
+     * @return 
+     */
+    public Date getTrackSeqsBegin()
+    {
+        Date begin = (Date) getFromCache("TrackSeqsBegin");
+        if (begin != null)
+        {
+            return begin;
+        }
+        Settings settings = getSettings();
+        RunInNamespace<Date> rin = new RunInNamespace()
+        {
+            @Override
+            protected Date run()
+            {
+                Date begin = new Date();
+                Query trackSeqQuery = new Query(TrackSeqKind);
+                PreparedQuery trackSeqPrepared = prepare(trackSeqQuery);
+                for (Entity ts : trackSeqPrepared.asIterable())
+                {
+                    Date b = (Date) ts.getProperty(BeginProperty);
+                    if (begin == null || begin.after(b))
+                    {
+                        begin = b;
+                    }
+                }
+                return begin;
+            }
+        };
+        begin = rin.doIt(null, settings.isCommonPlacemarks());
+        putToCache("TrackSeqsBegin", begin);
+        return begin;
     }
 
     public Iterable<Entity> fetchTrackPoints(final Key trackSeqKey)
