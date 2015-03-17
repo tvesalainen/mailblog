@@ -347,4 +347,12 @@ public class CachingDatastoreService implements DatastoreService
     {
     }
     
+    protected Object getFromCache(Object key)
+    {
+        return cache.get(key);
+    }
+    protected void putToCache(Object key, Object value)
+    {
+        cache.put(key, key);
+    }
 }

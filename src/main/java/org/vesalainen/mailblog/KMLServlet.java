@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -66,7 +65,6 @@ public class KMLServlet extends HttpServlet
     private static final String ImageStyleId = "image-style";
     private static final String BlogStyleId = "blog-style";
     private static final String HiLiteStyleId = "hi-lite-style";
-    private static final long YearInMillis = 31536000000L;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -372,8 +370,7 @@ public class KMLServlet extends HttpServlet
             return;
         }
         // Ageing
-        int age = (int) ((10*(System.currentTimeMillis()-begin.getTime()))/YearInMillis);
-        int alpha = 255-age;
+        int alpha = getAlpha(begin);
         Iterable<Entity> imageMetadataIterable = ds.fetchImageMetadata(begin, end);
 
         KMZ kmz = new KMZ();
@@ -618,13 +615,15 @@ public class KMLServlet extends HttpServlet
             {
                 if (lastPlacemark != null)
                 {
+                    Date ts = (Date) placemark.getProperty(TimestampProperty);
+                    int alpha = getAlpha(ts);
                     GeoPt prevLocation = (GeoPt) lastPlacemark.getProperty(LocationProperty);
                     // overall placemark
                     PlacemarkType overallPlacemarkType = factory.createPlacemarkType();
                     JAXBElement<PlacemarkType> overallPlacemark = factory.createPlacemark(overallPlacemarkType);
                     abstractFeatureGroup.add(overallPlacemark);
                     // linestring
-                    overallPlacemarkType.setStyleUrl(styleUri+'#'+PathStyleId);
+                    overallPlacemarkType.setStyleUrl(styleUri+'#'+TrackStyleId+"-"+alpha);
                     LineStringType overallLineStringType = factory.createLineStringType();
                     JAXBElement<LineStringType> overallLineString = factory.createLineString(overallLineStringType);
                     overallPlacemarkType.setAbstractGeometryGroup(overallLineString);
@@ -844,6 +843,20 @@ public class KMLServlet extends HttpServlet
         {
             return builder.setQuery(NamespaceParameter+"="+NamespaceManager.get());
         }
+    }
+
+    private int getAlpha(Date begin)
+    {
+        if (begin == null)
+        {
+            return 0;
+        }
+        DS ds = DS.get();
+        long x0 = ds.getTrackSeqsBegin().getTime();
+        long xn = System.currentTimeMillis();
+        double c = 200.0/Math.sqrt(xn-x0);
+        int age = (int) Math.round(c*Math.sqrt(xn-begin.getTime()));
+        return 255-age;
     }
 
 }
