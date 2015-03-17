@@ -353,6 +353,6 @@ public class CachingDatastoreService implements DatastoreService
     }
     protected void putToCache(Object key, Object value)
     {
-        cache.put(key, key);
+        cache.put(key, value);
     }
 }
