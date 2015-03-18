@@ -23,16 +23,22 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.GeoPt;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import org.vesalainen.kml.KMZ;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.mailblog.DS.CacheOutputStream;
@@ -255,7 +261,22 @@ public class KMLServlet extends HttpServlet
             iconStyle.setIcon(icon);
             styleType.setIconStyle(iconStyle);
         }
-        
+        JAXBContext jaxbCtx;
+        try
+        {
+            jaxbCtx = JAXBContext.newInstance("org.vesalainen.repacked.net.opengis.kml");
+            Marshaller marshaller = jaxbCtx.createMarshaller();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            marshaller.marshal(kmz.getKml(), baos);
+            String s = new String(baos.toByteArray());
+            log(s);
+        }
+        catch (JAXBException ex)
+        {
+            log(ex.getMessage(), ex);
+        }
+
+
         // write
         kmz.write(out);
     }
