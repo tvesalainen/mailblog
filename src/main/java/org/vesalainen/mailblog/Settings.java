@@ -295,22 +295,46 @@ public class Settings implements Serializable
                 return DefaultIcon;
         }
     }
-    
+    /**
+     * Return Path opaque color
+     * @return 
+     */
     public byte[] getPathColor()
     {
-        Long l = (Long) map.get(PathColorProperty);
-        return rgbToArray(l.intValue());
+        return getPathColor(0xff);
     }
-
+    /**
+     * Return Path color
+     * @param alpha
+     * @return 
+     */
+    public byte[] getPathColor(int alpha)
+    {
+        Long l = (Long) map.get(PathColorProperty);
+        return rgbToArray(alpha, l.intValue());
+    }
+    /**
+     * Returns full opaque track color
+     * @return 
+     */
     public byte[] getTrackColor()
     {
-        Long l = (Long) map.get(TrackColorProperty);
-        return rgbToArray(l.intValue());
+        return getTrackColor(0xff);
     }
-    private byte[] rgbToArray(int i)
+    /**
+     * Return track color
+     * @param alpha
+     * @return 
+     */
+    public byte[] getTrackColor(int alpha)
+    {
+        Long l = (Long) map.get(TrackColorProperty);
+        return rgbToArray(alpha, l.intValue());
+    }
+    private byte[] rgbToArray(int alpha, int i)
     {
         return new byte[] {
-            (byte)0xff, 
+            (byte)alpha, 
             (byte)(i >> 16), 
             (byte)((i >> 8) & 0xff), 
             (byte)(i & 0xff)

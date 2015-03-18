@@ -82,19 +82,15 @@ public class KMLServlet extends HttpServlet
                 .setQuery(null);
         builder = addNamespace(builder);
         String base = builder.toString();
-        log(base);
         String styleUri = builder.setPath(StylePath).toString();
-        log(styleUri);
         if (!ds.serveFromCache(request, response))
         {
             String keyString = request.getParameter(KeyParameter);
-            log(keyString);
             if (keyString != null)
             {
                 try (CacheOutputStream cos = ds.createCacheOutputStream(request, response, "application/vnd.google-earth.kmz", "utf-8", false))
                 {
                     Key key = KeyFactory.stringToKey(keyString);
-                    log(KeyFactory.keyToString(key));
                     switch (key.getKind())
                     {
                         case PlacemarkKind:
@@ -117,7 +113,6 @@ public class KMLServlet extends HttpServlet
                 try (CacheOutputStream cos = ds.createCacheOutputStream(request, response, "application/vnd.google-earth.kmz", "utf-8", false))
                 {
                     String pathInfo = request.getPathInfo();
-                    log(pathInfo);
                     pathInfo = pathInfo == null ? "" : pathInfo;
                     switch (pathInfo)
                     {
@@ -187,15 +182,12 @@ public class KMLServlet extends HttpServlet
         JAXBElement<StyleType> trackStyle = factory.createStyle(trackStyleType);
         abstractStyleSelectorGroup.add(trackStyle);
         // alpha track styles
-        byte[] alphaTrackColor = settings.getTrackColor();
         for (int a=55;a<=255;a++)
         {
             StyleType alphaTrackStyleType = factory.createStyleType();
             alphaTrackStyleType.setId(TrackStyleId+"-"+a);
             LineStyleType alphaTrackLineStyleType = factory.createLineStyleType();
-            alphaTrackColor[0] = (byte) a;
-            log(Arrays.toString(alphaTrackColor));
-            alphaTrackLineStyleType.setColor(alphaTrackColor);
+            alphaTrackLineStyleType.setColor(settings.getTrackColor(a));
             alphaTrackStyleType.setLineStyle(alphaTrackLineStyleType);
             JAXBElement<StyleType> alphaTrackStyle = factory.createStyle(alphaTrackStyleType);
             abstractStyleSelectorGroup.add(alphaTrackStyle);
@@ -266,7 +258,6 @@ public class KMLServlet extends HttpServlet
             iconStyle.setIcon(icon);
             styleType.setIconStyle(iconStyle);
         }
-        log(kmz);
         // write
         kmz.write(out);
     }
