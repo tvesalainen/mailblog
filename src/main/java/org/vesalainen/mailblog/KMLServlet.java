@@ -266,7 +266,7 @@ public class KMLServlet extends HttpServlet
             iconStyle.setIcon(icon);
             styleType.setIconStyle(iconStyle);
         }
-
+        log(kmz);
         // write
         kmz.write(out);
     }
