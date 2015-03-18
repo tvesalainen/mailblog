@@ -30,8 +30,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -84,15 +82,19 @@ public class KMLServlet extends HttpServlet
                 .setQuery(null);
         builder = addNamespace(builder);
         String base = builder.toString();
+        log(base);
         String styleUri = builder.setPath(StylePath).toString();
+        log(styleUri);
         if (!ds.serveFromCache(request, response))
         {
             String keyString = request.getParameter(KeyParameter);
+            log(keyString);
             if (keyString != null)
             {
                 try (CacheOutputStream cos = ds.createCacheOutputStream(request, response, "application/vnd.google-earth.kmz", "utf-8", false))
                 {
                     Key key = KeyFactory.stringToKey(keyString);
+                    log(KeyFactory.keyToString(key));
                     switch (key.getKind())
                     {
                         case PlacemarkKind:
@@ -115,6 +117,7 @@ public class KMLServlet extends HttpServlet
                 try (CacheOutputStream cos = ds.createCacheOutputStream(request, response, "application/vnd.google-earth.kmz", "utf-8", false))
                 {
                     String pathInfo = request.getPathInfo();
+                    log(pathInfo);
                     pathInfo = pathInfo == null ? "" : pathInfo;
                     switch (pathInfo)
                     {
