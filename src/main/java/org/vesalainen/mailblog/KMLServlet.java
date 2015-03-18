@@ -25,6 +25,7 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -190,6 +191,7 @@ public class KMLServlet extends HttpServlet
             alphaTrackStyleType.setId(TrackStyleId+"-"+a);
             LineStyleType alphaTrackLineStyleType = factory.createLineStyleType();
             alphaTrackColor[0] = (byte) a;
+            log(Arrays.toString(alphaTrackColor));
             alphaTrackLineStyleType.setColor(alphaTrackColor);
             alphaTrackStyleType.setLineStyle(alphaTrackLineStyleType);
             JAXBElement<StyleType> alphaTrackStyle = factory.createStyle(alphaTrackStyleType);
@@ -261,6 +263,13 @@ public class KMLServlet extends HttpServlet
             iconStyle.setIcon(icon);
             styleType.setIconStyle(iconStyle);
         }
+
+        // write
+        kmz.write(out);
+    }
+
+    private void log(KMZ kmz)
+    {
         JAXBContext jaxbCtx;
         try
         {
@@ -275,12 +284,8 @@ public class KMLServlet extends HttpServlet
         {
             log(ex.getMessage(), ex);
         }
-
-
-        // write
-        kmz.write(out);
     }
-
+    
     private void writePlacemark(Key key, String styleUri, CacheOutputStream out) throws IOException
     {
         DS ds = DS.get();
