@@ -84,7 +84,7 @@ public class CommonSettingsServlet extends EntityServlet
                 .setTooltip("Minimum distance for two trackpoints in NM");
         addProperty(TrackMaxSpeedProperty)
                 .setType(Double.class)
-                .setTooltip("Maximum speed for vesses in knots");
+                .setTooltip("Maximum speed for vessel in knots");
         addProperty(EyeAltitudeProperty)
                 .setType(Double.class)
                 .setTooltip("Eye altitude in meters in Google Earth lookat");
