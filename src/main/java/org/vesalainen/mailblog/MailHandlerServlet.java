@@ -460,7 +460,8 @@ public class MailHandlerServlet extends HttpServlet
                         {
                             gpx.browse(
                                     settings.getTrackBearingTolerance(), 
-                                    settings.getTrackMinimumDistance(), 
+                                    settings.getTrackMinimumDistance(),
+                                    settings.getTrackMaxSpeed(),
                                     handler
                                     );
                             return null;

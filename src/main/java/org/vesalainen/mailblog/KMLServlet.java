@@ -872,9 +872,12 @@ public class KMLServlet extends HttpServlet
             return 0;
         }
         DS ds = DS.get();
+        Settings settings = ds.getSettings();
         long x0 = ds.getTrackSeqsBegin().getTime();
         long xn = System.currentTimeMillis();
-        double c = 200.0/Math.sqrt(xn-x0);
+        int minOpaque = settings.getMinOpaque();
+        double span = 255-minOpaque;
+        double c = span/Math.sqrt(xn-x0);
         int age = (int) Math.round(c*Math.sqrt(xn-begin.getTime()));
         return 255-age;
     }

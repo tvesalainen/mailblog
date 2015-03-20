@@ -49,6 +49,9 @@ public class CommonSettingsServlet extends EntityServlet
         addProperty(TrackColorProperty)
                 .setType(Color.class)
                 .setTooltip("Color used for track");
+        addProperty(MinOpaqueProperty)
+                .setType(Long.class)
+                .setTooltip("Minimum opaque for ageing track 0-255");
         addProperty(BlogIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
@@ -78,7 +81,10 @@ public class CommonSettingsServlet extends EntityServlet
                 .setTooltip("If bearing changes less than given degrees, no new trackpoint is created");
         addProperty(TrackMinDistanceProperty)
                 .setType(Double.class)
-                .setTooltip("Minimum distance for two trackpoints");
+                .setTooltip("Minimum distance for two trackpoints in NM");
+        addProperty(TrackMaxSpeedProperty)
+                .setType(Double.class)
+                .setTooltip("Maximum speed for vesses in knots");
         addProperty(EyeAltitudeProperty)
                 .setType(Double.class)
                 .setTooltip("Eye altitude in meters in Google Earth lookat");

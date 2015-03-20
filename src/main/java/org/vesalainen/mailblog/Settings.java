@@ -219,12 +219,21 @@ public class Settings implements Serializable
     public double getTrackMinimumDistance()
     {
         Double d = (Double) map.get(TrackMinDistanceProperty);
-        return d.doubleValue();
+        return d;
+    }
+    public double getTrackMaxSpeed()
+    {
+        Double d = (Double) map.get(TrackMaxSpeedProperty);
+        if (d == null)
+        {
+            return 15;
+        }
+        return d;
     }
     public double getEyeAltitude()
     {
         Double d = (Double) map.get(EyeAltitudeProperty);
-        return d.doubleValue();
+        return d;
     }
     private static final String DefaultIcon = "http://maps.google.com/mapfiles/kml/shapes/info.png";
     public String getBlogIcon()
@@ -339,6 +348,15 @@ public class Settings implements Serializable
             (byte)((i >> 8) & 0xff), 
             (byte)(i & 0xff)
         };
+    }
+    public int getMinOpaque()
+    {
+        Long l = (Long) map.get(MinOpaqueProperty);
+        if (l == null)
+        {
+            return 50;
+        }
+        return l.intValue();
     }
     @Override
     public String toString()
