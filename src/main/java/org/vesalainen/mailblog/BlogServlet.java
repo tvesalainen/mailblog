@@ -4,7 +4,6 @@
  */
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.users.User;
@@ -60,7 +59,7 @@ public class BlogServlet extends HttpServlet
         {
             try
             {
-                URL base = getBase(request);
+                URL base = DS.getBase(request);
                 String calendar = request.getParameter(CalendarParameter);
                 if (calendar != null)
                 {
@@ -154,7 +153,7 @@ public class BlogServlet extends HttpServlet
     {
         try
         {
-            URL base = getBase(request);
+            URL base = DS.getBase(request);
             DS ds = DS.get();
             String search = request.getParameter(SearchParameter);
             if (search != null)
@@ -225,19 +224,6 @@ public class BlogServlet extends HttpServlet
         {
             log(ex.getMessage(), ex);
             ex.sendError(response);
-        }
-    }
-
-    private URL getBase(HttpServletRequest request) throws IOException
-    {
-        try
-        {
-            URI uri = new URI(request.getRequestURL().toString());
-            return uri.resolve("/").toURL();
-        }
-        catch (MalformedURLException | URISyntaxException ex)
-        {
-            throw new IOException(ex);
         }
     }
 

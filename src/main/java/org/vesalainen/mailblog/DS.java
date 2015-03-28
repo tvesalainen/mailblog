@@ -48,6 +48,7 @@ import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -344,6 +345,19 @@ public class DS extends CachingDatastoreService
             }
         }
     }
+    
+    public static URL getBase(HttpServletRequest request) throws IOException
+    {
+        try
+        {
+            URI uri = new URI(request.getRequestURL().toString());
+            return uri.resolve("/").toURL();
+        }
+        catch (MalformedURLException | URISyntaxException ex)
+        {
+            throw new IOException(ex);
+        }
+    }
 
     public Key getBlogKey(String messageId)
     {
@@ -634,6 +648,73 @@ public class DS extends CachingDatastoreService
         }
     }
 
+    public void getOpenGraph(Key blogKey, URL base, CacheWriter cw) throws HttpException, IOException
+    {
+        Entity blog;
+        try
+        {
+            blog = get(blogKey);
+            Settings settings = getSettings();
+            String subject = (String) blog.getProperty(SubjectProperty);
+            Date date = (Date) blog.getProperty(DateProperty);
+            Email sender = (Email) blog.getProperty(SenderProperty);
+            Text body = (Text) blog.getProperty(HtmlProperty);
+            GeoPt location = (GeoPt) blog.getProperty(LocationProperty);
+            Collection<Key> attachments = (Collection<Key>) blog.getProperty(AttachmentsProperty);
+            cw.append("<!DOCTYPE html>\n");
+            cw.append("<html>\n");
+            cw.append("<head>\n");
+            metaProperty(cw, "og:title", subject);
+            metaProperty(cw, "og:url", getBlogUrl(blogKey, base));
+            if (attachments != null)
+            {
+                for (Key attachmentKey : attachments)
+                {
+                    metaProperty(cw, "og:image", getAttachmentUrl(attachmentKey, base));
+                }
+            }
+            cw.append("</head>\n");
+            cw.append("</html>\n");
+            cw.cache();
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new HttpException(HttpServletResponse.SC_NOT_FOUND, blogKey + " not found");
+        }
+    }
+    
+    private String getAttachmentUrl(Key key, URL base)
+    {
+        assert AttachmentsKind.equals(key.getKind());
+        try
+        {
+            URI baseUri = base.toURI();
+            URI uri = baseUri.resolve("/blob="+Sha1Parameter+"="+key.getName());
+            return uri.toASCIIString();
+        }
+        catch (URISyntaxException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+    }
+    private String getBlogUrl(Key key, URL base)
+    {
+        assert BlogKind.equals(key.getKind());
+        try
+        {
+            URI baseUri = base.toURI();
+            URI uri = baseUri.resolve("/index.html?blog=" + KeyFactory.keyToString(key));
+            return uri.toASCIIString();
+        }
+        catch (URISyntaxException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+    }
+    private void metaProperty(CacheWriter cw, String property, String content) throws IOException
+    {
+        cw.append("<meta property=\""+property+"\" content=\""+content+"\">\n");
+    }
     public void getBlog(Key key, URL base, CacheWriter cw) throws HttpException, IOException
     {
         Entity entity;
@@ -1283,7 +1364,7 @@ public class DS extends CachingDatastoreService
                 break;
         }
     }
-    
+
     public class CacheWriter extends Writer
     {
 

@@ -40,6 +40,7 @@ public interface BlogConstants
     static final String TrackKind = "Track";
     static final String TrackSeqKind = "TrackSeq";
     static final String TrackPointKind = "TrackPoint";
+    static final String AttachmentsKind = "Attachments";
     
     static final String TitleProperty = "Title";
     static final String DescriptionProperty = "Description";
