@@ -668,9 +668,36 @@ public class DS extends CachingDatastoreService
             metaProperty(cw, "og:url", getBlogUrl(blogKey, base));
             if (attachments != null)
             {
-                for (Key attachmentKey : attachments)
+                for (Key metadataKey : attachments)
                 {
-                    metaProperty(cw, "og:image", getAttachmentUrl(attachmentKey, base));
+                    Entity metadata = get(metadataKey);
+                    String contentType = (String) metadata.getProperty(ContentTypeProperty);
+                    Long width = (Long) metadata.getProperty("PixelXDimensionProperty");
+                    Long height = (Long) metadata.getProperty("PixelYDimensionProperty");
+                    if (contentType != null)
+                    {
+                        if (contentType.startsWith("image/"))
+                        {
+                            metaProperty(cw, "og:image", getAttachmentUrl(metadataKey, base));
+                            if (contentType.startsWith("image/jpeg"))
+                            {
+                                metaProperty(cw, "og:image:type", "image/jpeg");
+                            }
+                            if (contentType.startsWith("image/gif"))
+                            {
+                                metaProperty(cw, "og:image:type", "image/gif");
+                            }
+                            if (contentType.startsWith("image/png"))
+                            {
+                                metaProperty(cw, "og:image:type", "image/png");
+                            }
+                            if (width != null && height != null)
+                            {
+                                metaProperty(cw, "og:image:width", width.toString());
+                                metaProperty(cw, "og:image:height", height.toString());
+                            }
+                        }
+                    }
                 }
             }
             cw.append("</head>\n");
@@ -689,7 +716,7 @@ public class DS extends CachingDatastoreService
         try
         {
             URI baseUri = base.toURI();
-            URI uri = baseUri.resolve("/blob="+Sha1Parameter+"="+key.getName());
+            URI uri = baseUri.resolve("/blob?"+Sha1Parameter+"="+key.getName()+"&"+OriginalParameter+"=true");
             return uri.toASCIIString();
         }
         catch (URISyntaxException ex)
