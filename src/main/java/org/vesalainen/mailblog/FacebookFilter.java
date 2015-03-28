@@ -53,26 +53,23 @@ public class FacebookFilter implements Filter
         {
             URL base = DS.getBase(request);
             DS ds = DS.get();
-            if (!ds.sameETagOrCached(request, response))
+            try
             {
-                try
+                String blogKeyString = request.getParameter(BlogParameter);
+                if (blogKeyString != null)
                 {
-                    String blogKeyString = request.getParameter(BlogParameter);
-                    if (blogKeyString != null)
+                    Key blogKey = KeyFactory.stringToKey(blogKeyString);
+                    try (DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response))
                     {
-                        Key blogKey = KeyFactory.stringToKey(blogKeyString);
-                        try (DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response))
-                        {
-                            ds.getOpenGraph(blogKey, base, cacheWriter);
-                            return;
-                        }
-                    }    
-                }
-                catch (HttpException ex)
-                {
-                    ex.sendError(response);
-                    return;
-                }
+                        ds.getOpenGraph(blogKey, base, cacheWriter);
+                        return;
+                    }
+                }    
+            }
+            catch (HttpException ex)
+            {
+                ex.sendError(response);
+                return;
             }
         }
         fc.doFilter(req, res);
