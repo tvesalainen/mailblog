@@ -672,8 +672,8 @@ public class DS extends CachingDatastoreService
                 {
                     Entity metadata = get(metadataKey);
                     String contentType = (String) metadata.getProperty(ContentTypeProperty);
-                    Long width = (Long) metadata.getProperty("PixelXDimensionProperty");
-                    Long height = (Long) metadata.getProperty("PixelYDimensionProperty");
+                    Long width = (Long) metadata.getProperty("PixelXDimension");
+                    Long height = (Long) metadata.getProperty("PixelYDimension");
                     if (contentType != null)
                     {
                         if (contentType.startsWith("image/"))
