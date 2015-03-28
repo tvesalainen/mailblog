@@ -37,11 +37,7 @@ import static org.vesalainen.mailblog.BlogConstants.BlogParameter;
  */
 public class FacebookFilter implements Filter
 {
-
-    @Override
-    public void init(FilterConfig fc) throws ServletException
-    {
-    }
+    private FilterConfig filterConfig;
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain fc) throws IOException, ServletException
@@ -49,18 +45,22 @@ public class FacebookFilter implements Filter
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
         String userAgent = request.getHeader("User-Agent");
+        log(userAgent);
         if (userAgent != null && userAgent.startsWith("facebookexternalhit/1.1"))
         {
             URL base = DS.getBase(request);
+            log(base.toString());
             DS ds = DS.get();
             try
             {
                 String blogKeyString = request.getParameter(BlogParameter);
+                log(blogKeyString);
                 if (blogKeyString != null)
                 {
                     Key blogKey = KeyFactory.stringToKey(blogKeyString);
                     try (DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response))
                     {
+                        cacheWriter.setPrivate(true);
                         ds.getOpenGraph(blogKey, base, cacheWriter);
                         return;
                     }
@@ -75,8 +75,22 @@ public class FacebookFilter implements Filter
         fc.doFilter(req, res);
     }
 
+    /**
+     * Destroy method for this filter
+     */
     @Override
     public void destroy()
     {
+    }
+
+    public void log(String msg)
+    {
+        filterConfig.getServletContext().log(msg);
+    }
+
+    @Override
+    public void init(FilterConfig fc) throws ServletException
+    {
+        filterConfig = fc;
     }
 }
