@@ -386,19 +386,20 @@ public class MailHandlerServlet extends HttpServlet
             byte[] bytes = getBytes(bodyPart);
             String digestString = DS.getDigest(bytes);
             createMetadata(digestString, filename, contentType, bytes);
-            String[] cids = bodyPart.getHeader("Content-ID");
-            if (cids != null && cids.length > 0)
-            {
-                replaceBlogRef(blog, cids[0], digestString);
-            }
             if (contentType.startsWith("image/"))
             {
+                int oWidth;
+                int oHeight;
+                int wWidth;
+                int wHeight;
                 Image image = ImagesServiceFactory.makeImage(bytes);
                 if (settings.isFixPic())
                 {
                     Transform makeImFeelingLucky = ImagesServiceFactory.makeImFeelingLucky();
                     image = imagesService.applyTransform(makeImFeelingLucky, image);
                 }
+                oWidth = image.getWidth();
+                oHeight = image.getHeight();
                 if (
                         image.getHeight() > settings.getPicMaxHeight() ||
                         image.getWidth() > settings.getPicMaxWidth()
@@ -407,16 +408,25 @@ public class MailHandlerServlet extends HttpServlet
                     log("shrinking ["+image.getHeight()+", "+image.getWidth()+"] > ["+settings.getPicMaxHeight()+", "+settings.getPicMaxWidth()+"]");
                     Transform makeResize = ImagesServiceFactory.makeResize(settings.getPicMaxHeight(), settings.getPicMaxWidth());
                     Image shrinken = imagesService.applyTransform(makeResize, image);
-                    Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, shrinken.getImageData(), WebSizeProperty, request, shrinken.getWidth(), shrinken.getHeight());
+                    wWidth = shrinken.getWidth();
+                    wHeight = shrinken.getHeight();
+                    Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, shrinken.getImageData(), WebSizeProperty, request, wWidth, wHeight);
                     futures.add(res);
                 }
                 else
                 {
-                    Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, WebSizeProperty, request, image.getWidth(), image.getHeight());
+                    wWidth = image.getWidth();
+                    wHeight = image.getHeight();
+                    Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, WebSizeProperty, request, wWidth, wHeight);
                     futures.add(res);
                 }
-                Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, OriginalSizeProperty, request, image.getWidth(), image.getHeight());
+                Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, OriginalSizeProperty, request, oWidth, oHeight);
                 futures.add(res);
+                String[] cids = bodyPart.getHeader("Content-ID");
+                if (cids != null && cids.length > 0)
+                {
+                    replaceBlogRef(blog, cids[0], digestString, wWidth, wHeight);
+                }
             }
             if (contentType.startsWith("application/vnd.google-earth.kml+xml") || filename.endsWith(".kml"))
             {
@@ -639,7 +649,7 @@ public class MailHandlerServlet extends HttpServlet
         }
     }
 
-    private void replaceBlogRef(final Entity origBlog, final String cidStr, final String sha1) throws IOException
+    private void replaceBlogRef(final Entity origBlog, final String cidStr, final String sha1, final int width, final int height) throws IOException
     {
         if (origBlog != null)
         {
@@ -682,7 +692,7 @@ public class MailHandlerServlet extends HttpServlet
                         {
                             StringBuilder sb = new StringBuilder();
                             sb.append(body.substring(0, start));
-                            sb.append("<img src=\"/blob?"+Sha1Parameter+"="+sha1+"\">");
+                            sb.append("<img src=\"/blob?"+Sha1Parameter+"="+sha1+"\" width=\""+width+"\" height=\""+height+"\">");
                             sb.append(body.substring(end+1));
                             blog.setUnindexedProperty(HtmlProperty, new Text(sb.toString()));
                         }
