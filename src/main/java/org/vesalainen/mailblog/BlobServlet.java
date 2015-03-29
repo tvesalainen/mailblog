@@ -113,7 +113,9 @@ public class BlobServlet extends HttpServlet
         String sizeString = request.getParameter(SizeParameter);
         if (sizeString != null)
         {
-            addBlobs(request, sizeString);
+            String width = request.getParameter(WidthParameter);
+            String height = request.getParameter(HeightParameter);
+            addBlobs(request, sizeString, width, height);
         }
         else
         {
@@ -121,7 +123,7 @@ public class BlobServlet extends HttpServlet
         }
     }
 
-    private void addBlobs(final HttpServletRequest request, final String sizeString) throws ServletException, IOException
+    private void addBlobs(final HttpServletRequest request, final String sizeString, final String width, final String height) throws ServletException, IOException
     {
         Updater<Object> updater = new Updater<Object>() 
         {
@@ -138,6 +140,8 @@ public class BlobServlet extends HttpServlet
                     Entity metadata = ds.getMetadata(sha1);
                     BlobKey blobKey = entry.getValue().get(0);
                     metadata.setUnindexedProperty(sizeString, blobKey);
+                    metadata.setUnindexedProperty(sizeString+"Width", width);
+                    metadata.setUnindexedProperty(sizeString+"Height", height);
                     ds.put(metadata);
                 }
                 return null;

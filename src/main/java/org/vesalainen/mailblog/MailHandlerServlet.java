@@ -407,15 +407,15 @@ public class MailHandlerServlet extends HttpServlet
                     log("shrinking ["+image.getHeight()+", "+image.getWidth()+"] > ["+settings.getPicMaxHeight()+", "+settings.getPicMaxWidth()+"]");
                     Transform makeResize = ImagesServiceFactory.makeResize(settings.getPicMaxHeight(), settings.getPicMaxWidth());
                     Image shrinken = imagesService.applyTransform(makeResize, image);
-                    Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, shrinken.getImageData(), WebSizeProperty, request);
+                    Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, shrinken.getImageData(), WebSizeProperty, request, shrinken.getWidth(), shrinken.getHeight());
                     futures.add(res);
                 }
                 else
                 {
-                    Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, WebSizeProperty, request);
+                    Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, WebSizeProperty, request, image.getWidth(), image.getHeight());
                     futures.add(res);
                 }
-                Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, OriginalSizeProperty, request);
+                Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, OriginalSizeProperty, request, image.getWidth(), image.getHeight());
                 futures.add(res);
             }
             if (contentType.startsWith("application/vnd.google-earth.kml+xml") || filename.endsWith(".kml"))
@@ -482,14 +482,28 @@ public class MailHandlerServlet extends HttpServlet
         return futures;
     }
 
-    private Future<HTTPResponse> postBlobs(String filename, String contentType, String sha1, byte[] data, String metadataSize, HttpServletRequest request) throws MessagingException, IOException
+    private Future<HTTPResponse> postBlobs(
+            String filename, 
+            String contentType, 
+            String sha1, 
+            byte[] data, 
+            String metadataSize, 
+            HttpServletRequest request,
+            int width,
+            int height
+    ) throws MessagingException, IOException
     {
         try
         {
             URLFetchService fetchService = URLFetchServiceFactory.getURLFetchService();
             BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
             URI reqUri = new URI(request.getScheme(), request.getServerName(), "", "");
-            URI uri = reqUri.resolve("/blob?"+NamespaceParameter+"="+NamespaceManager.get()+"&"+SizeParameter+"="+metadataSize);
+            URI uri = reqUri.resolve(
+                    "/blob?"+NamespaceParameter+"="+NamespaceManager.get()+
+                    "&"+SizeParameter+"="+metadataSize+
+                    "&"+WidthParameter+"="+width+
+                    "&"+HeightParameter+"="+height
+            );
             URL uploadUrl = new URL(blobstore.createUploadUrl(uri.toASCIIString()));
             log("post blob to "+uploadUrl);
             HTTPRequest httpRequest = new HTTPRequest(uploadUrl, HTTPMethod.POST, FetchOptions.Builder.withDeadline(60));

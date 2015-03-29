@@ -66,7 +66,11 @@ public interface BlogConstants
     static final String ShowCountProperty = "ShowCount";
     static final String PageProperty = "Page";
     static final String WebSizeProperty = "WebSize";
+    static final String WebSizeWidthProperty = "WebSizeWidth";
+    static final String WebSizeHeightProperty = "WebSizeHeight";
     static final String OriginalSizeProperty = "OriginalSize";
+    static final String OriginalSizeWidthProperty = "OriginalSizeWidth";
+    static final String OriginalSizeHeightProperty = "OriginalSizeHeight";
     static final String AttachmentsProperty = "Attachments";
     static final String PublishProperty = "Publish";
     static final String KeywordsProperty = "Keywords";
@@ -111,6 +115,8 @@ public interface BlogConstants
     static final String Sha1Parameter = "sha1";
     static final String MetadataParameter = "metadata";
     static final String SizeParameter = "size";
+    static final String WidthParameter = "width";
+    static final String HeightParameter = "height";
     static final String NamespaceParameter = "namespace";
     static final String CursorParameter = "cursor";
     static final String NewParameter = "new";
