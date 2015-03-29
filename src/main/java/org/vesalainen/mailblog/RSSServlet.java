@@ -53,7 +53,7 @@ public class RSSServlet extends HttpServlet
             DS ds = DS.get();
             if (!ds.sameETagOrCached(request, response))
             {
-                URL base = getBase(request);
+                URL base = DS.getBase(request);
                 try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, "application/rss+xml", "utf-8", false))
                 {
                     ds.writeRSS(base, cacheWriter);
@@ -80,23 +80,6 @@ public class RSSServlet extends HttpServlet
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException
     {
-    }
-
-    private URL getBase(HttpServletRequest request) throws IOException
-    {
-        try
-        {
-            URI uri = new URI(request.getRequestURL().toString());
-            return uri.resolve("/").toURL();
-        }
-        catch (MalformedURLException ex)
-        {
-            throw new IOException(ex);
-        }
-        catch (URISyntaxException ex)
-        {
-            throw new IOException(ex);
-        }
     }
 
 }
