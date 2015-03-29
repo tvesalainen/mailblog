@@ -25,6 +25,11 @@ $(document).ready(function(){
     {
         search = "";
     }
+    $.get("/opengraph"+search, function(data, status)
+    {
+        $("head").append(data);
+    });
+    
     $("#blog").load("/blog"+search, function(){
         afterLoad();
     });
@@ -36,8 +41,6 @@ $(document).ready(function(){
     $(".keywordSelect").load("/blog?keywords=true");
     
     $(".lastPosition").load("/lastPosition");
-    
-    $(".openGraph").load("/opengraph"+search);
     
     $("body").on("click", "img", function(event)
     {        
