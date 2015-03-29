@@ -37,6 +37,8 @@ $(document).ready(function(){
     
     $(".lastPosition").load("/lastPosition");
     
+    $(".openGraph").load("/opengraph"+search);
+    
     $("body").on("click", "img", function(event)
     {        
         window.open($(this).attr("src")+"&original=true");
