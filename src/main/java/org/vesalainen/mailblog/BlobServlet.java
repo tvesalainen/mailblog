@@ -54,10 +54,24 @@ public class BlobServlet extends HttpServlet
         String sha1 = request.getParameter(Sha1Parameter);
         if (sha1 != null)
         {
+            String ifNoneMatch = request.getHeader("If-None-Match");
+            if (ifNoneMatch != null)
+            {
+                // sha1 named content newer changes
+                response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
+                return;
+            }
             DS ds = DS.get();
             Entity metadata = ds.getMetadata(sha1);
             if (metadata != null)
             {
+                Date timestamp = (Date) metadata.getProperty(TimestampProperty);
+                if (timestamp == null)
+                {
+                    timestamp = new Date(0);
+                }
+                String eTag = String.valueOf(timestamp.getTime());
+                response.setHeader("ETag", eTag);
                 BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
                 String original = request.getParameter(OriginalParameter);
                 if (original != null)
@@ -69,19 +83,6 @@ public class BlobServlet extends HttpServlet
                         return;
                     }
                 }
-                Date timestamp = (Date) metadata.getProperty(TimestampProperty);
-                if (timestamp == null)
-                {
-                    timestamp = new Date(0);
-                }
-                String eTag = String.valueOf(timestamp.getTime());
-                String ifNoneMatch = request.getHeader("If-None-Match");
-                if (eTag.equals(ifNoneMatch))
-                {
-                    response.sendError(HttpServletResponse.SC_NOT_MODIFIED);
-                    return;
-                }
-                response.setHeader("ETag", eTag);
                 BlobKey webBlobKey = (BlobKey) metadata.getProperty(WebSizeProperty);
                 if (webBlobKey != null)
                 {
