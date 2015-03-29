@@ -19,6 +19,7 @@ package org.vesalainen.mailblog;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
 import java.io.IOException;
@@ -40,7 +41,12 @@ public class BaseSettingsServlet extends SettingsServlet
     {
         super(SettingsKind);
         addProperty(TitleProperty);
-        addProperty(DescriptionProperty);
+        addProperty(DescriptionProperty)
+                .setAttribute("size", "100");
+        addProperty(ImageProperty)
+                .setType(Link.class)
+                .setAttribute("size", "100")
+                .setTooltip("Link to blog image");
         addProperty(PublishImmediatelyProperty)
                 .setType(Boolean.class);
         addProperty(ShowCountProperty)

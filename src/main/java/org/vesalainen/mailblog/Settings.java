@@ -304,6 +304,19 @@ public class Settings implements Serializable
                 return DefaultIcon;
         }
     }
+    public String getBlogImage()
+    {
+        Link link = (Link) map.get(ImageProperty);
+        if (link != null)
+        {
+            return link.getValue();
+        }
+        else
+        {
+            return "";
+        }
+    }
+
     /**
      * Return Path opaque color
      * @return 

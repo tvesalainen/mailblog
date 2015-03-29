@@ -51,7 +51,9 @@ public class CommonSettingsServlet extends EntityServlet
                 .setTooltip("Color used for track");
         addProperty(MinOpaqueProperty)
                 .setType(Long.class)
-                .setTooltip("Minimum opaque for ageing track 0-255");
+                .setAttribute("min", "0")
+                .setAttribute("max", "255")
+                .setTooltip("Minimum opaque for ageing track");
         addProperty(BlogIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")

@@ -648,7 +648,33 @@ public class DS extends CachingDatastoreService
         }
     }
 
-    public void getOpenGraph(Key blogKey, URL base, CacheWriter cw) throws HttpException, IOException
+    public void writeOpenGraph(URL base, CacheWriter cw) throws HttpException, IOException
+    {
+        Settings settings = getSettings();
+        String title = settings.getTitle();
+        if (title != null)
+        {
+            metaProperty(cw, "og:title", title);
+        }
+        String description = settings.getDescription();
+        if (description != null)
+        {
+            metaProperty(cw, "og:description", description);
+        }
+        metaProperty(cw, "og:url", base.toExternalForm());
+        Locale locale = settings.getLocale();
+        if (locale != null)
+        {
+            metaProperty(cw, "og:locale", locale.toString());
+        }
+        String blogImage = settings.getBlogImage();
+        if (blogImage != null)
+        {
+            metaProperty(cw, "og:image", blogImage);
+        }
+    }
+    
+    public void writeOpenGraph(Key blogKey, URL base, CacheWriter cw) throws HttpException, IOException
     {
         Entity blog;
         try
@@ -656,16 +682,19 @@ public class DS extends CachingDatastoreService
             blog = get(blogKey);
             Settings settings = getSettings();
             String subject = (String) blog.getProperty(SubjectProperty);
-            Date date = (Date) blog.getProperty(DateProperty);
-            Email sender = (Email) blog.getProperty(SenderProperty);
-            Text body = (Text) blog.getProperty(HtmlProperty);
-            GeoPt location = (GeoPt) blog.getProperty(LocationProperty);
             Collection<Key> attachments = (Collection<Key>) blog.getProperty(AttachmentsProperty);
-            cw.append("<!DOCTYPE html>\n");
-            cw.append("<html>\n");
-            cw.append("<head>\n");
             metaProperty(cw, "og:title", subject);
             metaProperty(cw, "og:url", getBlogUrl(blogKey, base));
+            String title = settings.getTitle();
+            if (title != null)
+            {
+                metaProperty(cw, "og:site_name", title);
+            }
+            Locale locale = settings.getLocale();
+            if (locale != null)
+            {
+                metaProperty(cw, "og:locale", locale.toString());
+            }
             if (attachments != null)
             {
                 for (Key metadataKey : attachments)
@@ -700,9 +729,6 @@ public class DS extends CachingDatastoreService
                     }
                 }
             }
-            cw.append("</head>\n");
-            cw.append("</html>\n");
-            cw.cache();
         }
         catch (EntityNotFoundException ex)
         {

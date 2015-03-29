@@ -45,26 +45,30 @@ public class FacebookFilter implements Filter
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
         String userAgent = request.getHeader("User-Agent");
-        log(userAgent);
         if (userAgent != null && userAgent.startsWith("facebookexternalhit/1.1"))
         {
             URL base = DS.getBase(request);
-            log(base.toString());
             DS ds = DS.get();
-            try
+            try (DS.CacheWriter cw = ds.createCacheWriter(request, response))
             {
+                cw.setPrivate(true);
+                cw.append("<!DOCTYPE html>\n");
+                cw.append("<html>\n");
+                cw.append("<head>\n");
                 String blogKeyString = request.getParameter(BlogParameter);
-                log(blogKeyString);
                 if (blogKeyString != null)
                 {
                     Key blogKey = KeyFactory.stringToKey(blogKeyString);
-                    try (DS.CacheWriter cacheWriter = ds.createCacheWriter(request, response))
-                    {
-                        cacheWriter.setPrivate(true);
-                        ds.getOpenGraph(blogKey, base, cacheWriter);
-                        return;
-                    }
-                }    
+                    ds.writeOpenGraph(blogKey, base, cw);
+                }
+                else
+                {
+                    ds.writeOpenGraph(base, cw);
+                }
+                cw.append("</head>\n");
+                cw.append("</html>\n");
+                cw.cache();
+                return;
             }
             catch (HttpException ex)
             {

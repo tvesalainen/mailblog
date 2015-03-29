@@ -44,6 +44,7 @@ public interface BlogConstants
     
     static final String TitleProperty = "Title";
     static final String DescriptionProperty = "Description";
+    static final String ImageProperty = "Image";
     static final String TimestampProperty = "Timestamp";
     static final String HtmlProperty = "Html";
     static final String SubjectProperty = "Subject";
