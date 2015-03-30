@@ -692,7 +692,7 @@ public class MailHandlerServlet extends HttpServlet
                         {
                             StringBuilder sb = new StringBuilder();
                             sb.append(body.substring(0, start));
-                            sb.append("<img src=\"/blob?"+Sha1Parameter+"="+sha1+"\" width=\""+width+"\" height=\""+height+"\">");
+                            sb.append("<img src=\"/blob?"+Sha1Parameter+"="+sha1+"\" style=\"width:"+width+"px;height:"+height+"px\">");
                             sb.append(body.substring(end+1));
                             blog.setUnindexedProperty(HtmlProperty, new Text(sb.toString()));
                         }
