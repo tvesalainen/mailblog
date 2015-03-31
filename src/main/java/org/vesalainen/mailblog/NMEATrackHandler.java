@@ -13,7 +13,7 @@ import org.vesalainen.parsers.nmea.AbstractNMEAObserver;
  */
 public class NMEATrackHandler extends AbstractNMEAObserver
 {
-    private NMEATrackLevelHandler[] handlers;
+    private final NMEATrackLevelHandler[] handlers;
     private double latitude;
     private double longitude;
     private boolean updated;

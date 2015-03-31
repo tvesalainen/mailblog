@@ -58,7 +58,6 @@
         <dependency>
             <groupId>org.vesalainen.lpg</groupId>
             <artifactId>NMEAParser</artifactId>
-            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.vesalainen.kml</groupId>
