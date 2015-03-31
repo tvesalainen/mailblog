@@ -284,6 +284,7 @@ public class DS extends CachingDatastoreService
                 return true;
             }
         }
+        response.setHeader("ETag", getETag());
         return false;
     }
 
