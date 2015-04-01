@@ -90,8 +90,9 @@ public class BlogServlet extends HttpServlet
                                 {
                                     user = userService.getCurrentUser();
                                 }
-                                try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/html", "utf-8", true))
+                                try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
                                 {
+                                    cacheWriter.setPrivate(true);
                                     ds.getComments(blogKey, user, cacheWriter);
                                 }
                             }
@@ -101,8 +102,10 @@ public class BlogServlet extends HttpServlet
                                 if (action != null)
                                 {
                                     String auth = request.getParameter(AuthParameter);
-                                    try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, "text/plain", "utf-8", true))
+                                    try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
                                     {
+                                        cacheWriter.setPrivate(true)
+                                        .setContentType("text/plain");
                                         ds.handleBlogAction(blogKey, action, auth, cacheWriter);
                                     }
                                 }
@@ -167,8 +170,9 @@ public class BlogServlet extends HttpServlet
                 {
                     BlogCursor bc = new BlogCursor()
                             .setSearch(search);
-                    try (CacheWriter cacheWriter = ds.createCacheWriter(request, response).setPrivate(true))
+                    try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
                     {
+                        cacheWriter.setPrivate(true);
                         ds.getBlogList(bc.getWebSafe(), base, false, cacheWriter);
                     }
                 }

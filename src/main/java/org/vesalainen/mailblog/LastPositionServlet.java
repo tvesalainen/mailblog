@@ -82,8 +82,9 @@ public class LastPositionServlet extends HttpServlet
                 }
             };
             String eTag = getETag.doIt(null, settings.isCommonPlacemarks());
-            try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, eTag, "text/html", "utf-8", false))
+            try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
             {
+                cacheWriter.setETag(eTag);
                 ds.writeLastPosition(cacheWriter);
             }
         }

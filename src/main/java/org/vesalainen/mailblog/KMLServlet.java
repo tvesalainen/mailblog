@@ -88,8 +88,9 @@ public class KMLServlet extends HttpServlet
             String keyString = request.getParameter(KeyParameter);
             if (keyString != null)
             {
-                try (CacheOutputStream cos = ds.createCacheOutputStream(request, response, "application/vnd.google-earth.kmz", "utf-8", false))
+                try (CacheOutputStream cos = ds.createCacheOutputStream(request, response))
                 {
+                    cos.setContentType("application/vnd.google-earth.kmz");
                     Key key = KeyFactory.stringToKey(keyString);
                     switch (key.getKind())
                     {
@@ -110,8 +111,9 @@ public class KMLServlet extends HttpServlet
             }
             else
             {
-                try (CacheOutputStream cos = ds.createCacheOutputStream(request, response, "application/vnd.google-earth.kmz", "utf-8", false))
+                try (CacheOutputStream cos = ds.createCacheOutputStream(request, response))
                 {
+                    cos.setContentType("application/vnd.google-earth.kmz");
                     String pathInfo = request.getPathInfo();
                     pathInfo = pathInfo == null ? "" : pathInfo;
                     switch (pathInfo)

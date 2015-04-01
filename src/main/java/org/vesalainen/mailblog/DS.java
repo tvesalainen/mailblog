@@ -41,6 +41,8 @@ import com.google.appengine.api.users.User;
 import com.google.appengine.repackaged.com.google.common.base.Objects;
 import com.google.apphosting.api.ApiProxy;
 import java.io.ByteArrayOutputStream;
+import java.io.FilterOutputStream;
+import java.io.FilterWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -214,42 +216,14 @@ public class DS extends CachingDatastoreService
         }
     }
 
-    /**
-     * Convenience method that sets contentType to "text/html" and charset to
-     * "utf-8"
-     *
-     * @param response
-     * @return
-     * @throws IOException
-     */
     public CacheWriter createCacheWriter(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
-        return createCacheWriter(request, response, "text/html", "utf-8", false);
+        return new CacheWriter(request, response);
     }
 
-    public CacheWriter createCacheWriter(HttpServletRequest request, HttpServletResponse response, String contentType, String charset, boolean isPrivate) throws IOException
+    public CacheOutputStream createCacheOutputStream(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
-        response.setContentType(contentType);
-        response.setCharacterEncoding(charset);
-        return new CacheWriter(request, response)
-                .setPrivate(isPrivate);
-    }
-
-    public CacheWriter createCacheWriter(HttpServletRequest request, HttpServletResponse response, String eTag, String contentType, String charset, boolean isPrivate) throws IOException
-    {
-        response.setContentType(contentType);
-        response.setCharacterEncoding(charset);
-        return new CacheWriter(request, response)
-                .setETag(eTag)
-                .setPrivate(isPrivate);
-    }
-
-    public CacheOutputStream createCacheOutputStream(HttpServletRequest request, HttpServletResponse response, String contentType, String charset, boolean isPrivate) throws IOException
-    {
-        response.setContentType(contentType);
-        response.setCharacterEncoding(charset);
-        return new CacheOutputStream(request, response)
-                .setPrivate(isPrivate);
+        return new CacheOutputStream(request, response);
     }
 
     public boolean sameETagOrCached(HttpServletRequest request, HttpServletResponse response) throws IOException
@@ -276,6 +250,7 @@ public class DS extends CachingDatastoreService
     public boolean sameETag(HttpServletRequest request, HttpServletResponse response) throws IOException
     {
         String ifNoneMatch = request.getHeader("If-None-Match");
+        response.setHeader("ETag", getETag());
         if (ifNoneMatch != null)
         {
             if (!changedETAG(ifNoneMatch))
@@ -284,7 +259,6 @@ public class DS extends CachingDatastoreService
                 return true;
             }
         }
-        response.setHeader("ETag", getETag());
         return false;
     }
 
@@ -1419,32 +1393,53 @@ public class DS extends CachingDatastoreService
         }
     }
 
-    public class CacheWriter extends Writer
+    public interface Caching
     {
-
-        private Writer out;
-        private StringWriter stringWriter = new StringWriter();
-        private HttpServletResponse response;
+        Caching setContentType(String contentType);
+        Caching setCharset(String charset);
+        Caching setETag(String eTag);
+        Caching setPrivate(boolean isPrivate);
+        void cache();
+    }
+    public abstract class CachingImpl implements Caching
+    {
+        private final HttpServletResponse response;
         private String eTag;
-        private String cacheKey;
+        private final String cacheKey;
         private boolean isPrivate;
-        private boolean cached;
 
-        private CacheWriter(HttpServletRequest request, HttpServletResponse response) throws IOException
+        CachingImpl(HttpServletRequest request, HttpServletResponse response)
         {
-            out = response.getWriter();
-            this.cacheKey = getCacheKey(request);
             this.response = response;
+            this.cacheKey = getCacheKey(request);
+            setContentType("text/html");
+            setCharset("utf-8");
         }
 
-        public CacheWriter setETag(String eTag)
+        @Override
+        public Caching setContentType(String contentType)
+        {
+            response.setContentType(contentType);
+            return this;
+        }
+
+        @Override
+        public Caching setCharset(String charset)
+        {
+            response.setCharacterEncoding(charset);
+            return this;
+        }
+
+        @Override
+        public Caching setETag(String eTag)
         {
             this.eTag = eTag;
             response.setHeader("ETag", eTag);
             return this;
         }
 
-        public CacheWriter setPrivate(boolean isPrivate)
+        @Override
+        public Caching setPrivate(boolean isPrivate)
         {
             this.isPrivate = isPrivate;
             if (isPrivate)
@@ -1458,24 +1453,83 @@ public class DS extends CachingDatastoreService
             return this;
         }
 
+    }
+    public class CacheWriter extends FilterWriter implements Caching
+    {
+        private CachingImpl caching;
+        private final StringWriter stringWriter = new StringWriter();
+        private boolean cached;
+
+        private CacheWriter(HttpServletRequest request, HttpServletResponse response) throws IOException
+        {
+            super(response.getWriter());
+            this.caching = new CachingImpl(request, response)
+            {
+                @Override
+                public void cache()
+                {
+                    if (!caching.isPrivate)
+                    {
+                        String content = stringWriter.toString();
+                        CachedContent cachedContent;
+                        try
+                        {
+                            cachedContent = new CachedContent(content, caching.response.getContentType(), caching.response.getCharacterEncoding(), caching.eTag, caching.isPrivate);
+                        }
+                        catch (UnsupportedEncodingException ex)
+                        {
+                            throw new IllegalArgumentException(ex);
+                        }
+                        cache.put(caching.cacheKey, cachedContent);
+                        System.err.println("caching as "+caching.cacheKey);
+                    }
+                    cached = true;
+                }
+            };
+        }
+
+        @Override
+        public Caching setContentType(String contentType)
+        {
+            return caching.setContentType(contentType);
+        }
+
+        @Override
+        public Caching setCharset(String charset)
+        {
+            return caching.setCharset(charset);
+        }
+
+        @Override
+        public Caching setETag(String eTag)
+        {
+            return caching.setETag(eTag);
+        }
+
+        @Override
+        public Caching setPrivate(boolean isPrivate)
+        {
+            return caching.setPrivate(isPrivate);
+        }
+
+        @Override
         public void cache()
         {
-            if (!isPrivate)
-            {
-                String content = stringWriter.toString();
-                CachedContent cachedContent;
-                try
-                {
-                    cachedContent = new CachedContent(content, response.getContentType(), response.getCharacterEncoding(), eTag, isPrivate);
-                }
-                catch (UnsupportedEncodingException ex)
-                {
-                    throw new IllegalArgumentException(ex);
-                }
-                cache.put(cacheKey, cachedContent);
-                System.err.println("caching as "+cacheKey);
-            }
-            cached = true;
+            caching.cache();
+        }
+
+        @Override
+        public void write(String str, int off, int len) throws IOException
+        {
+            super.write(str, off, len);
+            stringWriter.write(str, off, len);
+        }
+
+        @Override
+        public void write(int c) throws IOException
+        {
+            super.write(c);
+            stringWriter.write(c);
         }
 
         @Override
@@ -1483,11 +1537,6 @@ public class DS extends CachingDatastoreService
         {
             out.write(buf, off, len);
             stringWriter.write(buf, off, len);
-        }
-
-        @Override
-        public void flush() throws IOException
-        {
         }
 
         @Override
@@ -1500,62 +1549,82 @@ public class DS extends CachingDatastoreService
         }
     }
 
-    public class CacheOutputStream extends OutputStream
+    
+    public class CacheOutputStream extends FilterOutputStream implements Caching
     {
-
-        private OutputStream out;
-        private ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-        private HttpServletResponse response;
-        private String eTag;
-        private String cacheKey;
-        private boolean isPrivate;
+        private final CachingImpl caching;
+        private final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         private boolean cached;
 
         private CacheOutputStream(HttpServletRequest request, HttpServletResponse response) throws IOException
         {
-            out = response.getOutputStream();
-            this.cacheKey = getCacheKey(request);
-            this.response = response;
-        }
-
-        public CacheOutputStream setETag(String eTag)
-        {
-            this.eTag = eTag;
-            response.setHeader("ETag", eTag);
-            return this;
-        }
-
-        public CacheOutputStream setPrivate(boolean isPrivate)
-        {
-            this.isPrivate = isPrivate;
-            if (isPrivate)
+            super(response.getOutputStream());
+            caching = new CachingImpl(request, response)
             {
-                response.setHeader("Cache-Control", "private, max-age=0, no-cache");
-            }
-            else
-            {
-                response.setHeader("Cache-Control", "public");
-            }
-            return this;
+                @Override
+                public void cache()
+                {
+                    if (!caching.isPrivate)
+                    {
+                        byte[] content = byteStream.toByteArray();
+                        CachedContent cachedContent;
+                        cachedContent = new CachedContent(content, caching.response.getContentType(), caching.response.getCharacterEncoding(), caching.eTag, caching.isPrivate);
+                        cache.put(caching.cacheKey, cachedContent);
+                        System.err.println("caching as "+caching.cacheKey);
+                    }
+                    cached = true;
+                }
+            };
         }
 
+        @Override
+        public Caching setContentType(String contentType)
+        {
+            return caching.setContentType(contentType);
+        }
+
+        @Override
+        public Caching setCharset(String charset)
+        {
+            return caching.setCharset(charset);
+        }
+
+        @Override
+        public Caching setETag(String eTag)
+        {
+            return caching.setETag(eTag);
+        }
+
+        @Override
+        public Caching setPrivate(boolean isPrivate)
+        {
+            return caching.setPrivate(isPrivate);
+        }
+
+        @Override
         public void cache()
         {
-            if (!isPrivate)
-            {
-                byte[] content = byteStream.toByteArray();
-                CachedContent cachedContent;
-                cachedContent = new CachedContent(content, response.getContentType(), response.getCharacterEncoding(), eTag, isPrivate);
-                cache.put(cacheKey, cachedContent);
-                System.err.println("caching as "+cacheKey);
-            }
-            cached = true;
+            caching.cache();
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException
+        {
+            super.write(b, off, len);
+            byteStream.write(b, off, len);
+        }
+
+        @Override
+        public void write(byte[] b) throws IOException
+        {
+            super.write(b);
+            byteStream.write(b);
         }
 
         @Override
         public void write(int b) throws IOException
         {
-            out.write(b);
+            super.write(b);
             byteStream.write(b);
         }
 
@@ -1566,6 +1635,7 @@ public class DS extends CachingDatastoreService
             {
                 System.err.println("closing without caching");
             }
+            super.close();
         }
     }
 

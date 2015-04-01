@@ -17,10 +17,6 @@
 package org.vesalainen.mailblog;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -54,8 +50,9 @@ public class RSSServlet extends HttpServlet
             if (!ds.sameETagOrCached(request, response))
             {
                 URL base = DS.getBase(request);
-                try (CacheWriter cacheWriter = ds.createCacheWriter(request, response, "application/rss+xml", "utf-8", false))
+                try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
                 {
+                    cacheWriter.setContentType("application/rss+xml");
                     ds.writeRSS(base, cacheWriter);
                 }
             }
