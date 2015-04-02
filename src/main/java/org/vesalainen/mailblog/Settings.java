@@ -24,7 +24,6 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.datastore.Text;
-import com.google.appengine.repackaged.com.google.common.base.Objects;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -197,29 +196,37 @@ public class Settings implements Serializable
     }
     public int getPicMaxHeight()
     {
-        Long l = (Long) map.get(PicMaxHeightProperty);
-        return l.intValue();
+        return getIntProperty(PicMaxHeightProperty);
     }
     public int getPicMaxWidth()
     {
-        Long l = (Long) map.get(PicMaxWidthProperty);
-        return l.intValue();
+        return getIntProperty(PicMaxWidthProperty);
     }
     public int getShowCount()
     {
-        Long l = (Long) map.get(ShowCountProperty);
-        return l.intValue();
+        return getIntProperty(ShowCountProperty);
+    }
+
+    public int getIntProperty(String property)
+    {
+        Long l = (Long) map.get(property);
+        if (l != null)
+        {
+            return l.intValue();
+        }
+        else
+        {
+            return 0;
+        }
     }
 
     public double getTrackBearingTolerance()
     {
-        Double d = (Double) map.get(TrackBearingToleranceProperty);
-        return d.doubleValue();
+        return getDoubleProperty(TrackBearingToleranceProperty);
     }
     public double getTrackMinimumDistance()
     {
-        Double d = (Double) map.get(TrackMinDistanceProperty);
-        return d;
+        return getDoubleProperty(TrackMinDistanceProperty);
     }
     public double getTrackMaxSpeed()
     {
@@ -232,9 +239,21 @@ public class Settings implements Serializable
     }
     public double getEyeAltitude()
     {
-        Double d = (Double) map.get(EyeAltitudeProperty);
-        return d;
+        return getDoubleProperty(EyeAltitudeProperty);
     }
+    public double getDoubleProperty(String property)
+    {
+        Double d = (Double) map.get(property);
+        if (d != null)
+        {
+            return d;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
     private static final String DefaultIcon = "http://maps.google.com/mapfiles/kml/shapes/info.png";
     public String getBlogIcon()
     {
