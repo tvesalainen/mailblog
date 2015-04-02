@@ -1395,6 +1395,7 @@ public class DS extends CachingDatastoreService
 
     public interface Caching
     {
+        Caching setMaxAge(int maxAge);
         Caching setContentType(String contentType);
         Caching setCharset(String charset);
         Caching setETag(String eTag);
@@ -1407,6 +1408,7 @@ public class DS extends CachingDatastoreService
         private String eTag;
         private final String cacheKey;
         private boolean isPrivate;
+        private int maxAge;
 
         CachingImpl(HttpServletRequest request, HttpServletResponse response)
         {
@@ -1414,6 +1416,13 @@ public class DS extends CachingDatastoreService
             this.cacheKey = getCacheKey(request);
             setContentType("text/html");
             setCharset("utf-8");
+        }
+
+        @Override
+        public Caching setMaxAge(int maxAge)
+        {
+            this.maxAge = maxAge;
+            return this;
         }
 
         @Override
@@ -1442,15 +1451,27 @@ public class DS extends CachingDatastoreService
         public Caching setPrivate(boolean isPrivate)
         {
             this.isPrivate = isPrivate;
+            cacheControl();
+            return this;
+        }
+        
+        private void cacheControl()
+        {
             if (isPrivate)
             {
-                response.setHeader("Cache-Control", "private, max-age=0, no-cache");
+                response.setHeader("Cache-Control", "private, max-age="+maxAge+", no-cache");
             }
             else
             {
-                response.setHeader("Cache-Control", "public");
+                if (maxAge > 0)
+                {
+                    response.setHeader("Cache-Control", "public, max-age="+maxAge);
+                }
+                else
+                {
+                    response.setHeader("Cache-Control", "public");
+                }
             }
-            return this;
         }
 
     }
@@ -1486,6 +1507,12 @@ public class DS extends CachingDatastoreService
                     cached = true;
                 }
             };
+        }
+
+        @Override
+        public Caching setMaxAge(int maxAge)
+        {
+            return caching.setMaxAge(maxAge);
         }
 
         @Override
@@ -1575,6 +1602,12 @@ public class DS extends CachingDatastoreService
                     cached = true;
                 }
             };
+        }
+
+        @Override
+        public Caching setMaxAge(int maxAge)
+        {
+            return caching.setMaxAge(maxAge);
         }
 
         @Override
