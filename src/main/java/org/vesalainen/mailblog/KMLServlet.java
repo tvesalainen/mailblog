@@ -261,7 +261,7 @@ public class KMLServlet extends HttpServlet
             styleType.setIconStyle(iconStyle);
         }
         // write
-        kmz.write(out);
+        kmz.writeTo(out);
     }
 
     private void log(KMZ kmz)
@@ -325,7 +325,7 @@ public class KMLServlet extends HttpServlet
             placemarkType.setDescription(sb.toString());
         }
         // write
-        kmz.write(out);
+        kmz.writeTo(out);
     }
 
     private void writeBlogLocation(Key key, String styleUri, CacheOutputStream cos) throws IOException
@@ -369,7 +369,7 @@ public class KMLServlet extends HttpServlet
             placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
         }
         // write
-        kmz.write(cos);
+        kmz.writeTo(cos);
     }
 
     private void writeTrackSeq(Key trackSeqKey, String styleUri, CacheOutputStream out) throws IOException
@@ -455,7 +455,7 @@ public class KMLServlet extends HttpServlet
             }
         }
         // write
-        kmz.write(out);
+        kmz.writeTo(out);
     }
 
     private void writeLookAt(String base, String styleUri, CacheOutputStream out) throws IOException
@@ -612,7 +612,7 @@ public class KMLServlet extends HttpServlet
             abstractFeatureGroup.add(networkLink);
         }
         // write
-        kmz.write(out);
+        kmz.writeTo(out);
 
     }
     private void writePlacemarkPath(String base, String styleUri, CacheOutputStream cos) throws IOException
@@ -697,7 +697,7 @@ public class KMLServlet extends HttpServlet
             }
         }
         // write
-        kmz.write(cos);
+        kmz.writeTo(cos);
 
     }
 
@@ -749,7 +749,7 @@ public class KMLServlet extends HttpServlet
             }
         }
         // write
-        kmz.write(cos);
+        kmz.writeTo(cos);
 
     }
 
@@ -794,7 +794,7 @@ public class KMLServlet extends HttpServlet
             abstractFeatureGroup.add(networkLink);
         }
         // write
-        kmz.write(cos);
+        kmz.writeTo(cos);
 
     }
 
@@ -850,7 +850,7 @@ public class KMLServlet extends HttpServlet
         abstractFeatureGroup.add(blogLocationNetworkLink);
                 
         // write
-        kmz.write(cos);
+        kmz.writeTo(cos);
 
     }
 
