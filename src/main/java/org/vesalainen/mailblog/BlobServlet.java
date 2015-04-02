@@ -72,6 +72,7 @@ public class BlobServlet extends HttpServlet
                 }
                 String eTag = String.valueOf(timestamp.getTime());
                 response.setHeader("ETag", eTag);
+                response.setHeader("Cache-Control", "public, max-age=86400");
                 BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
                 String original = request.getParameter(OriginalParameter);
                 if (original != null)
