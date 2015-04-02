@@ -25,7 +25,6 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -152,6 +151,7 @@ public class KMLServlet extends HttpServlet
                     throw new IOException(ex);
                 }
             }
+            log(response.getContentType());
         }
     }
 
