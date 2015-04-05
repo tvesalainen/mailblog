@@ -43,6 +43,7 @@ public class NamespaceFilter implements Filter
     /**
      * Init method for this filter
      */
+    @Override
     public void init(FilterConfig filterConfig)
     {
         this.filterConfig = filterConfig;
@@ -67,7 +68,7 @@ public class NamespaceFilter implements Filter
     {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
-        String namespace = request.getParameter("namespace");
+        String namespace = "kauaspois.fi";  //request.getParameter("namespace"); FOR TESTING ONLY
         if (namespace != null)
         {
             NamespaceManager.set(namespace);
