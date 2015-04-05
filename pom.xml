@@ -12,7 +12,7 @@
     <packaging>war</packaging>
     <groupId>org.vesalainen.mailblog</groupId>
     <artifactId>mailblog</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version><!-- REMEMBER appengine-web-app.version !!!!!-->
 
     <name>Mail Blog</name>
     <description>
@@ -24,7 +24,7 @@
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
         <appengine-web-app.application>adventurersblog</appengine-web-app.application>
-        <appengine-web-app.version>1-0-4</appengine-web-app.version> <!-- this is the same as project.version with dots changed to dashes-->
+        <appengine-web-app.version>1-0-5</appengine-web-app.version> <!-- this is the same as project.version with dots changed to dashes-->
     </properties>
 
     <dependencies>
