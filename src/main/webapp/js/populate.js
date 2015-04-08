@@ -15,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses></http:>.
  */
 
+/* global google, src, initialize */
+
 var pageStack = new Array();
 var firstPage = null;
 
@@ -34,7 +36,8 @@ $(document).ready(function(){
         afterLoad();
     });
     
-    $("#calendar").load("/blog?calendar=true", function(){
+    $("#calendar").load("/blog?calendar=true", function()
+    {
         $(".hidden").hide();
     });
     
@@ -42,7 +45,33 @@ $(document).ready(function(){
     
     $(".lastPosition").load("/lastPosition");
     
-    $("body").on("click", "img", function(event)
+    google.maps.event.addDomListener(window, 'load', googlemaps);
+    
+    function googlemaps()
+    {
+        $.getJSON("/lastPosition?json=true", function(data)
+        {
+            var mapOptions = {
+                center: {lat: data['latitude'], lng: data['longitude']},
+                zoom: 8
+            };
+            var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+            var href = window.location.href;
+            var kmlLayer = new google.maps.KmlLayer(href+'/kml', {
+                suppressInfoWindows: true,
+                preserveViewport: false,
+                map: map
+            });
+            kmlLayer.setMap(map);
+            google.maps.event.addListener(kmlLayer, 'click', function (event) {
+                var content = event.featureData.infoWindowHtml;
+                var testimonial = document.getElementById('capture');
+                testimonial.innerHTML = content;
+            });
+        });
+    }
+    
+    $("#blog").on("click", "img", function(event)
     {        
         window.open($(this).attr("src")+"&original=true");
     });

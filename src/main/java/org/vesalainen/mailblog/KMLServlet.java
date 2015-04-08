@@ -321,7 +321,7 @@ public class KMLServlet extends HttpServlet
             pointType.getCoordinates().add(String.format(Locale.US, "%1$f,%2$f,0", location.getLongitude(), location.getLatitude()));
             placemarkType.setAbstractGeometryGroup(factory.createPoint(pointType));
             StringBuilder sb = new StringBuilder();
-            ds.describeLocation(placemark, sb);
+            ds.describeLocation(placemark, sb, null);
             placemarkType.setDescription(sb.toString());
         }
         // write

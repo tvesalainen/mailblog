@@ -21,6 +21,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.json.JSONObject;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.mailblog.DS.CacheWriter;
 
 /**
@@ -82,10 +84,12 @@ public class LastPositionServlet extends HttpServlet
                 }
             };
             String eTag = getETag.doIt(null, settings.isCommonPlacemarks());
-            try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
+            String json = request.getParameter(JSONParameter);
+            log(json);
+            try (CacheWriter cw = ds.createCacheWriter(request, response))
             {
-                cacheWriter.setETag(eTag);
-                ds.writeLastPosition(cacheWriter);
+                cw.setETag(eTag);
+                ds.writeLastPosition(cw, json != null);
             }
         }
     }

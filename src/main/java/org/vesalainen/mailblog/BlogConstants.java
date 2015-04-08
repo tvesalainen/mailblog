@@ -25,6 +25,7 @@ public interface BlogConstants
     static final int CHUNKSIZE = 500;
     
     static final String BlogRipper = "X-BlogRipper-";
+    static final String ISO8601Format = "yyyy-MM-dd'T'HH:mm:ss.SSSz";
     static final String RFC1123Format = "EEE, dd MMM yyyy HH:mm:ss z";
     
     static final String RootKind = "Root";
@@ -135,6 +136,11 @@ public interface BlogConstants
     static final String EmailParameter = "email";
     static final String KeyParameter = "key";
     static final String LookAtParameter = "lookAt";
+    static final String JSONParameter = "json";
+    static final String LatitudeParameter = "latitude";
+    static final String LongitudeParameter = "longitude";
+    static final String TimestampParameter = "timestamp";
+    static final String MaidenheadLocatorParameter = "maidenhead";
     
     static final String StylePath = "/style.kmz";
     static final String PlacemarkPath = "/placemarkPath.kmz";

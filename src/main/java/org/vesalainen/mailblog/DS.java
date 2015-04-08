@@ -59,6 +59,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -79,6 +80,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.json.JSONObject;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import static org.vesalainen.mailblog.CachingDatastoreService.getRootKey;
 import org.vesalainen.mailblog.types.GeoPtType;
@@ -1032,21 +1034,33 @@ public class DS extends CachingDatastoreService
         }
     }
 
-    public void writeLastPosition(CacheWriter cacheWriter) throws IOException
+    public void writeLastPosition(CacheWriter cacheWriter, boolean isJSON) throws IOException
     {
+        System.err.println(isJSON);
         Settings settings = getSettings();
         Entity lastPlacemark = fetchLastPlacemark(settings);
         if (lastPlacemark != null)
         {
-            describeLocation(lastPlacemark, cacheWriter);
+            JSONObject json = null;
+            if (isJSON)
+            {
+                cacheWriter.setContentType("application/json");
+                json = new JSONObject();
+            }
+            describeLocation(lastPlacemark, cacheWriter, json);
+            if (isJSON)
+            {
+                json.write(cacheWriter);
+            }
         }
         cacheWriter.cache();
     }
 
-    public void describeLocation(Entity placemark, Appendable out) throws IOException
+    public void describeLocation(Entity placemark, Appendable out, JSONObject json) throws IOException
     {
+        System.err.println(json);
         Settings settings = getSettings();
-        Date timestamp = null;
+        Date timestamp ;
         if (TrackPointKind.equals(placemark.getKind()))
         {
             timestamp = new Date(placemark.getKey().getId());
@@ -1060,17 +1074,28 @@ public class DS extends CachingDatastoreService
         String locator = ml.getSubsquare();
         if (timestamp != null && location != null)
         {
-            out.append("<div>");
-            DateFormat dateFormat = settings.getDateFormat();
-            out.append(dateFormat.format(timestamp));
-            out.append("</div>");
-            out.append("<div>");
-            String locationString = GeoPtType.getString(location);
-            out.append(locationString);
-            out.append("</div>");
-            out.append("<div title=\"Maidenhead Locator\">");
-            out.append(locator);
-            out.append("</div>");
+            if (json != null)
+            {
+                json.put(LatitudeParameter, location.getLatitude());
+                json.put(LongitudeParameter, location.getLongitude());
+                SimpleDateFormat sdf = new SimpleDateFormat(ISO8601Format);
+                json.put(TimestampParameter, sdf.format(timestamp));
+                json.put(MaidenheadLocatorParameter, locator);
+            }
+            else
+            {
+                out.append("<div>");
+                DateFormat dateFormat = settings.getDateFormat();
+                out.append(dateFormat.format(timestamp));
+                out.append("</div>");
+                out.append("<div>");
+                String locationString = GeoPtType.getString(location);
+                out.append(locationString);
+                out.append("</div>");
+                out.append("<div title=\"Maidenhead Locator\">");
+                out.append(locator);
+                out.append("</div>");
+            }
        }
     }
     public Entity fetchLastPlacemark(Settings settings)
