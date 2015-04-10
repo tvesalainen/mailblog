@@ -1,18 +1,33 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2015 tkv
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.GeoPt;
+import java.io.Serializable;
 import org.vesalainen.repacked.net.opengis.kml.LatLonAltBoxType;
 
 /**
  * @author Timo Vesalainen
  */
-public class LatLonAltBox
+public class LatLonAltBox implements Serializable
 {
+    private static final long serialVersionUID = 1L;
+    
     private static final double HalfCircle = 180;
     private static final double FullCircle = 360;
     private boolean init;
@@ -81,6 +96,26 @@ public class LatLonAltBox
             init = true;
         }
     }
+    public boolean isIntersecting(LatLonAltBox o)
+    {
+        return
+                (overlapLat(o.north) || overlapLat(o.south) || o.overlapLat(north) || o.overlapLat(south)) &&
+                (overlapLon(o.west) || overlapLon(o.east) || o.overlapLon(west) || o.overlapLon(east));
+    }
+    private boolean overlapLat(double latitude)
+    {
+        return latitude <= north &&
+                latitude >= south;
+    }
+    private boolean overlapLon(double longitude)
+    {
+        return  isWestToEast(longitude, east) &&
+                isWestToEast(west, longitude);
+    }
+    public boolean isInside(double latitude, double longitude)
+    {
+        return overlapLat(latitude) && overlapLon(longitude);
+    }
     public void clear()
     {
         north = 0;
@@ -141,4 +176,52 @@ public class LatLonAltBox
         box.setWest(west);
         box.setEast(east);
     }
+
+    @Override
+    public int hashCode()
+    {
+        int hash = 7;
+        hash = 71 * hash + (this.init ? 1 : 0);
+        hash = 71 * hash + (int) (Double.doubleToLongBits(this.north) ^ (Double.doubleToLongBits(this.north) >>> 32));
+        hash = 71 * hash + (int) (Double.doubleToLongBits(this.south) ^ (Double.doubleToLongBits(this.south) >>> 32));
+        hash = 71 * hash + (int) (Double.doubleToLongBits(this.west) ^ (Double.doubleToLongBits(this.west) >>> 32));
+        hash = 71 * hash + (int) (Double.doubleToLongBits(this.east) ^ (Double.doubleToLongBits(this.east) >>> 32));
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (obj == null)
+        {
+            return false;
+        }
+        if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+        final LatLonAltBox other = (LatLonAltBox) obj;
+        if (this.init != other.init)
+        {
+            return false;
+        }
+        if (Double.doubleToLongBits(this.north) != Double.doubleToLongBits(other.north))
+        {
+            return false;
+        }
+        if (Double.doubleToLongBits(this.south) != Double.doubleToLongBits(other.south))
+        {
+            return false;
+        }
+        if (Double.doubleToLongBits(this.west) != Double.doubleToLongBits(other.west))
+        {
+            return false;
+        }
+        if (Double.doubleToLongBits(this.east) != Double.doubleToLongBits(other.east))
+        {
+            return false;
+        }
+        return true;
+    }
+    
 }
