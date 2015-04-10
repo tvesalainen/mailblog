@@ -16,14 +16,15 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.datastore.GeoPt;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Locale;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.vesalainen.navi.AnchorWatch;
 
 /**
  *
@@ -31,11 +32,38 @@ import org.vesalainen.navi.AnchorWatch;
  */
 public class LatLonAltBoxTest
 {
-    
+    private static final double Epsilon = 1e-6;
     public LatLonAltBoxTest()
     {
     }
     
+    @Test
+    public void testInit()
+    {
+        float north = 1.23F;
+        float east = 2.34F;
+        float south = 3.45F;
+        float west = 4.56F;
+        GeoPt northEast = new GeoPt(north, east);
+        GeoPt southWest = new GeoPt(south, west);
+        LatLonAltBox box1 = new LatLonAltBox(northEast, southWest);
+        assertEquals(north, box1.getNorth(), Epsilon);
+        assertEquals(east, box1.getEast(), Epsilon);
+        assertEquals(south, box1.getSouth(), Epsilon);
+        assertEquals(west, box1.getWest(), Epsilon);
+        assertEquals(northEast, box1.getNorthEast());
+        assertEquals(southWest, box1.getSouthWest());
+        LatLonAltBox box2 = new LatLonAltBox(north, east, south, west);
+        assertEquals(north, box2.getNorth(), Epsilon);
+        assertEquals(east, box2.getEast(), Epsilon);
+        assertEquals(south, box2.getSouth(), Epsilon);
+        assertEquals(west, box2.getWest(), Epsilon);
+        LatLonAltBox box3 = LatLonAltBox.getSouthWestNorthEastInstance(String.format(Locale.US, "%f,%f,%f,%f", south, west, north, east));
+        assertEquals(north, box3.getNorth(), Epsilon);
+        assertEquals(east, box3.getEast(), Epsilon);
+        assertEquals(south, box3.getSouth(), Epsilon);
+        assertEquals(west, box3.getWest(), Epsilon);
+    }
     @Test
     public void testSerialize()
     {
@@ -58,7 +86,10 @@ public class LatLonAltBoxTest
             Object ob = ois.readObject();
             assertTrue(ob instanceof LatLonAltBox);
             LatLonAltBox box2 = (LatLonAltBox) ob;
-            assertEquals(box, box2);
+            assertEquals(box.getNorth(), box2.getNorth(), Epsilon);
+            assertEquals(box.getEast(), box2.getEast(), Epsilon);
+            assertEquals(box.getSouth(), box2.getSouth(), Epsilon);
+            assertEquals(box.getWest(), box2.getWest(), Epsilon);
         }
         catch (IOException | ClassNotFoundException ex)
         {

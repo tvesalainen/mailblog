@@ -39,6 +39,40 @@ public class LatLonAltBox implements Serializable
     public LatLonAltBox()
     {
     }
+
+    public LatLonAltBox(GeoPt northEast, GeoPt southWest)
+    {
+        this(northEast.getLatitude(), northEast.getLongitude(), southWest.getLatitude(), southWest.getLongitude());
+    }
+
+    public LatLonAltBox(double north, double east, double south, double west)
+    {
+        this.north = north;
+        this.east = east;
+        this.south = south;
+        this.west = west;
+        init = true;
+    }
+    
+    /**
+     * Creates a LatLonAltBox from a string "south,west,north,east"
+     * @param str 
+     * @return  
+     */
+    public static LatLonAltBox getSouthWestNorthEastInstance(String str)
+    {
+        String[] split = str.split(",");
+        if (split.length != 4)
+        {
+            throw new IllegalArgumentException(str);
+        }
+        return new LatLonAltBox(
+                Double.parseDouble(split[2]),
+                Double.parseDouble(split[3]),
+                Double.parseDouble(split[0]),
+                Double.parseDouble(split[1])
+        );
+    }
     
     /**
      * 
@@ -112,6 +146,10 @@ public class LatLonAltBox implements Serializable
         return  isWestToEast(longitude, east) &&
                 isWestToEast(west, longitude);
     }
+    public boolean isInside(GeoPt pt)
+    {
+        return isInside(pt.getLatitude(), pt.getLongitude());
+    }
     public boolean isInside(double latitude, double longitude)
     {
         return overlapLat(latitude) && overlapLon(longitude);
@@ -145,6 +183,27 @@ public class LatLonAltBox implements Serializable
     {
         return new GeoPt((float)north, (float)east);
     }
+
+    public double getNorth()
+    {
+        return north;
+    }
+
+    public double getSouth()
+    {
+        return south;
+    }
+
+    public double getWest()
+    {
+        return west;
+    }
+
+    public double getEast()
+    {
+        return east;
+    }
+    
     private static final double normalize(double val)
     {
         return ((val + HalfCircle + FullCircle) % FullCircle) - HalfCircle;
@@ -177,51 +236,4 @@ public class LatLonAltBox implements Serializable
         box.setEast(east);
     }
 
-    @Override
-    public int hashCode()
-    {
-        int hash = 7;
-        hash = 71 * hash + (this.init ? 1 : 0);
-        hash = 71 * hash + (int) (Double.doubleToLongBits(this.north) ^ (Double.doubleToLongBits(this.north) >>> 32));
-        hash = 71 * hash + (int) (Double.doubleToLongBits(this.south) ^ (Double.doubleToLongBits(this.south) >>> 32));
-        hash = 71 * hash + (int) (Double.doubleToLongBits(this.west) ^ (Double.doubleToLongBits(this.west) >>> 32));
-        hash = 71 * hash + (int) (Double.doubleToLongBits(this.east) ^ (Double.doubleToLongBits(this.east) >>> 32));
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object obj)
-    {
-        if (obj == null)
-        {
-            return false;
-        }
-        if (getClass() != obj.getClass())
-        {
-            return false;
-        }
-        final LatLonAltBox other = (LatLonAltBox) obj;
-        if (this.init != other.init)
-        {
-            return false;
-        }
-        if (Double.doubleToLongBits(this.north) != Double.doubleToLongBits(other.north))
-        {
-            return false;
-        }
-        if (Double.doubleToLongBits(this.south) != Double.doubleToLongBits(other.south))
-        {
-            return false;
-        }
-        if (Double.doubleToLongBits(this.west) != Double.doubleToLongBits(other.west))
-        {
-            return false;
-        }
-        if (Double.doubleToLongBits(this.east) != Double.doubleToLongBits(other.east))
-        {
-            return false;
-        }
-        return true;
-    }
-    
 }
