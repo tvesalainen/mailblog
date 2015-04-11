@@ -29,6 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.vesalainen.mailblog.GeoJSON.Feature;
 import org.vesalainen.mailblog.GeoJSON.FeatureCollection;
 import org.vesalainen.mailblog.GeoJSON.GeometryCollection;
 import org.vesalainen.mailblog.GeoJSON.LineString;
@@ -169,6 +170,49 @@ public class GeoJSONTest
         JSONArray joar1 = jo.getJSONArray("coordinates");
         assertNotNull(joar1);
         assertEquals(2, joar1.length());
+        LatLonAltBox box = new LatLonAltBox();
+        box.add(list1);
+        box.add(list2);
+        o.setBbox(box);
+        StringWriter sw = new StringWriter();
+        o.write(sw);
+        JSONArray ba = json.getJSONArray("bbox");
+        assertNotNull(ba);
+        assertEquals(4, ba.length());
+        assertEquals(2, ba.getDouble(0), Epsilon);
+        assertEquals(1, ba.getDouble(1), Epsilon);
+        assertEquals(12, ba.getDouble(2), Epsilon);
+        assertEquals(11, ba.getDouble(3), Epsilon);
+    }
+    @Test
+    public void testFeatureCollection()
+    {
+        FeatureCollection o = new FeatureCollection();
+        JSONObject json = o.getJson();
+        assertEquals("FeatureCollection", json.get("type"));
+        MultiLineString mls = new MultiLineString(list1);
+        mls.add(list2);
+        Feature f = o.addGeometry(mls);
+        assertNotNull(f);
+        f.setId("1234");
+        assertEquals("1234", f.getId());
+        f.setProperty("color", "red");
+        f.setProperty("opaque", 0.6);
+        assertEquals("red", f.getProperty("color"));
+        assertEquals(0.6, f.getProperty("opaque"));
+        JSONArray ar1 = json.getJSONArray("features");
+        assertNotNull(ar1);
+        assertEquals(1, ar1.length());
+        JSONObject jo = ar1.getJSONObject(0);
+        assertNotNull(jo);
+        assertEquals("Feature", jo.get("type"));
+        JSONObject job = jo.getJSONObject("geometry");
+        assertNotNull(job);
+        assertEquals("MultiLineString", job.get("type"));
+        LatLonAltBox box = new LatLonAltBox();
+        box.add(list1);
+        box.add(list2);
+        o.setBbox(box);
         StringWriter sw = new StringWriter();
         o.write(sw);
         JSONArray ba = json.getJSONArray("bbox");

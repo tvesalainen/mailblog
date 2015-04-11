@@ -17,7 +17,6 @@
 
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.GeoPt;
@@ -30,7 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBContext;
@@ -62,7 +60,7 @@ import org.vesalainen.repacked.net.opengis.kml.ViewRefreshModeEnumType;
 /**
  * @author Timo Vesalainen
  */
-public class KMLServlet extends HttpServlet
+public class KMLServlet extends BaseServlet
 {
     private static final String PathStyleId = "path-style";
     private static final String TrackStyleId = "track-style";
@@ -854,34 +852,5 @@ public class KMLServlet extends HttpServlet
 
     }
 
-    private URIBuilder addNamespace(URIBuilder builder)
-    {
-        String namespace = NamespaceManager.get();
-        if (builder.getUri().getHost().endsWith(namespace))
-        {
-            return builder;
-        }
-        else
-        {
-            return builder.setQuery(NamespaceParameter+"="+NamespaceManager.get());
-        }
-    }
-
-    private int getAlpha(Date begin)
-    {
-        if (begin == null)
-        {
-            return 0;
-        }
-        DS ds = DS.get();
-        Settings settings = ds.getSettings();
-        long x0 = ds.getTrackSeqsBegin().getTime();
-        long xn = System.currentTimeMillis();
-        int minOpaque = settings.getMinOpaque();
-        double span = 255-minOpaque;
-        double c = span/Math.sqrt(xn-x0);
-        int age = (int) Math.round(c*Math.sqrt(xn-begin.getTime()));
-        return 255-age;
-    }
 
 }

@@ -19,6 +19,7 @@ package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.GeoPt;
 import java.io.Serializable;
+import java.util.Collection;
 import org.vesalainen.repacked.net.opengis.kml.LatLonAltBoxType;
 
 /**
@@ -99,6 +100,13 @@ public class LatLonAltBox implements Serializable
         init = true;
     }
 
+    public void add(Collection<GeoPt> locations)
+    {
+        for (GeoPt location : locations)
+        {
+            add(location);
+        }
+    }
     public void add(GeoPt location)
     {
         add(location.getLatitude(), location.getLongitude());

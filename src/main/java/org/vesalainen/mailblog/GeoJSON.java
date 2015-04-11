@@ -30,7 +30,7 @@ import org.json.JSONObject;
 public class GeoJSON
 {
     protected final JSONObject json = new JSONObject();
-    protected AbstractGeometryCollection parent;
+    protected LatLonAltBox bbox = new LatLonAltBox();
     
     protected GeoJSON(String type)
     {
@@ -44,23 +44,7 @@ public class GeoJSON
 
     public void write(Writer writer)
     {
-        json.write(writer);
-    }
-    
-    public static abstract class AbstractGeometryCollection extends GeoJSON
-    {
-        protected final LatLonAltBox bbox = new LatLonAltBox();
-        public AbstractGeometryCollection(String type)
-        {
-            super(type);
-        }
-        protected void addBbox(GeoPt location)
-        {
-            bbox.add(location);
-        }
-
-        @Override
-        public void write(Writer writer)
+        if (bbox != null)
         {
             JSONArray ba = new JSONArray();
             ba.put(bbox.getWest());
@@ -68,32 +52,11 @@ public class GeoJSON
             ba.put(bbox.getEast());
             ba.put(bbox.getNorth());
             json.put("bbox", ba);
-            super.write(writer);
         }
-        
-        public MultiLineString addMultiLineString(Collection<GeoPt> points)
-        {
-            return (MultiLineString) addGeometry(new MultiLineString(this, points));
-        }
-        public MultiPoint addMultiPoint(Collection<GeoPt> points)
-        {
-            return (MultiPoint) addGeometry(new MultiPoint(this, points));
-        }
-        public Polygon addPolygon(Collection<GeoPt> points)
-        {
-            return (Polygon) addGeometry(new Polygon(this, points));
-        }
-        public LineString addLineString(Collection<GeoPt> points)
-        {
-            return (LineString) addGeometry(new LineString(this, points));
-        }
-        public Point addPoint(GeoPt point)
-        {
-            return (Point) addGeometry(new Point(this, point));
-        }
-        public abstract Geometry addGeometry(Geometry geometry);
+        json.write(writer);
     }
-    public static class GeometryCollection extends AbstractGeometryCollection
+    
+    public static class GeometryCollection extends GeoJSON
     {
         JSONArray geometries = new JSONArray();
         public GeometryCollection()
@@ -101,14 +64,42 @@ public class GeoJSON
             super("GeometryCollection");
             json.put("geometries", geometries);
         }
-        @Override
+        /**
+         * Sets a bounding box. JSON object is created just before writing. 
+         * Therefore it is possible to update this bounding box after setting.
+         * @param bbox 
+         */
+        public void setBbox(LatLonAltBox bbox)
+        {
+            this.bbox = bbox;
+        }
+        public MultiLineString addMultiLineString(Collection<GeoPt> points)
+        {
+            return (MultiLineString) addGeometry(new MultiLineString(points));
+        }
+        public MultiPoint addMultiPoint(Collection<GeoPt> points)
+        {
+            return (MultiPoint) addGeometry(new MultiPoint(points));
+        }
+        public Polygon addPolygon(Collection<GeoPt> points)
+        {
+            return (Polygon) addGeometry(new Polygon(points));
+        }
+        public LineString addLineString(Collection<GeoPt> points)
+        {
+            return (LineString) addGeometry(new LineString(points));
+        }
+        public Point addPoint(GeoPt point)
+        {
+            return (Point) addGeometry(new Point(point));
+        }
         public Geometry addGeometry(Geometry geometry)
         {
             geometries.put(geometry.json);
             return geometry;
         }
     }
-    public static class FeatureCollection extends AbstractGeometryCollection
+    public static class FeatureCollection extends GeoJSON
     {
         JSONArray features = new JSONArray();
         public FeatureCollection()
@@ -116,15 +107,43 @@ public class GeoJSON
             super("FeatureCollection");
             json.put("features", features);
         }
-        @Override
-        public Geometry addGeometry(Geometry geometry)
+        /**
+         * Sets a bounding box. JSON object is created just before writing. 
+         * Therefore it is possible to update this bounding box after setting.
+         * @param bbox 
+         */
+        public void setBbox(LatLonAltBox bbox)
         {
-            addFeature(new Feature(geometry));
-            return geometry;
+            this.bbox = bbox;
         }
-        protected void addFeature(Feature feature)
+        public Feature addMultiLineString(Collection<GeoPt> points)
+        {
+            return (Feature) addGeometry(new MultiLineString(points));
+        }
+        public Feature addMultiPoint(Collection<GeoPt> points)
+        {
+            return (Feature) addGeometry(new MultiPoint(points));
+        }
+        public Feature addPolygon(Collection<GeoPt> points)
+        {
+            return (Feature) addGeometry(new Polygon(points));
+        }
+        public Feature addLineString(Collection<GeoPt> points)
+        {
+            return (Feature) addGeometry(new LineString(points));
+        }
+        public Feature addPoint(GeoPt point)
+        {
+            return (Feature) addGeometry(new Point(point));
+        }
+        public Feature addGeometry(Geometry geometry)
+        {
+            return addFeature(new Feature(geometry));
+        }
+        protected Feature addFeature(Feature feature)
         {
             features.put(feature.json);
+            return feature;
         }
     }
     public static class Feature extends GeoJSON
@@ -133,33 +152,55 @@ public class GeoJSON
         {
             super("Feature");
             json.put("geometry", geometry.json);
-            json.put("properties", JSONObject.NULL);
+            json.put("properties", new JSONObject());
+        }
+        /**
+         * Sets a bounding box. JSON object is created just before writing. 
+         * Therefore it is possible to update this bounding box after setting.
+         * @param bbox 
+         */
+        public void setBbox(LatLonAltBox bbox)
+        {
+            this.bbox = bbox;
+        }
+        public void setProperty(String name, Object value)
+        {
+            JSONObject props = json.getJSONObject("properties");
+            props.put(name, value);
+        }
+        public Object getProperty(String name)
+        {
+            JSONObject props = json.getJSONObject("properties");
+            return props.get(name);
+        }
+        public void setId(Object value)
+        {
+            json.put("id", value);
+        }
+        public Object getId()
+        {
+            return json.get("id");
         }
     }
     protected static class Geometry extends GeoJSON
     {
-        public Geometry(AbstractGeometryCollection parent, String type)
+        public Geometry(String type)
         {
             super(type);
-            this.parent = parent;
         }
     }
     protected static class Geometry1D extends Geometry
     {
         protected JSONArray coordinates = new JSONArray();
 
-        protected Geometry1D(AbstractGeometryCollection parent, String type, GeoPt location)
+        protected Geometry1D(String type, GeoPt location)
         {
-            super(parent, type);
+            super(type);
             set(location);
             json.put("coordinates", coordinates);
         }
         public final void set(GeoPt location)
         {
-            if (parent != null)
-            {
-                parent.addBbox(location);
-            }
             int length = coordinates.length();
             for (int ii=length-1;ii>0;ii--)
             {
@@ -174,20 +215,16 @@ public class GeoJSON
     {
         public Point(GeoPt location)
         {
-            this(null, location);
-        }
-        public Point(AbstractGeometryCollection parent, GeoPt location)
-        {
-            super(parent, "Point", location);
+            super("Point", location);
         }
     }
     protected static class Geometry2D extends Geometry
     {
         protected JSONArray coordinates = new JSONArray();
 
-        protected Geometry2D(AbstractGeometryCollection parent, String type, Collection<GeoPt> locations)
+        protected Geometry2D(String type, Collection<GeoPt> locations)
         {
-            super(parent, type);
+            super(type);
             add(locations);
             json.put("coordinates", coordinates);
         }
@@ -200,10 +237,6 @@ public class GeoJSON
         }
         public final void add(GeoPt location)
         {
-            if (parent != null)
-            {
-                parent.addBbox(location);
-            }
             JSONArray point = new JSONArray();
             coordinates.put(point);
             point.put(location.getLongitude());
@@ -215,22 +248,14 @@ public class GeoJSON
     {
         public LineString(Collection<GeoPt> locations)
         {
-            this(null, locations);
-        }
-        public LineString(AbstractGeometryCollection parent, Collection<GeoPt> locations)
-        {
-            super(parent, "LineString", locations);
+            super("LineString", locations);
         }
     }
     public static class MultiPoint extends Geometry2D
     {
         public MultiPoint(Collection<GeoPt> locations)
         {
-            this(null, locations);
-        }
-        public MultiPoint(AbstractGeometryCollection parent, Collection<GeoPt> locations)
-        {
-            super(parent, "MultiPoint", locations);
+            super("MultiPoint", locations);
         }
     }
     protected static class Geometry3D extends Geometry
@@ -238,9 +263,9 @@ public class GeoJSON
         protected JSONArray coordinates = new JSONArray();
         protected JSONArray array;
 
-        protected Geometry3D(AbstractGeometryCollection parent, String type, Collection<GeoPt> locations)
+        protected Geometry3D(String type, Collection<GeoPt> locations)
         {
-            super(parent, type);
+            super(type);
             json.put("coordinates", coordinates);
             add(locations);
         }
@@ -255,10 +280,6 @@ public class GeoJSON
         }
         public final void add(GeoPt location)
         {
-            if (parent != null)
-            {
-                parent.addBbox(location);
-            }
             JSONArray point = new JSONArray();
             array.put(point);
             point.put(location.getLongitude());
@@ -270,22 +291,14 @@ public class GeoJSON
     {
         public Polygon(Collection<GeoPt> locations)
         {
-            this(null, locations);
-        }
-        public Polygon(AbstractGeometryCollection parent, Collection<GeoPt> locations)
-        {
-            super(parent, "Polygon", locations);
+            super("Polygon", locations);
         }
     }
     public static class MultiLineString extends Geometry3D
     {
         public MultiLineString(Collection<GeoPt> locations)
         {
-            this(null, locations);
-        }
-        public MultiLineString(AbstractGeometryCollection parent, Collection<GeoPt> locations)
-        {
-            super(parent, "MultiLineString", locations);
+            super("MultiLineString", locations);
         }
     }
 }
