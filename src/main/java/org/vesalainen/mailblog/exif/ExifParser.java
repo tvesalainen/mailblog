@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Timo Vesalainen
+ * Copyright (C) 2004 Timo Vesalainen
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,11 @@ public class ExifParser
 
     public ExifParser(byte[] bytes) throws IOException, ExifException
     {
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        this(ByteBuffer.wrap(bytes));
+    }
+
+    public ExifParser(ByteBuffer buffer) throws IOException, ExifException
+    {
         parse(buffer);
     }
 
