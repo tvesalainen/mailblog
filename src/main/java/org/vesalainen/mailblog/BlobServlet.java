@@ -110,7 +110,6 @@ public class BlobServlet extends HttpServlet
     {
         String namespace = request.getParameter(NamespaceParameter);
         NamespaceManager.set(namespace);
-        log("namespace = "+namespace);
         String sizeString = request.getParameter(SizeParameter);
         if (sizeString != null)
         {
@@ -137,7 +136,6 @@ public class BlobServlet extends HttpServlet
                 for (Map.Entry<String, List<BlobKey>> entry : blobs.entrySet())
                 {
                     String sha1 = entry.getKey();
-                    log("sha1="+sha1);
                     Entity metadata = ds.getMetadata(sha1);
                     BlobKey blobKey = entry.getValue().get(0);
                     metadata.setUnindexedProperty(sizeString, blobKey);
