@@ -64,7 +64,7 @@ public class Settings implements Serializable
                 return null;
             }
         };
-        rin.doIt(null);
+        rin.doIt(null); // read empty namespace settings
         
         populate(db, entity);
     }

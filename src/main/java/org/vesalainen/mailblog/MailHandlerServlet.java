@@ -239,7 +239,7 @@ public class MailHandlerServlet extends HttpServlet
                 String htmlBody = getHtmlBody(bodyPartList);
                 if (htmlBody != null && htmlBody.length() > 10)
                 {
-                    boolean publishImmediately = true;  //settings.isPublishImmediately();
+                    boolean publishImmediately = settings.isPublishImmediately();
                     blog = updateBlog(messageId, message, htmlBody, publishImmediately, senderEmail);
                     if (!ripping)
                     {
