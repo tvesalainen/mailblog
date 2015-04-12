@@ -102,6 +102,8 @@ public interface BlogConstants
     static final String TrackColorProperty = "TrackColor";
     static final String MinOpaqueProperty = "MinOpaque";
     static final String NameProperty = "Name";
+    static final String GPSTimeProperty = "GPSTime";
+    static final String ImgDirectionProperty = "ImgDirection";
     // Maidenhead properties
     static final String FieldProperty = "Field";
     static final String SquareProperty = "Square";

@@ -17,14 +17,18 @@
 package org.vesalainen.mailblog.exif;
 
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.GeoPt;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.TimeZone;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import static org.vesalainen.mailblog.exif.ExifConstants.*;
+import org.vesalainen.util.HashMapList;
+import org.vesalainen.util.MapList;
+import d3.env.TSAGeoMag;
 
 /**
  *
@@ -32,7 +36,8 @@ import static org.vesalainen.mailblog.exif.ExifConstants.*;
  */
 public class Exif2Entity
 {
-    private static Map<Integer,Map<Integer,List<Rule>>> map = new HashMap<Integer,Map<Integer,List<Rule>>>();
+    private static MapList<Integer,Rule> map = new HashMapList<>();
+    private static TSAGeoMag geoMag;
     
     static
     {
@@ -68,6 +73,7 @@ public class Exif2Entity
         add(new Rule("CompressedBitsPerPixel", 37122, EXIFIFDPOINTER));
         add(new Rule("PixelXDimension", 40962, EXIFIFDPOINTER));
         add(new Rule("PixelYDimension", 40963, EXIFIFDPOINTER));
+        add(new Rule("MakerNote", 37500, EXIFIFDPOINTER));
         add(new Rule("UserComment", 37510, EXIFIFDPOINTER));
         add(new Rule("RelatedSoundFile", 40964, EXIFIFDPOINTER));
         add(new Rule("DateTimeOriginal", 36867, EXIFIFDPOINTER));
@@ -114,11 +120,6 @@ public class Exif2Entity
         add(new Rule("SubjectDistanceRange", 41996, EXIFIFDPOINTER));
         add(new Rule("ImageUniqueID", 42016, EXIFIFDPOINTER));
         add(new Rule("GPSVersionID", 0, GPSINFOIFDPOINTER));
-        add(new Rule("GPSLatitude", 2, GPSINFOIFDPOINTER));
-        add(new Rule("GPSLongitude", 4, GPSINFOIFDPOINTER));
-        add(new Rule("GPSAltitudeRef", 5, GPSINFOIFDPOINTER));
-        add(new Rule("GPSAltitude", 6, GPSINFOIFDPOINTER));
-        add(new Rule("GPSTimeStamp", 29, GPSINFOIFDPOINTER));
         add(new Rule("GPSSatellites", 8, GPSINFOIFDPOINTER));
         add(new Rule("GPSStatus", 9, GPSINFOIFDPOINTER));
         add(new Rule("GPSMeasureMode", 10, GPSINFOIFDPOINTER));
@@ -127,8 +128,6 @@ public class Exif2Entity
         add(new Rule("GPSSpeed", 13, GPSINFOIFDPOINTER));
         add(new Rule("GPSTrackRef", 14, GPSINFOIFDPOINTER));
         add(new Rule("GPSTrack", 15, GPSINFOIFDPOINTER));
-        add(new Rule("GPSImgDirectionRef", 16, GPSINFOIFDPOINTER));
-        add(new Rule("GPSImgDirection", 17, GPSINFOIFDPOINTER));
         add(new Rule("GPSMapDatum", 18, GPSINFOIFDPOINTER));
         add(new Rule("GPSDestLatitude", 20, GPSINFOIFDPOINTER));
         add(new Rule("GPSDestLongitude", 22, GPSINFOIFDPOINTER));
@@ -144,136 +143,110 @@ public class Exif2Entity
         add(new Rule("ImageUniqueID", CANONIMAGENUMBER, MAKERNOTECANON));
         add(new Rule("SerialNumber", PENTAXSERIALNUMBER, MAKERNOTEPENTAX));
         add(new Rule("ImageUniqueID", PENTAXFRAMENUMBER, MAKERNOTEPENTAX));
+        add(new Rule(GPSINFOIFDPOINTER, LocationProperty, 1, 2, 3, 4));
+        add(new Rule(GPSINFOIFDPOINTER, AltitudeProperty, 5, 6));
+        add(new Rule(GPSINFOIFDPOINTER, GPSTimeProperty, 7, 29));
+        add(new Rule(GPSINFOIFDPOINTER, ImgDirectionProperty, 16, 17));
     }
 
     private static void add(Rule rule)
     {
-        Map<Integer, List<Rule>> ifdMap = map.get(rule.ifd);
-        if (ifdMap == null)
-        {
-            ifdMap = new HashMap<Integer, List<Rule>>();
-            map.put(rule.ifd, ifdMap);
-        }
-        List<Rule> list = ifdMap.get(rule.tag);
-        if (list == null)
-        {
-            list = new ArrayList<Rule>();
-            ifdMap.put(rule.tag, list);
-        }
-        else
-        {
-            System.err.println(rule);
-        }
-        list.add(rule);
+        map.add(rule.ifd, rule);
     }
 
     public static void populate(ExifAPP1 exif, Entity entity) throws IOException
     {
         for (IFD ifd : exif.getIFDs())
         {
-            Map<Integer, List<Rule>> ifdMap = map.get(ifd.getIfdNum());
-            if (ifdMap != null)
+            List<Rule> list = map.get(ifd.getIfdNum());
+            for (Rule rule : list)
             {
-                for (Interoperability ioa : ifd.getAll())
+                Interoperability[] ios = rule.get(ifd);
+                if (ios != null)
                 {
-                    List<Rule> list = ifdMap.get(ioa.tag());
-                    if (list != null)
-                    {
-                        for (Rule rule : list)
-                        {
-                            handle(entity, rule, ioa);
-                        }
-                    }
-                    else
-                    {
-                        System.err.println("Tag "+ioa.tag()+" Ifd "+ifd.getIfdNum()+" not found");
-                    }
+                    handle(entity, rule, ios);
                 }
             }
         }
     }
 
-    private static void handle(Entity entity, Rule rule, Interoperability ioa) throws IOException
+    private static void handle(Entity entity, Rule rule, Interoperability... ioa) throws IOException
     {
-        Object value = ioa.getValue();
-        String strValue = value.toString().trim();
-        int tag = ioa.tag();
-        if (!strValue.isEmpty())
+        switch (rule.property)
         {
-            switch (tag)
-            {
-                case 306:
-                case 36867:
-                case 36868:
-                    Object date = ioa.getValue();
-                    if (date instanceof Date)
-                    {
-                        if ("DateTimeOriginal".equals(rule.property))
-                        {
-                            entity.setProperty(rule.property, date);
-                        }
-                        else
-                        {
-                            entity.setUnindexedProperty(rule.property, date);
-                        }
-                    }
-                    break;
-                case 270:
-                case 33432:
-                case 37510:
-                    entity.setUnindexedProperty(rule.property, strValue);
-                    break;
-                case 0:
-                    if (rule.ifd == GPSINFOIFDPOINTER)
-                    {
-                        Byte[] bb = (Byte[]) value;
-                        String id = String.format("%d.%d.%d.%d", bb[0], bb[1], bb[2], bb[3]);
-                        entity.setUnindexedProperty(rule.property, id);
-                    }
-                    break;
-                case 315:
-                case CANONOWNERNAME:
-                    if (rule.ifd == MAKERNOTE)
-                    {
-                        entity.setUnindexedProperty(rule.property, strValue);
-                    }
-                    break;
-                case FLASH:
+            case LocationProperty:
+                handleLocation(entity, rule, ioa);
+                break;
+            case AltitudeProperty:
+                handleAltitude(entity, rule, ioa);
+                break;
+            case GPSTimeProperty:
+                handleGPSTime(entity, rule, ioa);
+                break;
+            case ImgDirectionProperty:
+                handleImgDirection(entity, rule, ioa);
+                break;
+            case "DateTime":
+            case "DateTimeOriginal":
+            case "DateTimeDigitized":
+                Object date = ioa[0].getValue();
+                if (date instanceof Date)
                 {
-                    int pp = ioa.getShortValue();
-                    switch (pp & 0x1)
+                    if ("DateTimeOriginal".equals(rule.property))
                     {
-                        case 1 :
-                            entity.setUnindexedProperty(rule.property+"Fired", true);
-                            break;
-                        case 0 :
-                            entity.setUnindexedProperty(rule.property+"Fired", false);
-                            break;
+                        entity.setProperty(rule.property, date);
                     }
-                    switch ((pp>>4) & 0x1)
+                    else
                     {
-                        case 0 :
-                            entity.setUnindexedProperty(rule.property+"Function", true);
-                            break;
-                        default:
-                            entity.setUnindexedProperty(rule.property+"Function", false);
-                            break;
+                        entity.setUnindexedProperty(rule.property, date);
                     }
-                    entity.setUnindexedProperty(rule.property+"Mode", String.valueOf((pp>>3) & 0x3));
-                    switch ((pp>>5) & 0x1)
-                    {
-                        case 0 :
-                            entity.setUnindexedProperty(rule.property+"RedEyeMode", false);
-                            break;
-                        case 1 :
-                            entity.setUnindexedProperty(rule.property+"RedEyeMode", true);
-                            break;
-                    }
-                    entity.setUnindexedProperty(rule.property+"Return", String.valueOf((pp>>1) & 0x3));
                 }
-                    break;
-                default:
-                    switch (ioa.type())
+                break;
+            case "GPSVersionID":
+                {
+                    Byte[] bb = (Byte[]) ioa[0].getValue();
+                    String id = String.format("%d.%d.%d.%d", bb[0], bb[1], bb[2], bb[3]);
+                    entity.setUnindexedProperty(rule.property, id);
+                }
+                break;
+            case "Flash":
+            {
+                int pp = ioa[0].getShortValue();
+                switch (pp & 0x1)
+                {
+                    case 1 :
+                        entity.setUnindexedProperty(rule.property+"Fired", true);
+                        break;
+                    case 0 :
+                        entity.setUnindexedProperty(rule.property+"Fired", false);
+                        break;
+                }
+                switch ((pp>>4) & 0x1)
+                {
+                    case 0 :
+                        entity.setUnindexedProperty(rule.property+"Function", true);
+                        break;
+                    default:
+                        entity.setUnindexedProperty(rule.property+"Function", false);
+                        break;
+                }
+                entity.setUnindexedProperty(rule.property+"Mode", String.valueOf((pp>>3) & 0x3));
+                switch ((pp>>5) & 0x1)
+                {
+                    case 0 :
+                        entity.setUnindexedProperty(rule.property+"RedEyeMode", false);
+                        break;
+                    case 1 :
+                        entity.setUnindexedProperty(rule.property+"RedEyeMode", true);
+                        break;
+                }
+                entity.setUnindexedProperty(rule.property+"Return", String.valueOf((pp>>1) & 0x3));
+            }
+                break;
+            default:
+                if (ioa.length == 1)
+                {
+                    switch (ioa[0].type())
                     {
                         case BYTE:      // An 8-bit unsigned integer.,
                         case ASCII:     // An 8-bit byte containing one 7-bit ASCII code. The final byte is terminated with NULL.,
@@ -284,17 +257,144 @@ public class Exif2Entity
                         case SRATIONAL: // Two SLONGs. The first SLONG is the numerator and the second SLONG is the denominator.
                         case UNDEFINED: // An 8-bit byte that can take any value depending on the field definition,
                         {
-                            if (ioa.count() == 1 || ioa.getValue() instanceof String)
+                            if (ioa[0].count() == 1 || ioa[0].getValue() instanceof String)
                             {
-                                entity.setUnindexedProperty(rule.property, strValue);
+                                entity.setUnindexedProperty(rule.property, ioa[0].getValue());
                             }
                         }
-                            break;
-                        default:
-                            throw new UnsupportedOperationException(ioa+" not supported");
+                        break;
+                    default:
+                        System.err.println(ioa[0]+" not supported");
                     }
-                    break;
+                }
+                else
+                {
+                    System.err.println(Arrays.toString(ioa)+" not supported");
+                }
+                break;
+        }
+    }
+
+    private static void handleLocation(Entity entity, Rule rule, Interoperability[] ioa) throws IOException
+    {
+        if (rule.check(ioa, ASCII, RATIONAL, ASCII, RATIONAL))
+        {
+            String ns = (String) ioa[0].getValue();
+            if (!("N".equals(ns) || "S".equals(ns)))
+            {
+                System.err.println("expecting N/S in "+rule);
+                return;
             }
+            Double[] lat = (Double[]) ioa[1].getValue();
+            if (lat.length != 3)
+            {
+                System.err.println("Wrong latitude array length in "+rule);
+                return;
+            }
+            double latitude = lat[0]+lat[1]/60+lat[2]/3600;
+            if ("S".equals(ns))
+            {
+                latitude = -latitude;
+            }
+            String ew = (String) ioa[2].getValue();
+            if (!("E".equals(ew) || "W".equals(ew)))
+            {
+                System.err.println("expecting E/W in "+rule);
+                return;
+            }
+            Double[] lon = (Double[]) ioa[3].getValue();
+            if (lon.length != 3)
+            {
+                System.err.println("Wrong longitude array length in "+rule);
+                return;
+            }
+            double longitude = lon[0]+lon[1]/60+lon[2]/3600;
+            if ("W".equals(ew))
+            {
+                longitude = -longitude;
+            }
+            GeoPt pt = new GeoPt((float)latitude, (float)longitude);
+            entity.setProperty(rule.property, pt);
+        }
+    }
+
+    private static void handleAltitude(Entity entity, Rule rule, Interoperability[] ioa) throws IOException
+    {
+        if (rule.check(ioa, BYTE, RATIONAL))
+        {
+            int ref = ioa[0].getShortValue();
+            Double alt = (Double) ioa[1].getValue();
+            switch (ref)
+            {
+                case 0:
+                    break;
+                case 1:
+                    alt = -alt;
+                    break;
+                default:
+                    System.err.println("expecting 0/1 in "+rule);
+                    return;
+            }
+            entity.setProperty(rule.property, alt);
+        }
+    }
+
+    private static void handleGPSTime(Entity entity, Rule rule, Interoperability[] ioa) throws IOException
+    {
+        if (rule.check(ioa, RATIONAL, ASCII))
+        {
+            Double[] time = (Double[]) ioa[0].getValue();
+            if (time.length != 3)
+            {
+                System.err.println("Wrong time array length in "+rule);
+                return;
+            }
+            String date = (String) ioa[1].getValue();
+            if (date.length() != 10)
+            {
+                System.err.println("Wrong date '"+date+"' length in "+rule);
+                return;
+            }
+            int year = Integer.parseInt(date.substring(0, 4));
+            int month = Integer.parseInt(date.substring(5, 7));
+            int day = Integer.parseInt(date.substring(8));
+            Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+            cal.set(Calendar.YEAR, year);
+            cal.set(Calendar.MONTH, month-1);
+            cal.set(Calendar.DAY_OF_MONTH, day);
+            cal.set(Calendar.HOUR_OF_DAY, time[0].intValue());
+            cal.set(Calendar.MINUTE, time[1].intValue());
+            cal.set(Calendar.SECOND, time[2].intValue());
+            entity.setProperty(rule.property, cal.getTime());
+        }
+    }
+
+    private static void handleImgDirection(Entity entity, Rule rule, Interoperability[] ioa) throws IOException
+    {
+        if (rule.check(ioa, ASCII, RATIONAL))
+        {
+            String ref = (String) ioa[0].getValue();
+            if (!("T".equals(ref) || "M".equals(ref)))
+            {
+                System.err.println("expecting M/T in "+rule);
+                return;
+            }
+            Double dir = (Double) ioa[1].getValue();
+            if ("M".equals(ref))
+            {
+                GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
+                if (location != null)
+                {
+                    if (geoMag == null)
+                    {
+                        geoMag = new TSAGeoMag();
+                    }
+                    double declination = geoMag.getDeclination(location.getLatitude(), location.getLongitude());
+                    dir += declination;
+                    dir %= 360;
+                }
+            }
+            entity.setProperty(rule.property, dir);
         }
     }
 
@@ -318,6 +418,43 @@ public class Exif2Entity
             this.ifd = ifd;
         }
 
+        public Interoperability[] get(IFD ifd)
+        {
+            Interoperability[] result = new Interoperability[tags.length];
+            int ii = 0;
+            for (int tag : tags)
+            {
+                result[ii] = ifd.get(tag);
+                if (result[ii] == null)
+                {
+                    return null;
+                }
+                ii++;
+            }
+            return result;
+        }
+        public boolean check(Interoperability[] ioa, int... types)
+        {
+            if (ioa.length != tags.length)
+            {
+                System.err.println("wrong number of interoperabilities in "+this);
+                return false;
+            }
+            if (types.length != tags.length)
+            {
+                System.err.println("wrong number of types in "+this);
+                return false;
+            }
+            for (int ii=0;ii<ioa.length;ii++)
+            {
+                if (types[ii] != ioa[ii].type())
+                {
+                    System.err.println("wrong type "+ioa[ii]+" in "+ii+" ioa of "+this);
+                    return false;
+                }
+            }
+            return true;
+        }
         @Override
         public String toString()
         {
