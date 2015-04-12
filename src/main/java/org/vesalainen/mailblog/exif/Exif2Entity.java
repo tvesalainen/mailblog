@@ -19,7 +19,6 @@ package org.vesalainen.mailblog.exif;
 import com.google.appengine.api.datastore.Entity;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -54,17 +53,12 @@ public class Exif2Entity
         add(new Rule("YCbCrCoefficients", 529, ExifConstants.IFD_oTH));
         add(new Rule("ReferenceBlackWhite", 532, ExifConstants.IFD_oTH));
         add(new Rule("DateTime", 306, ExifConstants.IFD_oTH));
-        add(new Rule("ModifyDate", 306, ExifConstants.IFD_oTH));
         add(new Rule("ImageDescription", 270, ExifConstants.IFD_oTH));
-        add(new Rule("Description", 270, ExifConstants.IFD_oTH));
         add(new Rule("Make", 271, ExifConstants.IFD_oTH));
         add(new Rule("Model", 272, ExifConstants.IFD_oTH));
         add(new Rule("Software", 305, ExifConstants.IFD_oTH));
-        add(new Rule("CreatorTool", 305, ExifConstants.IFD_oTH));
         add(new Rule("Artist", 315, ExifConstants.IFD_oTH));
-        add(new Rule("Creator", 315, ExifConstants.IFD_oTH));
         add(new Rule("Copyright", 33432, ExifConstants.IFD_oTH));
-        add(new Rule("Rights", 33432, ExifConstants.IFD_oTH));
         add(new Rule("ExifVersion", 36864, ExifConstants.EXIFIFDPOINTER));
         add(new Rule("FlashpixVersion", 40960, ExifConstants.EXIFIFDPOINTER));
         add(new Rule("ColorSpace", 40961, ExifConstants.EXIFIFDPOINTER));
@@ -163,6 +157,10 @@ public class Exif2Entity
         {
             list = new ArrayList<Rule>();
             ifdMap.put(rule.tag, list);
+        }
+        else
+        {
+            System.err.println(rule);
         }
         list.add(rule);
     }
@@ -310,5 +308,12 @@ public class Exif2Entity
             this.tag = tag;
             this.ifd = ifd;
         }
+
+        @Override
+        public String toString()
+        {
+            return property + "(" + tag + ")";
+        }
+        
     }
 }
