@@ -370,15 +370,15 @@ public final class Interoperability implements Comparable<Interoperability>
                 if (count() == 1)
                 {
                     IntBuffer lb = value.asIntBuffer();
-                    return new Rational((long)(lb.get(0) & 0xffffffff), (long)(lb.get(1) & 0xffffffff));
+                    return (double)((long)(lb.get(0) & 0xffffffff) / (long)(lb.get(1) & 0xffffffff));
                 }
                 else
                 {
-                    Rational[] rr = new Rational[count];
+                    Double[] rr = new Double[count];
                     IntBuffer ib = value.asIntBuffer();
                     for (int ii=0;ii<count;ii++)
                     {
-                        rr[ii] = new Rational((long)(ib.get(2*ii) & 0xffffffff), (long)(ib.get(2*ii+1) & 0xffffffff));
+                        rr[ii] = (double)((long)(ib.get(2*ii) & 0xffffffff) / (long)(ib.get(2*ii+1) & 0xffffffff));
                     }
                     return rr;
                 }
@@ -471,15 +471,15 @@ public final class Interoperability implements Comparable<Interoperability>
                 if (count() == 1)
                 {
                     IntBuffer ib = value.asIntBuffer();
-                    return new Rational(ib.get(0), ib.get(1));
+                    return (double)(ib.get(0) / ib.get(1));
                 }
                 else
                 {
-                    Rational[] rr = new Rational[count];
+                    Double[] rr = new Double[count];
                     IntBuffer ib = value.asIntBuffer();
                     for (int ii=0;ii<count;ii++)
                     {
-                        rr[ii] = new Rational(ib.get(2*ii), ib.get(2*ii+1));
+                        rr[ii] = (double)(ib.get(2*ii) / ib.get(2*ii+1));
                     }
                     return rr;
                 }
