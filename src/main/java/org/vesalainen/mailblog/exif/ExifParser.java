@@ -120,25 +120,4 @@ public class ExifParser
         }
         return null;
     }
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) 
-    {
-        try
-        {
-            File file = new File("c:\\temp\\IMG_2601.JPG");
-            long length = file.length();
-            byte[] buf = new byte[(int)length];
-            FileInputStream fis = new FileInputStream(file);
-            fis.read(buf);
-            fis.close();
-            ExifParser parser = new ExifParser(buf);
-        }
-        catch (Exception ex)
-        {
-            ex.printStackTrace();
-        }
-    }
-
 }
