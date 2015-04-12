@@ -19,10 +19,12 @@ package org.vesalainen.mailblog.exif;
 import com.google.appengine.api.datastore.Entity;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static org.vesalainen.mailblog.exif.ExifConstants.*;
 
 /**
  *
@@ -34,114 +36,114 @@ public class Exif2Entity
     
     static
     {
-        add(new Rule("ImageWidth", 256, ExifConstants.IFD_oTH));
-        add(new Rule("ImageLength", 257, ExifConstants.IFD_oTH));
-        add(new Rule("BitsPerSample", 258, ExifConstants.IFD_oTH));
-        add(new Rule("Compression", 259, ExifConstants.IFD_oTH));
-        add(new Rule("PhotometricInterpretation", 262, ExifConstants.IFD_oTH));
-        add(new Rule("Orientation", 274, ExifConstants.IFD_oTH));
-        add(new Rule("SamplesPerPixel", 277, ExifConstants.IFD_oTH));
-        add(new Rule("PlanarConfiguration", 284, ExifConstants.IFD_oTH));
-        add(new Rule("YCbCrSubSampling", 530, ExifConstants.IFD_oTH));
-        add(new Rule("YCbCrPositioning", 531, ExifConstants.IFD_oTH));
-        add(new Rule("XResolution", 282, ExifConstants.IFD_oTH));
-        add(new Rule("YResolution", 283, ExifConstants.IFD_oTH));
-        add(new Rule("ResolutionUnit", 296, ExifConstants.IFD_oTH));
-        add(new Rule("TransferFunction", 301, ExifConstants.IFD_oTH));
-        add(new Rule("WhitePoint", 318, ExifConstants.IFD_oTH));
-        add(new Rule("PrimaryChromaticities", 319, ExifConstants.IFD_oTH));
-        add(new Rule("YCbCrCoefficients", 529, ExifConstants.IFD_oTH));
-        add(new Rule("ReferenceBlackWhite", 532, ExifConstants.IFD_oTH));
-        add(new Rule("DateTime", 306, ExifConstants.IFD_oTH));
-        add(new Rule("ImageDescription", 270, ExifConstants.IFD_oTH));
-        add(new Rule("Make", 271, ExifConstants.IFD_oTH));
-        add(new Rule("Model", 272, ExifConstants.IFD_oTH));
-        add(new Rule("Software", 305, ExifConstants.IFD_oTH));
-        add(new Rule("Artist", 315, ExifConstants.IFD_oTH));
-        add(new Rule("Copyright", 33432, ExifConstants.IFD_oTH));
-        add(new Rule("ExifVersion", 36864, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("FlashpixVersion", 40960, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("ColorSpace", 40961, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("ComponentsConfiguration", 37121, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("CompressedBitsPerPixel", 37122, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("PixelXDimension", 40962, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("PixelYDimension", 40963, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("UserComment", 37510, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("RelatedSoundFile", 40964, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("DateTimeOriginal", 36867, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("DateTimeDigitized", 36868, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("ExposureTime", 33434, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("FNumber", 33437, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("ExposureProgram", 34850, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("SpectralSensitivity", 34852, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("ISOSpeedRatings", 34855, ExifConstants.EXIFIFDPOINTER));
-        //add(new Rule("OECF", 34856, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("ShutterSpeedValue", 37377, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("ApertureValue", 37378, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("BrightnessValue", 37379, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("ExposureBiasValue", 37380, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("MaxApertureValue", 37381, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("SubjectDistance", 37382, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("MeteringMode", 37383, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("LightSource", 37384, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("Flash", 37385, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("FocalLength", 37386, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("SubjectArea", 37396, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("FlashEnergy", 41483, ExifConstants.EXIFIFDPOINTER));
-        //add(new Rule("SpatialFrequencyResponse", 41484, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("FocalPlaneXResolution", 41486, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("FocalPlaneYResolution", 41487, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("FocalPlaneResolutionUnit", 41488, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("SubjectLocation", 41492, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("ExposureIndex", 41493, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("SensingMethod", 41495, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("FileSource", 41728, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("SceneType", 41729, ExifConstants.EXIFIFDPOINTER));
-        //add(new Rule("CFAPattern", 41730, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("CustomRendered", 41985, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("ExposureMode", 41986, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("WhiteBalance", 41987, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("DigitalZoomRatio", 41988, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("FocalLengthIn35mmFilm", 41989, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("SceneCaptureType", 41990, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("GainControl", 41991, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("Contrast", 41992, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("Saturation", 41993, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("Sharpness", 41994, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("DeviceSettingDescription", 41995, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("SubjectDistanceRange", 41996, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("ImageUniqueID", 42016, ExifConstants.EXIFIFDPOINTER));
-        add(new Rule("GPSVersionID", 0, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSLatitude", 2, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSLongitude", 4, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSAltitudeRef", 5, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSAltitude", 6, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSTimeStamp", 29, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSSatellites", 8, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSStatus", 9, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSMeasureMode", 10, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSDOP", 11, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSSpeedRef", 12, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSSpeed", 13, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSTrackRef", 14, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSTrack", 15, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSImgDirectionRef", 16, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSImgDirection", 17, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSMapDatum", 18, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSDestLatitude", 20, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSDestLongitude", 22, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSDestBearingRef", 23, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSDestBearing", 24, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSDestDistanceRef", 25, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSDestDistance", 26, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSProcessingMethod", 27, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSAreaInformation", 28, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("GPSDifferential", 30, ExifConstants.GPSINFOIFDPOINTER));
-        add(new Rule("SerialNumber", ExifConstants.CANONCAMERASERIALNUMBER, ExifConstants.MAKERNOTECANON));
-        add(new Rule("Creator", ExifConstants.CANONOWNERNAME, ExifConstants.MAKERNOTECANON));
-        add(new Rule("ImageUniqueID", ExifConstants.CANONIMAGENUMBER, ExifConstants.MAKERNOTECANON));
-        add(new Rule("SerialNumber", ExifConstants.PENTAXSERIALNUMBER, ExifConstants.MAKERNOTEPENTAX));
-        add(new Rule("ImageUniqueID", ExifConstants.PENTAXFRAMENUMBER, ExifConstants.MAKERNOTEPENTAX));
+        add(new Rule("ImageWidth", 256, IFD_oTH));
+        add(new Rule("ImageLength", 257, IFD_oTH));
+        add(new Rule("BitsPerSample", 258, IFD_oTH));
+        add(new Rule("Compression", 259, IFD_oTH));
+        add(new Rule("PhotometricInterpretation", 262, IFD_oTH));
+        add(new Rule("Orientation", 274, IFD_oTH));
+        add(new Rule("SamplesPerPixel", 277, IFD_oTH));
+        add(new Rule("PlanarConfiguration", 284, IFD_oTH));
+        add(new Rule("YCbCrSubSampling", 530, IFD_oTH));
+        add(new Rule("YCbCrPositioning", 531, IFD_oTH));
+        add(new Rule("XResolution", 282, IFD_oTH));
+        add(new Rule("YResolution", 283, IFD_oTH));
+        add(new Rule("ResolutionUnit", 296, IFD_oTH));
+        add(new Rule("TransferFunction", 301, IFD_oTH));
+        add(new Rule("WhitePoint", 318, IFD_oTH));
+        add(new Rule("PrimaryChromaticities", 319, IFD_oTH));
+        add(new Rule("YCbCrCoefficients", 529, IFD_oTH));
+        add(new Rule("ReferenceBlackWhite", 532, IFD_oTH));
+        add(new Rule("DateTime", 306, IFD_oTH));
+        add(new Rule("ImageDescription", 270, IFD_oTH));
+        add(new Rule("Make", 271, IFD_oTH));
+        add(new Rule("Model", 272, IFD_oTH));
+        add(new Rule("Software", 305, IFD_oTH));
+        add(new Rule("Artist", 315, IFD_oTH));
+        add(new Rule("Copyright", 33432, IFD_oTH));
+        add(new Rule("ExifVersion", 36864, EXIFIFDPOINTER));
+        add(new Rule("FlashpixVersion", 40960, EXIFIFDPOINTER));
+        add(new Rule("ColorSpace", 40961, EXIFIFDPOINTER));
+        add(new Rule("ComponentsConfiguration", 37121, EXIFIFDPOINTER));
+        add(new Rule("CompressedBitsPerPixel", 37122, EXIFIFDPOINTER));
+        add(new Rule("PixelXDimension", 40962, EXIFIFDPOINTER));
+        add(new Rule("PixelYDimension", 40963, EXIFIFDPOINTER));
+        add(new Rule("UserComment", 37510, EXIFIFDPOINTER));
+        add(new Rule("RelatedSoundFile", 40964, EXIFIFDPOINTER));
+        add(new Rule("DateTimeOriginal", 36867, EXIFIFDPOINTER));
+        add(new Rule("DateTimeDigitized", 36868, EXIFIFDPOINTER));
+        add(new Rule("ExposureTime", 33434, EXIFIFDPOINTER));
+        add(new Rule("FNumber", 33437, EXIFIFDPOINTER));
+        add(new Rule("ExposureProgram", 34850, EXIFIFDPOINTER));
+        add(new Rule("SpectralSensitivity", 34852, EXIFIFDPOINTER));
+        add(new Rule("ISOSpeedRatings", 34855, EXIFIFDPOINTER));
+        //add(new Rule("OECF", 34856, EXIFIFDPOINTER));
+        add(new Rule("ShutterSpeedValue", 37377, EXIFIFDPOINTER));
+        add(new Rule("ApertureValue", 37378, EXIFIFDPOINTER));
+        add(new Rule("BrightnessValue", 37379, EXIFIFDPOINTER));
+        add(new Rule("ExposureBiasValue", 37380, EXIFIFDPOINTER));
+        add(new Rule("MaxApertureValue", 37381, EXIFIFDPOINTER));
+        add(new Rule("SubjectDistance", 37382, EXIFIFDPOINTER));
+        add(new Rule("MeteringMode", 37383, EXIFIFDPOINTER));
+        add(new Rule("LightSource", 37384, EXIFIFDPOINTER));
+        add(new Rule("Flash", 37385, EXIFIFDPOINTER));
+        add(new Rule("FocalLength", 37386, EXIFIFDPOINTER));
+        add(new Rule("SubjectArea", 37396, EXIFIFDPOINTER));
+        add(new Rule("FlashEnergy", 41483, EXIFIFDPOINTER));
+        //add(new Rule("SpatialFrequencyResponse", 41484, EXIFIFDPOINTER));
+        add(new Rule("FocalPlaneXResolution", 41486, EXIFIFDPOINTER));
+        add(new Rule("FocalPlaneYResolution", 41487, EXIFIFDPOINTER));
+        add(new Rule("FocalPlaneResolutionUnit", 41488, EXIFIFDPOINTER));
+        add(new Rule("SubjectLocation", 41492, EXIFIFDPOINTER));
+        add(new Rule("ExposureIndex", 41493, EXIFIFDPOINTER));
+        add(new Rule("SensingMethod", 41495, EXIFIFDPOINTER));
+        add(new Rule("FileSource", 41728, EXIFIFDPOINTER));
+        add(new Rule("SceneType", 41729, EXIFIFDPOINTER));
+        //add(new Rule("CFAPattern", 41730, EXIFIFDPOINTER));
+        add(new Rule("CustomRendered", 41985, EXIFIFDPOINTER));
+        add(new Rule("ExposureMode", 41986, EXIFIFDPOINTER));
+        add(new Rule("WhiteBalance", 41987, EXIFIFDPOINTER));
+        add(new Rule("DigitalZoomRatio", 41988, EXIFIFDPOINTER));
+        add(new Rule("FocalLengthIn35mmFilm", 41989, EXIFIFDPOINTER));
+        add(new Rule("SceneCaptureType", 41990, EXIFIFDPOINTER));
+        add(new Rule("GainControl", 41991, EXIFIFDPOINTER));
+        add(new Rule("Contrast", 41992, EXIFIFDPOINTER));
+        add(new Rule("Saturation", 41993, EXIFIFDPOINTER));
+        add(new Rule("Sharpness", 41994, EXIFIFDPOINTER));
+        add(new Rule("DeviceSettingDescription", 41995, EXIFIFDPOINTER));
+        add(new Rule("SubjectDistanceRange", 41996, EXIFIFDPOINTER));
+        add(new Rule("ImageUniqueID", 42016, EXIFIFDPOINTER));
+        add(new Rule("GPSVersionID", 0, GPSINFOIFDPOINTER));
+        add(new Rule("GPSLatitude", 2, GPSINFOIFDPOINTER));
+        add(new Rule("GPSLongitude", 4, GPSINFOIFDPOINTER));
+        add(new Rule("GPSAltitudeRef", 5, GPSINFOIFDPOINTER));
+        add(new Rule("GPSAltitude", 6, GPSINFOIFDPOINTER));
+        add(new Rule("GPSTimeStamp", 29, GPSINFOIFDPOINTER));
+        add(new Rule("GPSSatellites", 8, GPSINFOIFDPOINTER));
+        add(new Rule("GPSStatus", 9, GPSINFOIFDPOINTER));
+        add(new Rule("GPSMeasureMode", 10, GPSINFOIFDPOINTER));
+        add(new Rule("GPSDOP", 11, GPSINFOIFDPOINTER));
+        add(new Rule("GPSSpeedRef", 12, GPSINFOIFDPOINTER));
+        add(new Rule("GPSSpeed", 13, GPSINFOIFDPOINTER));
+        add(new Rule("GPSTrackRef", 14, GPSINFOIFDPOINTER));
+        add(new Rule("GPSTrack", 15, GPSINFOIFDPOINTER));
+        add(new Rule("GPSImgDirectionRef", 16, GPSINFOIFDPOINTER));
+        add(new Rule("GPSImgDirection", 17, GPSINFOIFDPOINTER));
+        add(new Rule("GPSMapDatum", 18, GPSINFOIFDPOINTER));
+        add(new Rule("GPSDestLatitude", 20, GPSINFOIFDPOINTER));
+        add(new Rule("GPSDestLongitude", 22, GPSINFOIFDPOINTER));
+        add(new Rule("GPSDestBearingRef", 23, GPSINFOIFDPOINTER));
+        add(new Rule("GPSDestBearing", 24, GPSINFOIFDPOINTER));
+        add(new Rule("GPSDestDistanceRef", 25, GPSINFOIFDPOINTER));
+        add(new Rule("GPSDestDistance", 26, GPSINFOIFDPOINTER));
+        add(new Rule("GPSProcessingMethod", 27, GPSINFOIFDPOINTER));
+        add(new Rule("GPSAreaInformation", 28, GPSINFOIFDPOINTER));
+        add(new Rule("GPSDifferential", 30, GPSINFOIFDPOINTER));
+        add(new Rule("SerialNumber", CANONCAMERASERIALNUMBER, MAKERNOTECANON));
+        add(new Rule("Creator", CANONOWNERNAME, MAKERNOTECANON));
+        add(new Rule("ImageUniqueID", CANONIMAGENUMBER, MAKERNOTECANON));
+        add(new Rule("SerialNumber", PENTAXSERIALNUMBER, MAKERNOTEPENTAX));
+        add(new Rule("ImageUniqueID", PENTAXFRAMENUMBER, MAKERNOTEPENTAX));
     }
 
     private static void add(Rule rule)
@@ -222,7 +224,7 @@ public class Exif2Entity
                     entity.setUnindexedProperty(rule.property, strValue);
                     break;
                 case 0:
-                    if (rule.ifd == ExifConstants.GPSINFOIFDPOINTER)
+                    if (rule.ifd == GPSINFOIFDPOINTER)
                     {
                         Byte[] bb = (Byte[]) value;
                         String id = String.format("%d.%d.%d.%d", bb[0], bb[1], bb[2], bb[3]);
@@ -230,13 +232,13 @@ public class Exif2Entity
                     }
                     break;
                 case 315:
-                case ExifConstants.CANONOWNERNAME:
-                    if (rule.ifd == ExifConstants.MAKERNOTE)
+                case CANONOWNERNAME:
+                    if (rule.ifd == MAKERNOTE)
                     {
                         entity.setUnindexedProperty(rule.property, strValue);
                     }
                     break;
-                case ExifConstants.FLASH:
+                case FLASH:
                 {
                     int pp = ioa.getShortValue();
                     switch (pp & 0x1)
@@ -273,14 +275,14 @@ public class Exif2Entity
                 default:
                     switch (ioa.type())
                     {
-                        case ExifConstants.BYTE:      // An 8-bit unsigned integer.,
-                        case ExifConstants.ASCII:     // An 8-bit byte containing one 7-bit ASCII code. The final byte is terminated with NULL.,
-                        case ExifConstants.SHORT:     // A 16-bit (2-byte) unsigned integer,
-                        case ExifConstants.LONG:      // A 32-bit (4-byte) unsigned integer,
-                        case ExifConstants.SLONG:     // A 32-bit (4-byte) signed integer (2's complement notation),
-                        case ExifConstants.RATIONAL:  // Two LONGs. The first LONG is the numerator and the second LONG expresses the denominator.,
-                        case ExifConstants.SRATIONAL: // Two SLONGs. The first SLONG is the numerator and the second SLONG is the denominator.
-                        case ExifConstants.UNDEFINED: // An 8-bit byte that can take any value depending on the field definition,
+                        case BYTE:      // An 8-bit unsigned integer.,
+                        case ASCII:     // An 8-bit byte containing one 7-bit ASCII code. The final byte is terminated with NULL.,
+                        case SHORT:     // A 16-bit (2-byte) unsigned integer,
+                        case LONG:      // A 32-bit (4-byte) unsigned integer,
+                        case SLONG:     // A 32-bit (4-byte) signed integer (2's complement notation),
+                        case RATIONAL:  // Two LONGs. The first LONG is the numerator and the second LONG expresses the denominator.,
+                        case SRATIONAL: // Two SLONGs. The first SLONG is the numerator and the second SLONG is the denominator.
+                        case UNDEFINED: // An 8-bit byte that can take any value depending on the field definition,
                         {
                             if (ioa.count() == 1 || ioa.getValue() instanceof String)
                             {
@@ -299,20 +301,27 @@ public class Exif2Entity
     private static class Rule
     {
         String property;
-        int tag;
+        int[] tags;
         int ifd;
 
         public Rule(String property, int tag, int ifd)
         {
             this.property = property;
-            this.tag = tag;
+            this.tags = new int[] {tag};
+            this.ifd = ifd;
+        }
+
+        public Rule(int ifd, String property, int... tags)
+        {
+            this.property = property;
+            this.tags = tags;
             this.ifd = ifd;
         }
 
         @Override
         public String toString()
         {
-            return property + "(" + tag + ")";
+            return property + "(" + Arrays.toString(tags) + ")";
         }
         
     }
