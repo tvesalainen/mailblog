@@ -30,10 +30,10 @@ import static org.junit.Assert.*;
  *
  * @author tkv
  */
-public class LatLonAltBoxTest
+public class BoundingBoxTest
 {
     private static final double Epsilon = 1e-6;
-    public LatLonAltBoxTest()
+    public BoundingBoxTest()
     {
     }
     

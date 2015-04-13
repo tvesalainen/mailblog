@@ -34,6 +34,7 @@ public class BoundingBox implements Serializable
     
     private static final double HalfCircle = 180;
     private static final double FullCircle = 360;
+
     private boolean init;
     private double north;
     private double south;
@@ -108,6 +109,10 @@ public class BoundingBox implements Serializable
         this((GeoPt) entity.getProperty(NorthEastProperty), (GeoPt) entity.getProperty(SouthWestProperty));
     }
 
+    public static boolean isPopulated(Entity entity)
+    {
+        return entity.hasProperty(SouthWestProperty) && entity.hasProperty(NorthEastProperty);
+    }
     public void populate(Entity entity)
     {
         entity.setProperty(SouthWestProperty, getSouthWest());

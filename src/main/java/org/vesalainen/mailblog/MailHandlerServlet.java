@@ -829,6 +829,7 @@ public class MailHandlerServlet extends HttpServlet
                 log(metadata.toString());
                 if (metadata.getProperties().isEmpty())
                 {
+                    metadata.setProperty(LocationProperty, null);
                     metadata.setUnindexedProperty(FilenameProperty, filename);
                     metadata.setUnindexedProperty(ContentTypeProperty, contentType);
                     metadata.setUnindexedProperty(TimestampProperty, new Date());

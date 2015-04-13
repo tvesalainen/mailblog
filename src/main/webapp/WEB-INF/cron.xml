@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cronentries>
-<!--    
   <cron>
-    <url>/cron?expired</url>
-    <description>Handle expired patrol swap requests</description>
+    <url>/cron?connectPics</url>
+    <description>Connect pictures to locations</description>
     <schedule>every day 04:00</schedule>
     <timezone>Europe/Helsinki</timezone>
   </cron>
-  -->
 </cronentries>

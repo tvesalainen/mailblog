@@ -26,6 +26,7 @@ import static org.vesalainen.mailblog.BlogConstants.*;
  */
 public class TimeSpan
 {
+
     private long begin = Long.MAX_VALUE;
     private long end = Long.MIN_VALUE;
 
@@ -59,6 +60,18 @@ public class TimeSpan
         this.end = end;
     }
 
+    public Date getBegin()
+    {
+        return new Date(begin);
+    }
+    public Date getEnd()
+    {
+        return new Date(end);
+    }
+    public static boolean isPopulated(Entity entity)
+    {
+        return entity.hasProperty(BeginProperty) && entity.hasProperty(EndProperty);
+    }
     public void populate(Entity entity)
     {
         if (begin != Long.MAX_VALUE)

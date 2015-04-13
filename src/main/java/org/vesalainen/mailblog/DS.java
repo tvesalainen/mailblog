@@ -46,6 +46,7 @@ import java.io.FilterWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
@@ -64,8 +65,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -84,9 +87,11 @@ import org.json.JSONObject;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import static org.vesalainen.mailblog.CachingDatastoreService.getRootKey;
 import org.vesalainen.mailblog.types.GeoPtType;
+import org.vesalainen.mailblog.types.TimeSpan;
 import org.vesalainen.rss.Channel;
 import org.vesalainen.rss.Item;
 import org.vesalainen.rss.RSS;
+import org.vesalainen.util.Merger;
 
 /**
  * @author Timo Vesalainen
@@ -1207,15 +1212,33 @@ public class DS extends CachingDatastoreService
 
     public Iterable<Entity> fetchImageMetadata(Date begin, Date end)
     {
+        return fetchImageMetadata(begin, end, false);
+    }
+    public Iterable<Entity> fetchImageMetadata(Date begin, Date end, boolean withoutLocation)
+    {
+        PreparedQuery metadataPrepared = createImageMetadataQuery(begin, end, withoutLocation);
+        return metadataPrepared.asIterable();
+    }
+    public boolean hasImageMetadata(Date begin, Date end, boolean withoutLocation)
+    {
+        PreparedQuery metadataPrepared = createImageMetadataQuery(begin, end, withoutLocation);
+        int count = metadataPrepared.countEntities(FetchOptions.Builder.withLimit(1));
+        return count > 0;
+    }
+    private PreparedQuery createImageMetadataQuery(Date begin, Date end, boolean withoutLocation)
+    {
         Query metadataQuery = new Query(MetadataKind);
         List<Filter> filters = new ArrayList<>();
         filters.add(new FilterPredicate("DateTimeOriginal", Query.FilterOperator.GREATER_THAN_OR_EQUAL, begin));
         filters.add(new FilterPredicate("DateTimeOriginal", Query.FilterOperator.LESS_THAN_OR_EQUAL, end));
+        if (withoutLocation)
+        {
+            filters.add(new FilterPredicate(LocationProperty, Query.FilterOperator.EQUAL, null));
+        }
         CompositeFilter compositeFilter = new CompositeFilter(CompositeFilterOperator.AND, filters);
         metadataQuery.setFilter(compositeFilter);
         metadataQuery.addSort("DateTimeOriginal");
-        PreparedQuery metadataPrepared = prepare(metadataQuery);
-        return metadataPrepared.asIterable();
+        return prepare(metadataQuery);
     }
 
     public Iterable<Entity> fetchBlogLocations()
@@ -1415,6 +1438,103 @@ public class DS extends CachingDatastoreService
                     Searches.deleteBlog(entity.getKey());
                 }
                 break;
+        }
+    }
+
+    public void populateTrack(PrintWriter pw)
+    {
+        Query q1 = new Query(TrackKind);
+        PreparedQuery p1 = prepare(q1);
+        for (Entity track : p1.asIterable())
+        {
+            if (!BoundingBox.isPopulated(track) || !TimeSpan.isPopulated(track))
+            {
+                BoundingBox bb1 = new BoundingBox();
+                TimeSpan ts1 = new TimeSpan();
+                Query q2 = new Query(TrackSeqKind);
+                q2.setAncestor(track.getKey());
+                PreparedQuery p2 = prepare(q2);
+                for (Entity trackSeq : p2.asIterable())
+                {
+                    BoundingBox bb2 = new BoundingBox(trackSeq);
+                    bb1.add(bb2);
+                    TimeSpan ts2 = new TimeSpan(trackSeq);
+                    ts1.add(ts2);
+                }
+                bb1.populate(track);
+                bb1.clear();
+                ts1.populate(track);
+                ts1.clear();
+                put(track);
+                pw.println("fixed "+track);
+            }
+        }
+        pw.println("ready");
+    }
+
+    public void connectPictures(PrintWriter pw)
+    {
+        Query q1 = new Query(TrackKind);
+        PreparedQuery p1 = prepare(q1);
+        for (Entity track : p1.asIterable())
+        {
+            BoundingBox bb1 = new BoundingBox(track);
+            TimeSpan ts1 = new TimeSpan(track);
+            if (hasImageMetadata(ts1.getBegin(), ts1.getEnd(), true))
+            {
+                Query q2 = new Query(TrackSeqKind);
+                q2.setAncestor(track.getKey());
+                PreparedQuery p2 = prepare(q2);
+                for (Entity trackSeq : p2.asIterable())
+                {
+                    BoundingBox bb2 = new BoundingBox(trackSeq);
+                    TimeSpan ts2 = new TimeSpan(trackSeq);
+                    if (hasImageMetadata(ts2.getBegin(), ts2.getEnd(), true))
+                    {
+                        Iterable<Entity> imageIterable = fetchImageMetadata(ts2.getBegin(), ts2.getEnd(), true);
+                        Query q3 = new Query(TrackPointKind);
+                        q3.setAncestor(trackSeq.getKey());
+                        PreparedQuery p3 = prepare(q3);
+                        Comparator<Entity> comp = new Comparator<Entity>()
+                        {
+                            @Override
+                            public int compare(Entity o1, Entity o2)
+                            {
+                                long t1 = 0;
+                                long t2 = 0;
+                                if (TrackPointKind.equals(o1.getKind()))
+                                {
+                                    Date date = (Date) o1.getProperty(TimestampProperty);
+                                    t1 = date.getTime();
+                                    t2 = o2.getKey().getId();
+                                }
+                                else
+                                {
+                                    Date date = (Date) o2.getProperty(TimestampProperty);
+                                    t1 = date.getTime();
+                                    t1 = o2.getKey().getId();
+                                }
+                                return (t1<t2) ? -1 : 1;
+                            }
+                        };
+                        Iterator<Entity> it = Merger.merge(comp, p3.asIterator(), imageIterable.iterator());
+                        GeoPt location = null;
+                        while (it.hasNext())
+                        {
+                            Entity next = it.next();
+                            if (TrackPointKind.equals(next.getKind()))
+                            {
+                                location = (GeoPt) next.getProperty(LocationProperty);
+                            }
+                            else
+                            {
+                                next.setProperty(LocationProperty, location);
+                                put(next);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
