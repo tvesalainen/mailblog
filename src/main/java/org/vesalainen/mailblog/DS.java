@@ -1511,7 +1511,7 @@ public class DS extends CachingDatastoreService
                                 else
                                 {
                                     Date date = (Date) o2.getProperty(TimestampProperty);
-                                    t1 = date.getTime();
+                                    t2 = date.getTime();
                                     t1 = o2.getKey().getId();
                                 }
                                 return (t1<t2) ? -1 : 1;
