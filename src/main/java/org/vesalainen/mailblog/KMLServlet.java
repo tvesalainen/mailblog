@@ -471,7 +471,7 @@ public class KMLServlet extends BaseServlet
         kmz.getKml().getValue().setAbstractFeatureGroup(document);
         // placemarks
         Entity lastPlacemark = null;
-        LatLonAltBox overallBox = new LatLonAltBox();
+        BoundingBox overallBox = new BoundingBox();
         for (Entity placemark : placemarkIterator)
         {
             GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
@@ -517,7 +517,7 @@ public class KMLServlet extends BaseServlet
                 networkLinkType.setRegion(regionType);
                 // latlonalt
                 LatLonAltBoxType latLonAltBoxType = factory.createLatLonAltBoxType();
-                LatLonAltBox box = new LatLonAltBox(location, settings.getTrackMinimumDistance());
+                BoundingBox box = new BoundingBox(location, settings.getTrackMinimumDistance());
                 box.populate(latLonAltBoxType);
                 regionType.setLatLonAltBox(latLonAltBoxType);
                 // lod
@@ -560,7 +560,7 @@ public class KMLServlet extends BaseServlet
                 networkLinkType.setRegion(regionType);
                 // latlonalt
                 LatLonAltBoxType latLonAltBoxType = factory.createLatLonAltBoxType();
-                LatLonAltBox box = new LatLonAltBox();
+                BoundingBox box = new BoundingBox();
                 box.add(sw);
                 box.add(ne);
                 box.populate(latLonAltBoxType);
@@ -592,7 +592,7 @@ public class KMLServlet extends BaseServlet
             networkLinkType.setRegion(regionType);
             // latlonalt
             LatLonAltBoxType latLonAltBoxType = factory.createLatLonAltBoxType();
-            LatLonAltBox box = new LatLonAltBox(location, settings.getTrackMinimumDistance());
+            BoundingBox box = new BoundingBox(location, settings.getTrackMinimumDistance());
             box.populate(latLonAltBoxType);
             regionType.setLatLonAltBox(latLonAltBoxType);
             // lod
@@ -627,7 +627,7 @@ public class KMLServlet extends BaseServlet
         kmz.getKml().getValue().setAbstractFeatureGroup(document);
         // placemarks
         Entity lastPlacemark = null;
-        LatLonAltBox overallBox = new LatLonAltBox();
+        BoundingBox overallBox = new BoundingBox();
         for (Entity placemark : placemarkIterator)
         {
             GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
@@ -675,7 +675,7 @@ public class KMLServlet extends BaseServlet
                 networkLinkType.setRegion(regionType);
                 // latlonalt
                 LatLonAltBoxType latLonAltBoxType = factory.createLatLonAltBoxType();
-                LatLonAltBox box = new LatLonAltBox(location, settings.getTrackMinimumDistance());
+                BoundingBox box = new BoundingBox(location, settings.getTrackMinimumDistance());
                 box.populate(latLonAltBoxType);
                 regionType.setLatLonAltBox(latLonAltBoxType);
                 // lod
@@ -724,7 +724,7 @@ public class KMLServlet extends BaseServlet
                 networkLinkType.setRegion(regionType);
                 // latlonalt
                 LatLonAltBoxType latLonAltBoxType = factory.createLatLonAltBoxType();
-                LatLonAltBox box = new LatLonAltBox();
+                BoundingBox box = new BoundingBox();
                 box.add(sw);
                 box.add(ne);
                 box.populate(latLonAltBoxType);
@@ -774,7 +774,7 @@ public class KMLServlet extends BaseServlet
             networkLinkType.setRegion(regionType);
             // latlonalt
             LatLonAltBoxType latLonAltBoxType = factory.createLatLonAltBoxType();
-            LatLonAltBox box = new LatLonAltBox(location, settings.getTrackMinimumDistance());
+            BoundingBox box = new BoundingBox(location, settings.getTrackMinimumDistance());
             box.populate(latLonAltBoxType);
             regionType.setLatLonAltBox(latLonAltBoxType);
             // lod

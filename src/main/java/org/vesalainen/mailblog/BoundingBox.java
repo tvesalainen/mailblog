@@ -17,15 +17,18 @@
 
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.GeoPt;
 import java.io.Serializable;
 import java.util.Collection;
+import static org.vesalainen.mailblog.BlogConstants.NorthEastProperty;
+import static org.vesalainen.mailblog.BlogConstants.SouthWestProperty;
 import org.vesalainen.repacked.net.opengis.kml.LatLonAltBoxType;
 
 /**
  * @author Timo Vesalainen
  */
-public class LatLonAltBox implements Serializable
+public class BoundingBox implements Serializable
 {
     private static final long serialVersionUID = 1L;
     
@@ -37,16 +40,16 @@ public class LatLonAltBox implements Serializable
     private double west;
     private double east;
 
-    public LatLonAltBox()
+    public BoundingBox()
     {
     }
 
-    public LatLonAltBox(GeoPt northEast, GeoPt southWest)
+    public BoundingBox(GeoPt northEast, GeoPt southWest)
     {
         this(northEast.getLatitude(), northEast.getLongitude(), southWest.getLatitude(), southWest.getLongitude());
     }
 
-    public LatLonAltBox(double north, double east, double south, double west)
+    public BoundingBox(double north, double east, double south, double west)
     {
         this.north = north;
         this.east = east;
@@ -56,18 +59,18 @@ public class LatLonAltBox implements Serializable
     }
     
     /**
-     * Creates a LatLonAltBox from a string "south,west,north,east"
+     * Creates a BoundingBox from a string "south,west,north,east"
      * @param str 
      * @return  
      */
-    public static LatLonAltBox getSouthWestNorthEastInstance(String str)
+    public static BoundingBox getSouthWestNorthEastInstance(String str)
     {
         String[] split = str.split(",");
         if (split.length != 4)
         {
             throw new IllegalArgumentException(str);
         }
-        return new LatLonAltBox(
+        return new BoundingBox(
                 Double.parseDouble(split[2]),
                 Double.parseDouble(split[3]),
                 Double.parseDouble(split[0]),
@@ -80,7 +83,7 @@ public class LatLonAltBox implements Serializable
      * @param center Center location
      * @param dia diameter in NM
      */
-    public LatLonAltBox(GeoPt center, double dia)
+    public BoundingBox(GeoPt center, double dia)
     {
         this(center.getLatitude(), center.getLongitude(), dia);
     }
@@ -90,7 +93,7 @@ public class LatLonAltBox implements Serializable
      * @param longitude
      * @param dia diameter in NM
      */
-    public LatLonAltBox(double latitude, double longitude, double dia)
+    public BoundingBox(double latitude, double longitude, double dia)
     {
         dia = dia / 60;    // 60 NM
         north = normalize(latitude+dia);
@@ -100,6 +103,21 @@ public class LatLonAltBox implements Serializable
         init = true;
     }
 
+    public BoundingBox(Entity entity)
+    {
+        this((GeoPt) entity.getProperty(NorthEastProperty), (GeoPt) entity.getProperty(SouthWestProperty));
+    }
+
+    public void populate(Entity entity)
+    {
+        entity.setProperty(SouthWestProperty, getSouthWest());
+        entity.setProperty(NorthEastProperty, getNorthEast());
+    }
+    public void add(BoundingBox box)
+    {
+        add(box.south, box.west);
+        add(box.north, box.east);
+    }
     public void add(Collection<GeoPt> locations)
     {
         for (GeoPt location : locations)
@@ -138,7 +156,7 @@ public class LatLonAltBox implements Serializable
             init = true;
         }
     }
-    public boolean isIntersecting(LatLonAltBox o)
+    public boolean isIntersecting(BoundingBox o)
     {
         return
                 (overlapLat(o.north) || overlapLat(o.south) || o.overlapLat(north) || o.overlapLat(south)) &&
@@ -153,6 +171,10 @@ public class LatLonAltBox implements Serializable
     {
         return  isWestToEast(longitude, east) &&
                 isWestToEast(west, longitude);
+    }
+    public boolean isInside(BoundingBox bb)
+    {
+        return isInside(bb.south, bb.west) && isInside(bb.north, bb.east);
     }
     public boolean isInside(GeoPt pt)
     {
@@ -242,6 +264,12 @@ public class LatLonAltBox implements Serializable
         box.setSouth(south);
         box.setWest(west);
         box.setEast(east);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "{" + "north=" + north + ", south=" + south + ", west=" + west + ", east=" + east + '}';
     }
 
 }

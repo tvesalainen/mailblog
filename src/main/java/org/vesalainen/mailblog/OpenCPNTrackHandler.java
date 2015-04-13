@@ -11,10 +11,10 @@ import com.google.appengine.api.datastore.GeoPt;
 import com.google.appengine.api.datastore.Key;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import org.vesalainen.gpx.TrackHandler;
 import static org.vesalainen.mailblog.BlogConstants.*;
+import org.vesalainen.mailblog.types.TimeSpan;
 import org.w3c.dom.Element;
 
 /**
@@ -22,13 +22,16 @@ import org.w3c.dom.Element;
  */
 public class OpenCPNTrackHandler implements TrackHandler
 {
-    private DS ds;
+    private final DS ds;
     private Key trackKey;
     private Key trackSeqKey;
-    private List<Entity> trackPoints = new ArrayList<>();
-    private LatLonAltBox box = new LatLonAltBox();
-    private long begin = Long.MAX_VALUE;
-    private long end = Long.MIN_VALUE;
+    private final List<Entity> trackPoints = new ArrayList<>();
+    private final BoundingBox trackBbox = new BoundingBox();
+    private final TimeSpan trackSpan = new TimeSpan();
+    private final BoundingBox trackSeqBbox = new BoundingBox();
+    private final TimeSpan trackSeqSpan = new TimeSpan();
+    private Entity track;
+    private Entity trackSeq;
 
     public OpenCPNTrackHandler(DS ds)
     {
@@ -50,12 +53,11 @@ public class OpenCPNTrackHandler implements TrackHandler
             catch (EntityNotFoundException ex)
             {
             }
-            Entity track = new Entity(trackKey);
+            track = new Entity(trackKey);
             if (name != null)
             {
                 track.setProperty(NameProperty, name);
             }
-            trackKey = ds.put(track);
             return true;
         }
         else
@@ -68,34 +70,30 @@ public class OpenCPNTrackHandler implements TrackHandler
     @Override
     public void endTrack()
     {
+        trackBbox.populate(track);
+        trackBbox.clear();
+        trackSpan.populate(track);
+        trackSpan.clear();
+        trackKey = ds.put(track);
+        trackKey = null;
     }
 
     @Override
     public void startTrackSeq()
     {
-        Entity trackSeq = new Entity(TrackSeqKind, trackKey);
+        trackSeq = new Entity(TrackSeqKind, trackKey);
         trackSeqKey = ds.put(trackSeq);
     }
 
     @Override
     public void endTrackSeq()
     {
-        Entity trackSeq;
-        try
-        {
-            trackSeq = ds.get(trackSeqKey);
-        }
-        catch (EntityNotFoundException ex)
-        {
-            throw new IllegalArgumentException(ex);
-        }
-        trackSeq.setProperty(SouthWestProperty, box.getSouthWest());
-        trackSeq.setProperty(NorthEastProperty, box.getNorthEast());
-        box.clear();
-        trackSeq.setProperty(BeginProperty, new Date(begin));
-        trackSeq.setProperty(EndProperty, new Date(end));
-        begin = Long.MAX_VALUE;
-        end = Long.MIN_VALUE;
+        trackBbox.add(trackSeqBbox);
+        trackSpan.add(trackSeqSpan);
+        trackSeqBbox.populate(trackSeq);
+        trackSeqBbox.clear();
+        trackSeqSpan.populate(trackSeq);
+        trackSeqSpan.clear();
         ds.put(trackSeq);
         ds.put(trackPoints);
         trackPoints.clear();
@@ -105,9 +103,8 @@ public class OpenCPNTrackHandler implements TrackHandler
     @Override
     public void trackPoint(double latitude, double longitude, long time)
     {
-        box.add(latitude, longitude);
-        begin = Math.min(begin, time);
-        end = Math.max(end, time);
+        trackSeqBbox.add(latitude, longitude);
+        trackSeqSpan.add(time);
         Entity point = new Entity(TrackPointKind, time, trackSeqKey);
         point.setProperty(LocationProperty, new GeoPt((float)latitude, (float)longitude));
         trackPoints.add(point);

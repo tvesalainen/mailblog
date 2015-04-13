@@ -30,7 +30,7 @@ import org.json.JSONObject;
 public class GeoJSON
 {
     protected final JSONObject json = new JSONObject();
-    protected LatLonAltBox bbox = new LatLonAltBox();
+    protected BoundingBox bbox = new BoundingBox();
     
     protected GeoJSON(String type)
     {
@@ -69,7 +69,7 @@ public class GeoJSON
          * Therefore it is possible to update this bounding box after setting.
          * @param bbox 
          */
-        public void setBbox(LatLonAltBox bbox)
+        public void setBbox(BoundingBox bbox)
         {
             this.bbox = bbox;
         }
@@ -112,7 +112,7 @@ public class GeoJSON
          * Therefore it is possible to update this bounding box after setting.
          * @param bbox 
          */
-        public void setBbox(LatLonAltBox bbox)
+        public void setBbox(BoundingBox bbox)
         {
             this.bbox = bbox;
         }
@@ -159,7 +159,7 @@ public class GeoJSON
          * Therefore it is possible to update this bounding box after setting.
          * @param bbox 
          */
-        public void setBbox(LatLonAltBox bbox)
+        public void setBbox(BoundingBox bbox)
         {
             this.bbox = bbox;
         }
