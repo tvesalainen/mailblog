@@ -92,6 +92,7 @@ public class OpenCPNTrackHandlerTest
             DS ds = DS.get();
             OpenCPNTrackHandler th = new OpenCPNTrackHandler(ds);
             gpx.browse(1, 0.1, th);
+            
             Query q1 = new Query(TrackKind);
             PreparedQuery p1 = ds.prepare(q1);
             for (Entity track : p1.asIterable())
@@ -148,6 +149,10 @@ public class OpenCPNTrackHandlerTest
             ex.printStackTrace();
             fail(ex.getMessage());
         }
+        
+        Date now = new Date();
+        assertEquals(255, ds.getAlpha(now));
+
         try
         {
             List<Key> keyList = new ArrayList<>();

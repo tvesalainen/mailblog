@@ -144,6 +144,7 @@ public interface BlogConstants
     static final String LongitudeParameter = "longitude";
     static final String TimestampParameter = "timestamp";
     static final String MaidenheadLocatorParameter = "maidenhead";
+    static final String ZoomParameter = "zoom";
     
     static final String StylePath = "/style.kmz";
     static final String PlacemarkPath = "/placemarkPath.kmz";

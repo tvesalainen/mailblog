@@ -44,6 +44,8 @@ $(document).ready(function(){
     $(".keywordSelect").load("/blog?keywords=true");
     
     $(".lastPosition").load("/lastPosition");
+
+    var map;
     
     google.maps.event.addDomListener(window, 'load', googlemaps);
     
@@ -55,19 +57,50 @@ $(document).ready(function(){
                 center: {lat: data['latitude'], lng: data['longitude']},
                 zoom: 8
             };
-            var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
-            var href = window.location.href;
-            var kmlLayer = new google.maps.KmlLayer(href+'/kml', {
-                suppressInfoWindows: true,
-                preserveViewport: false,
-                map: map
+            map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+            google.maps.event.addListener(map, 'bounds_changed', boundsChanged);
+            map.data.setStyle(function(feature)
+            {
+                var color;
+                var opaque;
+                var icon;
+                color = feature.getProperty('color');
+                opaque = feature.getProperty('opaque');
+                icon = feature.getProperty('icon');
+                if (icon)
+                {
+                    return ({
+                        icon : icon
+                    })
+                }
+                else
+                {
+                    return ({
+                        strokeColor : color,
+                        strokeOpaque: opaque,
+                        strokeWeight : 1
+                    })
+                }
             });
-            kmlLayer.setMap(map);
-            google.maps.event.addListener(kmlLayer, 'click', function (event) {
-                var content = event.featureData.infoWindowHtml;
-                var testimonial = document.getElementById('capture');
-                testimonial.innerHTML = content;
-            });
+        });
+    }
+
+    function boundsChanged()
+    {
+        var href = window.location.href;
+        var bounds = map.getBounds();
+        var zoom = map.getZoom();
+        $.getJSON("/geojson?bbox="+bounds.toUrlValue()+"&zoom="+zoom, function(data)
+        {
+            var i;
+            var arr = data['keys'];
+            for (key in arr)
+            {
+                map.data.loadGeoJson(href+"/geojson?key="+arr[key], function(array)
+                {
+                    var arr = array;
+                });
+            }
         });
     }
     

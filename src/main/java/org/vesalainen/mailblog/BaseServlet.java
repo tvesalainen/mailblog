@@ -40,21 +40,4 @@ public abstract class BaseServlet extends HttpServlet
         }
     }
 
-    protected int getAlpha(Date begin)
-    {
-        if (begin == null)
-        {
-            return 0;
-        }
-        DS ds = DS.get();
-        Settings settings = ds.getSettings();
-        long x0 = ds.getTrackSeqsBegin().getTime();
-        long xn = System.currentTimeMillis();
-        int minOpaque = settings.getMinOpaque();
-        double span = 255 - minOpaque;
-        double c = span / Math.sqrt(xn - x0);
-        int age = (int) Math.round(c * Math.sqrt(xn - begin.getTime()));
-        return 255 - age;
-    }
-    
 }

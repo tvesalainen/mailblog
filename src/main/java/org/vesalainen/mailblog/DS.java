@@ -70,8 +70,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -81,14 +84,22 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import static org.vesalainen.mailblog.CachingDatastoreService.getRootKey;
+import org.vesalainen.mailblog.GeoJSON.Feature;
+import org.vesalainen.mailblog.GeoJSON.FeatureCollection;
+import org.vesalainen.mailblog.GeoJSON.LineString;
+import org.vesalainen.mailblog.GeoJSON.Point;
 import org.vesalainen.mailblog.types.GeoPtType;
 import org.vesalainen.mailblog.types.TimeSpan;
 import org.vesalainen.rss.Channel;
 import org.vesalainen.rss.Item;
 import org.vesalainen.rss.RSS;
+import org.vesalainen.util.HashMapList;
+import org.vesalainen.util.MapList;
+import org.vesalainen.util.Pair;
 
 /**
  * @author Timo Vesalainen
@@ -1277,6 +1288,14 @@ public class DS extends CachingDatastoreService
         return prepare(metadataQuery);
     }
 
+    public Iterable<Entity> fetchImageLocations()
+    {
+        Query imageLocationQuery = new Query(MetadataKind);
+        imageLocationQuery.addProjection(new PropertyProjection(LocationProperty, GeoPt.class));
+        PreparedQuery imageLocationPrepared = prepare(imageLocationQuery);
+        return imageLocationPrepared.asIterable();
+    }
+
     public Iterable<Entity> fetchBlogLocations()
     {
         Query blogLocationQuery = new Query(BlogKind);
@@ -1587,6 +1606,156 @@ public class DS extends CachingDatastoreService
         pw.println("ended locating pictures");
     }
 
+    public void writeRegionKeys(CacheWriter cw, BoundingBox bb)
+    {
+        Iterable<Entity> tracksIterable = null;
+        Iterable<Entity> placemarksIterable = null;
+        Iterable<Entity> imageLocationsIterable = null;
+        Iterable<Entity> blogLocationsIterable = null;
+        
+        MapList<BoundingBox,Pair<BoundingBox,Key>> boxList = (MapList<BoundingBox,Pair<BoundingBox,Key>>) getFromCache("RegionList");
+        if (boxList == null)
+        {
+            tracksIterable = fetchTracks();
+        }
+        List<Pair<GeoPt,Key>> locationList = (List<Pair<GeoPt,Key>>) getFromCache("LocationList");
+        if (locationList == null)
+        {
+            placemarksIterable = fetchPlacemarks();
+            imageLocationsIterable = fetchImageLocations();
+            blogLocationsIterable = fetchBlogLocations();
+        }
+        if (boxList == null)
+        {
+            boxList = new HashMapList<>();
+            for (Entity track : tracksIterable)
+            {
+                BoundingBox bbTrack = new BoundingBox(track);
+                for (Entity trackSeq : fetchTrackSeqs(track.getKey()))
+                {
+                    BoundingBox bbTrackSeq = new BoundingBox(trackSeq);
+                    boxList.add(bbTrack, new Pair<BoundingBox,Key>(bbTrackSeq, trackSeq.getKey()));
+                }
+            }
+            putToCache("RegionList", boxList);
+        }
+        if (locationList == null)
+        {
+            locationList = new ArrayList<>();
+            for (Entity placemark : placemarksIterable)
+            {
+                GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
+                if (location != null)
+                {
+                    locationList.add(new Pair<>(location, placemark.getKey()));
+                }
+            }
+            for (Entity metadata : imageLocationsIterable)
+            {
+                GeoPt location = (GeoPt) metadata.getProperty(LocationProperty);
+                if (location != null)
+                {
+                    locationList.add(new Pair<>(location, metadata.getKey()));
+                }
+            }
+            for (Entity blog : blogLocationsIterable)
+            {
+                GeoPt location = (GeoPt) blog.getProperty(LocationProperty);
+                if (location != null)
+                {
+                    locationList.add(new Pair<>(location, blog.getKey()));
+                }
+            }
+            putToCache("LocationList", locationList);
+        }
+        JSONObject json = new JSONObject();
+        JSONArray jarray = new JSONArray();
+        json.put("keys", jarray);
+        for (Entry<BoundingBox,List<Pair<BoundingBox, Key>>> entry : boxList.entrySet())
+        {
+            if (bb.isIntersecting(entry.getKey()))
+            {
+                for (Pair<BoundingBox, Key> pair : entry.getValue())
+                {
+                    if (bb.isIntersecting(pair.getFirst()))
+                    {
+                        jarray.put(KeyFactory.keyToString(pair.getSecond()));
+                    }
+                }
+            }
+        }
+        for (Pair<GeoPt,Key> pair : locationList)
+        {
+            if (bb.isInside(pair.getFirst()))
+            {
+                jarray.put(KeyFactory.keyToString(pair.getSecond()));
+            }
+        }
+        json.write(cw);
+        cw.cache();
+    }
+
+    public void writeFeature(CacheWriter cw, Key key)
+    {
+        Entity entity;
+        try
+        {
+            entity = get(key);
+        }
+        catch (EntityNotFoundException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+        Feature feature;
+        Settings settings = getSettings();
+        switch (key.getKind())
+        {
+            case TrackSeqKind:
+                Date begin = (Date) entity.getProperty(BeginProperty);
+                LineString lineString = new LineString();
+                for (Entity trackPoint : fetchTrackPoints(key))
+                {
+                    GeoPt location = (GeoPt) trackPoint.getProperty(LocationProperty);
+                    lineString.add(location);
+                }
+                feature = new Feature(lineString);
+                feature.setId(KeyFactory.keyToString(key));
+                feature.setProperty("color", settings.getTrackCss3Color());
+                feature.setProperty("opaque", getAlpha(begin));
+                feature.write(cw);
+                break;
+            case BlogKind:
+            case MetadataKind:
+            case PlacemarkKind:
+                GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
+                Point point = new Point(location);
+                feature = new Feature(point);
+                feature.setId(KeyFactory.keyToString(key));
+                feature.setProperty("icon", settings.getIcon(entity));
+                feature.write(cw);
+                break;
+            default:
+                System.err.println("Unknown entity "+entity);
+        }
+        cw.cache();
+    }
+
+    public int getAlpha(Date begin)
+    {
+        if (begin == null)
+        {
+            return 255;
+        }
+        Settings settings = getSettings();
+        long x0 = getTrackSeqsBegin().getTime();
+        long xn = System.currentTimeMillis();
+        int minOpaque = settings.getMinOpaque();
+        double span = 255 - minOpaque;
+        double c = span / Math.sqrt(xn - x0);
+        int age = (int) Math.round(c * Math.sqrt(xn - begin.getTime()));
+        return 255 - age;
+    }
+    
     public interface Caching
     {
         Caching setMaxAge(int maxAge);

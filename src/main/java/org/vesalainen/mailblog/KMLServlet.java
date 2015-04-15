@@ -390,7 +390,7 @@ public class KMLServlet extends BaseServlet
             return;
         }
         // Ageing
-        int alpha = getAlpha(begin);
+        int alpha = ds.getAlpha(begin);
         Iterable<Entity> imageMetadataIterable = ds.fetchImageMetadata(begin, end);
 
         KMZ kmz = new KMZ();
@@ -636,7 +636,7 @@ public class KMLServlet extends BaseServlet
                 if (lastPlacemark != null)
                 {
                     Date ts = (Date) placemark.getProperty(TimestampProperty);
-                    int alpha = getAlpha(ts);
+                    int alpha = ds.getAlpha(ts);
                     GeoPt prevLocation = (GeoPt) lastPlacemark.getProperty(LocationProperty);
                     // overall placemark
                     PlacemarkType overallPlacemarkType = factory.createPlacemarkType();

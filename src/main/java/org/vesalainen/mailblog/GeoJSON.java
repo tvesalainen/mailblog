@@ -17,7 +17,6 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.GeoPt;
-import java.io.Serializable;
 import java.io.Writer;
 import java.util.Collection;
 import org.json.JSONArray;
@@ -224,8 +223,12 @@ public class GeoJSON
 
         protected Geometry2D(String type, Collection<GeoPt> locations)
         {
-            super(type);
+            this(type);
             add(locations);
+        }
+        protected Geometry2D(String type)
+        {
+            super(type);
             json.put("coordinates", coordinates);
         }
         public final void add(Collection<GeoPt> locations)
@@ -246,6 +249,10 @@ public class GeoJSON
     }
     public static class LineString extends Geometry2D
     {
+        public LineString()
+        {
+            super("LineString");
+        }
         public LineString(Collection<GeoPt> locations)
         {
             super("LineString", locations);

@@ -255,6 +255,22 @@ public class Settings implements Serializable
     }
 
     private static final String DefaultIcon = "http://maps.google.com/mapfiles/kml/shapes/info.png";
+    
+    public String getIcon(Entity entity)
+    {
+        switch (entity.getKind())
+        {
+            case BlogKind:
+                return getBlogIcon();
+            case MetadataKind:
+                return getImageIcon();
+            case PlacemarkKind:
+                String description = (String) entity.getProperty(DescriptionProperty);
+                return getSpotIcon(description);
+            default:
+                return DefaultIcon;
+        }
+    }
     public String getBlogIcon()
     {
         Link link = (Link) map.get(BlogIconProperty);
@@ -380,6 +396,15 @@ public class Settings implements Serializable
             (byte)((i >> 8) & 0xff), 
             (byte)(i & 0xff)
         };
+    }
+    public String getTrackCss3Color()
+    {
+        Long l = (Long) map.get(TrackColorProperty);
+        return css3Color(l.intValue());
+    }
+    private String css3Color(int c)
+    {
+        return String.format("#%06X", c);
     }
     public int getMinOpaque()
     {

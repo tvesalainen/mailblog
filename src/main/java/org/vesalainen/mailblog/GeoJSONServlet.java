@@ -16,10 +16,13 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import static org.vesalainen.mailblog.BlogConstants.*;
 
 /**
  *
@@ -28,15 +31,72 @@ import javax.servlet.http.HttpServletResponse;
 public class GeoJSONServlet extends BaseServlet
 {
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
+    protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException
     {
         DS ds = DS.get();
         Settings settings = ds.getSettings();
-        URIBuilder builder = new URIBuilder(request)
-                .setFragment(null)
-                .setPath(null)
-                .setQuery(null);
-        builder = addNamespace(builder);
-        String base = builder.toString();
+        /*
+        RunInNamespace<Boolean> checkETag = new RunInNamespace() 
+        {
+            @Override
+            protected Boolean run()
+            {
+                try
+                {
+                    DS ds = DS.get();
+                    return ds.sameETag(request, response);
+                }
+                catch (IOException ex)
+                {
+                    return false;
+                }
+            }
+        };
+        if (checkETag.doIt(null, settings.isCommonPlacemarks()))
+        {
+            return;
+        }
+        if (!ds.serveFromCache(request, response))
+                */
+        {
+            RunInNamespace<String> getETag = new RunInNamespace() 
+            {
+                @Override
+                protected String run()
+                {
+                    DS ds = DS.get();
+                    return ds.getETag();
+                }
+            };
+            String eTag = getETag.doIt(null, settings.isCommonPlacemarks());
+            String bboxStr = request.getParameter(BoundingBoxParameter);
+            if (bboxStr != null)
+            {
+                BoundingBox bb = BoundingBox.getSouthWestNorthEastInstance(bboxStr);
+                log("box:"+bboxStr);
+                try (DS.CacheWriter cw = ds.createCacheWriter(request, response))
+                {
+                    cw.setETag(eTag)
+                    .setContentType("application/json");
+                    ds.writeRegionKeys(cw, bb);
+                }
+            }
+            else
+            {
+                String keyStr = request.getParameter(KeyParameter);
+                log("key:"+keyStr);
+                if (keyStr != null)
+                {
+                    Key key = KeyFactory.stringToKey(keyStr);
+                    log(keyStr);
+                    try (DS.CacheWriter cw = ds.createCacheWriter(request, response))
+                    {
+                        cw.setETag(eTag)
+                        .setContentType("application/json");
+                        ds.writeFeature(cw, key);
+                    }
+                }
+            }
+        }
     }    
 }
