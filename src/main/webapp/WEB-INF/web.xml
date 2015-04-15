@@ -155,7 +155,7 @@
         <url-pattern>/lastPosition/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
-        <servlet-name>OpenGrapServlet</servlet-name>
+        <servlet-name>OpenGraphServlet</servlet-name>
         <url-pattern>/opengraph/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>

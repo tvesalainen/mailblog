@@ -30,6 +30,10 @@ public abstract class RunInNamespace<T>
     }
     public T doIt(String namespace, boolean change)
     {
+        if (namespace != null && namespace.isEmpty())
+        {
+            namespace = null;
+        }
         if (change)
         {
             String safeNamespace = NamespaceManager.get();

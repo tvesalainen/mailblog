@@ -35,4 +35,8 @@
         <property name="DateTimeOriginal" direction="asc"/>
         <property name="Location" direction="asc"/>
     </datastore-index>
+    <datastore-index kind="Metadata" ancestor="false" source="manual">
+        <property name="Location" direction="asc"/>
+        <property name="DateTimeOriginal" direction="asc"/>
+    </datastore-index>
 </datastore-indexes>

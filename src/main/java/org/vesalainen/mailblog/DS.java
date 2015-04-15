@@ -50,7 +50,6 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -65,7 +64,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -91,7 +89,6 @@ import org.vesalainen.mailblog.types.TimeSpan;
 import org.vesalainen.rss.Channel;
 import org.vesalainen.rss.Item;
 import org.vesalainen.rss.RSS;
-import org.vesalainen.util.Merger;
 
 /**
  * @author Timo Vesalainen
@@ -128,6 +125,18 @@ public class DS extends CachingDatastoreService
         return namespace;
     }
 
+    public List<String> getNamespaceList()
+    {
+        List<String> list = new ArrayList<>();
+        list.add("");
+        Query query = new Query(Entities.NAMESPACE_METADATA_KIND);
+        PreparedQuery prepared = prepare(query);
+        for (Entity entity : prepared.asIterable())
+        {
+            list.add(Entities.getNamespaceFromNamespaceKey(entity.getKey()));
+        }
+        return list;
+    }
     public String createNamespaceSelect()
     {
         StringBuilder sb = new StringBuilder();
@@ -896,11 +905,15 @@ public class DS extends CachingDatastoreService
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
+    public Key createSettingsKey()
+    {
+        return KeyFactory.createKey(getRootKey(), SettingsKind, BaseKey);
+    }
     public Settings getSettings()
     {
         try
         {
-            Key key = KeyFactory.createKey(getRootKey(), SettingsKind, BaseKey);
+            Key key = createSettingsKey();
             Entity entity = get(key);
             if (entity != null)
             {
@@ -1141,7 +1154,26 @@ public class DS extends CachingDatastoreService
         return rin.doIt(null, settings.isCommonPlacemarks());
     }
 
+    public Iterable<Entity> fetchTracks()
+    {
+        Settings settings = getSettings();
+        RunInNamespace<Iterable<Entity>> rin = new RunInNamespace()
+        {
+            @Override
+            protected Iterable<Entity> run()
+            {
+                Query trackSeqQuery = new Query(TrackKind);
+                PreparedQuery trackSeqPrepared = prepare(trackSeqQuery);
+                return trackSeqPrepared.asIterable();
+            }
+        };
+        return rin.doIt(null, settings.isCommonPlacemarks());
+    }
     public Iterable<Entity> fetchTrackSeqs()
+    {
+        return fetchTrackSeqs(null);
+    }
+    public Iterable<Entity> fetchTrackSeqs(final Key ancestor)
     {
         Settings settings = getSettings();
         RunInNamespace<Iterable<Entity>> rin = new RunInNamespace()
@@ -1150,6 +1182,10 @@ public class DS extends CachingDatastoreService
             protected Iterable<Entity> run()
             {
                 Query trackSeqQuery = new Query(TrackSeqKind);
+                if (ancestor != null)
+                {
+                    trackSeqQuery.setAncestor(ancestor);
+                }
                 PreparedQuery trackSeqPrepared = prepare(trackSeqQuery);
                 return trackSeqPrepared.asIterable();
             }
@@ -1474,68 +1510,81 @@ public class DS extends CachingDatastoreService
 
     public void connectPictures(PrintWriter pw)
     {
-        Query q1 = new Query(TrackKind);
-        PreparedQuery p1 = prepare(q1);
-        for (Entity track : p1.asIterable())
+        pw.println("started locating pictures");
+        Iterable<Entity> trackIterable = fetchTracks();
+        for (Entity track : trackIterable)
         {
             BoundingBox bb1 = new BoundingBox(track);
             TimeSpan ts1 = new TimeSpan(track);
             if (hasImageMetadata(ts1.getBegin(), ts1.getEnd(), true))
             {
-                Query q2 = new Query(TrackSeqKind);
-                q2.setAncestor(track.getKey());
-                PreparedQuery p2 = prepare(q2);
-                for (Entity trackSeq : p2.asIterable())
+                Iterable<Entity> trackSeqIterable = fetchTrackSeqs(track.getKey());
+                for (Entity trackSeq : trackSeqIterable)
                 {
                     BoundingBox bb2 = new BoundingBox(trackSeq);
                     TimeSpan ts2 = new TimeSpan(trackSeq);
                     if (hasImageMetadata(ts2.getBegin(), ts2.getEnd(), true))
                     {
                         Iterable<Entity> imageIterable = fetchImageMetadata(ts2.getBegin(), ts2.getEnd(), true);
-                        Query q3 = new Query(TrackPointKind);
-                        q3.setAncestor(trackSeq.getKey());
-                        PreparedQuery p3 = prepare(q3);
-                        Comparator<Entity> comp = new Comparator<Entity>()
+                        Iterator<Entity> ImageIterator = imageIterable.iterator();
+                        Iterable<Entity> trackPointIterable = fetchTrackPoints(trackSeq.getKey());
+                        Iterator<Entity> trackPointIterator = trackPointIterable.iterator();
+                        if (!trackPointIterator.hasNext())
                         {
-                            @Override
-                            public int compare(Entity o1, Entity o2)
+                            continue;   // shouldn't happen
+                        }
+                        if (!ImageIterator.hasNext())
+                        {
+                            continue;   // shouldn't happen
+                        }
+                        Entity image = ImageIterator.next();
+                        Date imageDate = (Date) image.getProperty("DateTimeOriginal");
+                        long imageTime = imageDate.getTime();
+                        Entity prevTrackPoint = trackPointIterator.next();
+                        long prevTime = prevTrackPoint.getKey().getId();
+                        while (trackPointIterator != null && trackPointIterator.hasNext())
+                        {
+                            Entity nextTrackPoint = trackPointIterator.next();
+                            long nextTime = nextTrackPoint.getKey().getId();
+                            while (imageTime <= nextTime)
                             {
-                                long t1 = 0;
-                                long t2 = 0;
-                                if (TrackPointKind.equals(o1.getKind()))
+                                GeoPt prevLocation = (GeoPt) prevTrackPoint.getProperty(LocationProperty);
+                                double prevLatitude = prevLocation.getLatitude();
+                                double prevLongitude = prevLocation.getLongitude();
+                                GeoPt nextLocation = (GeoPt) nextTrackPoint.getProperty(LocationProperty);
+                                double nextLatitude = nextLocation.getLatitude();
+                                double nextLongitude = nextLocation.getLongitude();
+                                double dLatitude = nextLatitude - prevLatitude;
+                                double dLongitude = nextLongitude - prevLongitude;
+                                double dTrackPointTime = nextTime - prevTime;
+                                double  dImageTime = imageTime - prevTime;
+                                double coeff = dImageTime/dTrackPointTime;
+                                float imageLatitude = (float) (prevLatitude + coeff*dLatitude);
+                                float imageLongitude = (float) (prevLongitude + coeff*dLongitude);
+                                GeoPt imageLocation = new GeoPt(imageLatitude, imageLongitude);
+                                image.setProperty(LocationProperty, imageLocation);
+                                put(image);
+                                pw.println("Located: "+image);
+                                if (ImageIterator.hasNext())
                                 {
-                                    Date date = (Date) o1.getProperty(TimestampProperty);
-                                    t1 = date.getTime();
-                                    t2 = o2.getKey().getId();
+                                    image = ImageIterator.next();
+                                    imageDate = (Date) image.getProperty("DateTimeOriginal");
+                                    imageTime = imageDate.getTime();
                                 }
                                 else
                                 {
-                                    Date date = (Date) o2.getProperty(TimestampProperty);
-                                    t2 = date.getTime();
-                                    t1 = o2.getKey().getId();
+                                    trackPointIterator = null;
+                                    break;
                                 }
-                                return (t1<t2) ? -1 : 1;
                             }
-                        };
-                        Iterator<Entity> it = Merger.merge(comp, p3.asIterator(), imageIterable.iterator());
-                        GeoPt location = null;
-                        while (it.hasNext())
-                        {
-                            Entity next = it.next();
-                            if (TrackPointKind.equals(next.getKind()))
-                            {
-                                location = (GeoPt) next.getProperty(LocationProperty);
-                            }
-                            else
-                            {
-                                next.setProperty(LocationProperty, location);
-                                put(next);
-                            }
+                            prevTrackPoint = nextTrackPoint;
+                            prevTime = nextTime;
                         }
                     }
                 }
             }
         }
+        pw.println("ended locating pictures");
     }
 
     public interface Caching

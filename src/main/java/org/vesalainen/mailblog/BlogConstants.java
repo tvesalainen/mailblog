@@ -25,7 +25,7 @@ public interface BlogConstants
     static final int CHUNKSIZE = 500;
     
     static final String BlogRipper = "X-BlogRipper-";
-    static final String ISO8601Format = "yyyy-MM-dd'T'HH:mm:ss.SSSz";
+    static final String ISO8601Format = "yyyy-MM-dd'T'HH:mm:ssX";
     static final String RFC1123Format = "EEE, dd MMM yyyy HH:mm:ss z";
     
     static final String RootKind = "Root";

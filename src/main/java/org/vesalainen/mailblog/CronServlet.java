@@ -30,19 +30,29 @@ public class CronServlet extends BaseServlet
 {
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
+    protected void doGet(final HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
+        final DS ds = DS.get();
         resp.setContentType("text/plain");
-        PrintWriter pw = resp.getWriter();
-        if ("populateTrack".equals(req.getQueryString()))
+        final PrintWriter pw = resp.getWriter();
+        for (String namespace : ds.getNamespaceList())
         {
-            DS ds = DS.get();
-            ds.populateTrack(pw);
-        }
-        if ("connectPics".equals(req.getQueryString()))
-        {
-            DS ds = DS.get();
-            ds.connectPictures(pw);
+            RunInNamespace rin = new RunInNamespace() {
+                @Override
+                protected Object run()
+                {
+                    if ("populateTrack".equals(req.getQueryString()))
+                    {
+                        ds.populateTrack(pw);
+                    }
+                    if ("connectPics".equals(req.getQueryString()))
+                    {
+                        ds.connectPictures(pw);
+                    }
+                    return null;
+                }
+            };
+            rin.doIt(namespace);
         }
         pw.close();
     }
