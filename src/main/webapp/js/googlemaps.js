@@ -20,11 +20,11 @@ $(document).ready(function()
     $(".map-canvas").each(function()
     {
         var win = this;
-        $.getJSON("/lastPosition?json=true", function(data)
+        $.getJSON("/geojson?height="+$(win).height(), function(data)
         {
             var mapOptions = {
                 center: {lat: data['latitude'], lng: data['longitude']},
-                zoom: 8
+                zoom: data['zoom']
             };
             var map = new google.maps.Map(win, mapOptions);
             google.maps.event.addListener(map, 'bounds_changed', function()

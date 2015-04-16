@@ -1127,6 +1127,22 @@ public class DS extends CachingDatastoreService
             }
        }
     }
+    public Iterable<Entity> fetchLastPlacemarks(Settings settings)
+    {
+        RunInNamespace<Iterable<Entity>> rin = new RunInNamespace()
+        {
+            @Override
+            protected Iterable<Entity> run()
+            {
+                Query placemarkQuery = new Query(PlacemarkKind);
+                placemarkQuery.addSort(TimestampProperty, Query.SortDirection.DESCENDING);
+                PreparedQuery placemarkPrepared = prepare(placemarkQuery);
+                return placemarkPrepared.asIterable();
+            }
+        };
+        return rin.doIt(null, settings.isCommonPlacemarks());
+    }
+
     public Entity fetchLastPlacemark(Settings settings)
     {
         RunInNamespace<Entity> rin = new RunInNamespace()
@@ -1136,7 +1152,6 @@ public class DS extends CachingDatastoreService
             {
                 Query placemarkQuery = new Query(PlacemarkKind);
                 placemarkQuery.addSort(TimestampProperty, Query.SortDirection.DESCENDING);
-                System.err.println(placemarkQuery);
                 PreparedQuery placemarkPrepared = prepare(placemarkQuery);
                 for (Entity placemark : placemarkPrepared.asIterable(FetchOptions.Builder.withLimit(1)))
                 {
@@ -1606,6 +1621,38 @@ public class DS extends CachingDatastoreService
         pw.println("ended locating pictures");
     }
 
+    public void writeMapInit(CacheWriter cw, int height)
+    {
+        Settings settings = getSettings();
+        JSONObject json = new JSONObject();
+        Iterable<Entity> lastPlacemarksIterable = fetchLastPlacemarks(settings);
+        Iterator<Entity> iterator = lastPlacemarksIterable.iterator();
+        if (iterator.hasNext())
+        {
+            Entity pm = iterator.next();
+            GeoPt location = (GeoPt) pm.getProperty(LocationProperty);
+            Date timestamp = (Date) pm.getProperty(TimestampProperty);
+            json.put(LatitudeParameter, location.getLatitude());
+            json.put(LongitudeParameter, location.getLongitude());
+            SimpleDateFormat sdf = new SimpleDateFormat(ISO8601Format);
+            json.put(TimestampParameter, sdf.format(timestamp));
+            String description = (String) pm.getProperty(DescriptionProperty);
+            SpotType st = SpotType.getSpotType(description);
+            while (iterator.hasNext() && SpotType.Ok != st)
+            {
+                pm = iterator.next();
+                description = (String) pm.getProperty(DescriptionProperty);
+                st = SpotType.getSpotType(description);
+            }
+            GeoPt location2 = (GeoPt) pm.getProperty(LocationProperty);
+            double distance = getDistance(location, location2);
+            // TODO !!!
+            json.put(ZoomParameter, 8);
+        }
+        json.write(cw);
+        cw.cache();
+    }
+    
     public void writeRegionKeys(CacheWriter cw, BoundingBox bb)
     {
         Iterable<Entity> tracksIterable = null;
@@ -1755,6 +1802,12 @@ public class DS extends CachingDatastoreService
         double c = span / Math.sqrt(xn - x0);
         int age = (int) Math.round(c * Math.sqrt(xn - begin.getTime()));
         return 255 - age;
+    }
+
+    public static double getDistance(GeoPt l1, GeoPt l2)
+    {
+        double departure = Math.cos((l1.getLatitude()+l2.getLatitude())/2);
+        return Math.hypot(l1.getLatitude()-l2.getLatitude(), departure*(l1.getLongitude()-l2.getLongitude()));
     }
     
     public interface Caching
