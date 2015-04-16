@@ -17,57 +17,81 @@
 
 $(document).ready(function()
 {
-    var map;
-    
-    google.maps.event.addDomListener(window, 'load', googlemaps);
-    
-    function googlemaps()
+    $(".map-canvas").each(function()
     {
+        var win = this;
         $.getJSON("/lastPosition?json=true", function(data)
         {
             var mapOptions = {
                 center: {lat: data['latitude'], lng: data['longitude']},
                 zoom: 8
             };
-            map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
-            google.maps.event.addListener(map, 'bounds_changed', boundsChanged);
+            var map = new google.maps.Map(win, mapOptions);
+            google.maps.event.addListener(map, 'bounds_changed', function()
+            {
+                var href = window.location.href;
+                var bounds = map.getBounds();
+                var zoom = map.getZoom();
+                $.getJSON("/geojson?bbox="+bounds.toUrlValue()+"&zoom="+zoom, function(data)
+                {
+                    var arr = data['keys'];
+                    for (i in arr)
+                    {
+                        var key = arr[i];
+                        if (!map.data.getFeatureById(key))
+                        {
+                            map.data.loadGeoJson(href+"/geojson?key="+key, function(array)
+                            {
+                                var arr = array;
+                            });
+                        }
+                    }
+                });
+            });
+            google.maps.event.addListener(map, 'zoom_changed', function()
+            {
+                var p = pixelsPerMiles(win, map);
+                map.data.forEach(function(feature)
+                {
+                    var visible = isVisible(p, feature);
+                    map.data.overrideStyle(feature, { visible : visible });
+                });
+            });
             map.data.setStyle(function(feature)
             {
+                var p = pixelsPerMiles(win, map);
+                var visible = isVisible(p, feature);
                 var color;
-                var opaque;
+                var opacity;
                 var icon;
                 color = feature.getProperty('color');
-                opaque = feature.getProperty('opaque');
+                opacity = feature.getProperty('opacity');
                 icon = feature.getProperty('icon');
                 return ({
+                    visible : visible,
                     icon : icon,
                     strokeColor : color,
-                    strokeOpacity: opaque,
+                    strokeOpacity: opacity,
                     strokeWeight : 1
                 });
             });
         });
-    }
+    });
 
-    function boundsChanged()
+    function isVisible(pmm, feature)
     {
-        var href = window.location.href;
-        var bounds = map.getBounds();
-        var zoom = map.getZoom();
-        $.getJSON("/geojson?bbox="+bounds.toUrlValue()+"&zoom="+zoom, function(data)
-        {
-            var i;
-            var arr = data['keys'];
-            for (key in arr)
-            {
-                map.data.loadGeoJson(href+"/geojson?key="+arr[key], function(array)
-                {
-                    var arr = array;
-                });
-            }
-        });
+        var minPmm = feature.getProperty('pmm');
+        return (!minPmm || minPmm < pmm);
     }
-    
+    function pixelsPerMiles(win, map)
+    {
+        var height = $(win).height();
+        var bounds = map.getBounds();
+        var ne = bounds.getNorthEast();
+        var sw = bounds.getSouthWest();
+        var dLat = ne.lat() - sw.lat();
+        return (height / dLat) / 60;
+    }
 });
 
 

@@ -1721,7 +1721,7 @@ public class DS extends CachingDatastoreService
                 feature = new Feature(lineString);
                 feature.setId(KeyFactory.keyToString(key));
                 feature.setProperty("color", settings.getTrackCss3Color());
-                feature.setProperty("opaque", getAlpha(begin));
+                feature.setProperty("opacity", getAlpha(begin));
                 feature.write(cw);
                 break;
             case BlogKind:
@@ -1732,6 +1732,7 @@ public class DS extends CachingDatastoreService
                 feature = new Feature(point);
                 feature.setId(KeyFactory.keyToString(key));
                 feature.setProperty("icon", settings.getIcon(entity));
+                feature.setProperty("pmm", 1000);
                 feature.write(cw);
                 break;
             default:
