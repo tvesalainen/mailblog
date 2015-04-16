@@ -209,6 +209,10 @@ public class Settings implements Serializable
 
     public int getIntProperty(String property)
     {
+        return getIntProperty(property, 0);
+    }
+    public int getIntProperty(String property, int def)
+    {
         Long l = (Long) map.get(property);
         if (l != null)
         {
@@ -216,7 +220,7 @@ public class Settings implements Serializable
         }
         else
         {
-            return 0;
+            return def;
         }
     }
 
@@ -269,6 +273,20 @@ public class Settings implements Serializable
                 return getSpotIcon(description);
             default:
                 return DefaultIcon;
+        }
+    }
+    public int getPpm(Entity entity)
+    {
+        switch (entity.getKind())
+        {
+            case BlogKind:
+                return getIntProperty(BlogIconPpmProperty, 1000);
+            case MetadataKind:
+                return getIntProperty(ImageIconPpmProperty, 1000);
+            case PlacemarkKind:
+                return getIntProperty(PlacemarkIconPpmProperty, 1000);
+            default:
+                return 1000;
         }
     }
     public String getBlogIcon()

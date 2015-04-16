@@ -54,27 +54,43 @@ public class CommonSettingsServlet extends EntityServlet
         addProperty(BlogIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
-                .setTooltip("Used to show blogs place (GoogleEarth)");
+                .setTooltip("Used to show blogs place");
+        addProperty(BlogIconPpmProperty)
+                .setType(Long.class)
+                .setAttribute("min", "0")
+                .setTooltip("Minimum pixels per mile for blog icon");
         addProperty(ImageIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
-                .setTooltip("Used to show image (GoogleEarth)");
+                .setTooltip("Used to show image ");
+        addProperty(ImageIconPpmProperty)
+                .setType(Long.class)
+                .setAttribute("min", "0")
+                .setTooltip("Minimum pixels per mile for image icon");
         addProperty(HiLiteIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
-                .setTooltip("Used to show when point in time is used (GoogleEarth)");
+                .setTooltip("Used to show when point in time is used");
+        addProperty(HiLiteIconPpmProperty)
+                .setType(Long.class)
+                .setAttribute("min", "0")
+                .setTooltip("Minimum pixels per mile for hilite icon");
         addProperty(SpotOkIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
-                .setTooltip("Used to show a place where Spot Ok button was pressed (GoogleEarth)");
+                .setTooltip("Used to show a place where Spot Ok button was pressed");
         addProperty(SpotCustomIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
-                .setTooltip("Used to show a place where Spot Custom button was pressed (GoogleEarth)");
+                .setTooltip("Used to show a place where Spot Custom button was pressed");
         addProperty(SpotHelpIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
-                .setTooltip("Used to show a place where Spot Help button was pressed (GoogleEarth)");
+                .setTooltip("Used to show a place where Spot Help button was pressed");
+        addProperty(PlacemarkIconPpmProperty)
+                .setType(Long.class)
+                .setAttribute("min", "0")
+                .setTooltip("Minimum pixels per mile for placemark icon");
         addProperty(TrackBearingToleranceProperty)
                 .setType(Double.class)
                 .setTooltip("If bearing changes less than given degrees, no new trackpoint is created");

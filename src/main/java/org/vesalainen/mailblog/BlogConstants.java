@@ -89,6 +89,10 @@ public interface BlogConstants
     static final String SpotOkIconProperty = "SpotOkIcon";
     static final String SpotCustomIconProperty = "SpotCustomIcon";
     static final String SpotHelpIconProperty = "SpotHelpIcon";
+    static final String BlogIconPpmProperty = "BlogIconPpm";
+    static final String ImageIconPpmProperty = "ImageIconPpm";
+    static final String HiLiteIconPpmProperty = "HiLiteIconPpm";
+    static final String PlacemarkIconPpmProperty = "PlacemarkIconPpm";
     static final String DontSendEmailProperty = "DontSendEmail";
     static final String SouthWestProperty = "SouthWest";
     static final String NorthEastProperty = "NorthEast";

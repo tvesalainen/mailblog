@@ -1732,7 +1732,7 @@ public class DS extends CachingDatastoreService
                 feature = new Feature(point);
                 feature.setId(KeyFactory.keyToString(key));
                 feature.setProperty("icon", settings.getIcon(entity));
-                feature.setProperty("pmm", 1000);
+                feature.setProperty("pmm", settings.getPpm(entity));
                 feature.write(cw);
                 break;
             default:
