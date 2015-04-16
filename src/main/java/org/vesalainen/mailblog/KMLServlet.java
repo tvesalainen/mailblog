@@ -169,7 +169,7 @@ public class KMLServlet extends BaseServlet
         StyleType pathStyleType = factory.createStyleType();
         pathStyleType.setId(PathStyleId);
         LineStyleType pathLineStyleType = factory.createLineStyleType();
-        pathLineStyleType.setColor(settings.getPathColor());
+        pathLineStyleType.setColor(settings.getTrackColor());
         pathStyleType.setLineStyle(pathLineStyleType);
         JAXBElement<StyleType> pathStyle = factory.createStyle(pathStyleType);
         abstractStyleSelectorGroup.add(pathStyle);

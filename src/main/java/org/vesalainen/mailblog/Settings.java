@@ -353,24 +353,6 @@ public class Settings implements Serializable
     }
 
     /**
-     * Return Path opaque color
-     * @return 
-     */
-    public byte[] getPathColor()
-    {
-        return getPathColor(0xff);
-    }
-    /**
-     * Return Path color
-     * @param alpha
-     * @return 
-     */
-    public byte[] getPathColor(int alpha)
-    {
-        Long l = (Long) map.get(PathColorProperty);
-        return rgbToArray(alpha, l.intValue());
-    }
-    /**
      * Returns full opaque track color
      * @return 
      */

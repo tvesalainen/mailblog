@@ -43,9 +43,6 @@ public class CommonSettingsServlet extends EntityServlet
         addProperty(CommonPlacemarksProperty)
                 .setType(Boolean.class)
                 .setTooltip("If true the placemarks and tracks are stored in empty namespace");
-        addProperty(PathColorProperty)
-                .setType(Color.class)
-                .setTooltip("Color used for path between placemarks");
         addProperty(TrackColorProperty)
                 .setType(Color.class)
                 .setTooltip("Color used for track");
