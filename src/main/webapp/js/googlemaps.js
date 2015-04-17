@@ -20,13 +20,20 @@ $(document).ready(function()
     $(".map-canvas").each(function()
     {
         var win = this;
-        $.getJSON("/geojson?height="+$(win).height(), function(data)
+        $.getJSON("/geojson?height="+$(win).height()+"&width="+$(win).width(), function(data)
         {
             var mapOptions = {
                 center: {lat: data['latitude'], lng: data['longitude']},
                 zoom: data['zoom']
             };
             var map = new google.maps.Map(win, mapOptions);
+            if (data['north'])
+            {
+                var sw = LatLng(data['south'], data['west']);
+                var ne = LatLng(data['north'], data['east']);
+                var bb = LatLngBounds(sw, ne);
+                map.panToBounds(bb);
+            }
             google.maps.event.addListener(map, 'bounds_changed', function()
             {
                 var href = window.location.href;

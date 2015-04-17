@@ -162,5 +162,17 @@ public class BoundingBoxTest
         box2.add(21, 22);
         assertTrue(box1.isIntersecting(box2));
     }
+    @Test
+    public void testDimensions()
+    {
+        BoundingBox box1 = new BoundingBox();
+        box1.add(10, 170);
+        box1.add(20, -170);
+        assertEquals(20, box1.getWidth(), Epsilon);
+        BoundingBox box2 = new BoundingBox();
+        box2.add(9, 10);
+        box2.add(21, 20);
+        assertEquals(10, box2.getWidth(), Epsilon);
+    }
 
 }

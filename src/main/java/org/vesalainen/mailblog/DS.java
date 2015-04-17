@@ -1180,6 +1180,41 @@ public class DS extends CachingDatastoreService
         return rin.doIt(null, settings.isCommonPlacemarks());
     }
 
+    public <T> Iterable<Entity> fetchPlacemarks(final T after)
+    {
+        final String filterProperty;
+        if (after instanceof Date)
+        {
+            filterProperty = TimestampProperty;
+        }
+        else
+        {
+            if (after instanceof Key)
+            {
+                filterProperty = Entity.KEY_RESERVED_PROPERTY;
+            }
+            else
+            {
+                throw new IllegalArgumentException("unexpected type "+after);
+            }
+        }
+        Settings settings = getSettings();
+        RunInNamespace<Iterable<Entity>> rin = new RunInNamespace()
+        {
+            @Override
+            protected Iterable<Entity> run()
+            {
+                Query placemarkQuery = new Query(PlacemarkKind);
+                placemarkQuery.setFilter(new FilterPredicate(filterProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, after));
+                placemarkQuery.addSort(filterProperty);
+                System.err.println(placemarkQuery);
+                PreparedQuery placemarkPrepared = prepare(placemarkQuery);
+                return placemarkPrepared.asIterable();
+            }
+        };
+        return rin.doIt(null, settings.isCommonPlacemarks());
+    }
+
     public Iterable<Entity> fetchTracks()
     {
         Settings settings = getSettings();
@@ -1621,16 +1656,18 @@ public class DS extends CachingDatastoreService
         pw.println("ended locating pictures");
     }
 
-    public void writeMapInit(CacheWriter cw, int height)
+    public void writeMapInit(CacheWriter cw, int height, int width)
     {
         Settings settings = getSettings();
         JSONObject json = new JSONObject();
         Iterable<Entity> lastPlacemarksIterable = fetchLastPlacemarks(settings);
         Iterator<Entity> iterator = lastPlacemarksIterable.iterator();
+        BoundingBox bb = new BoundingBox();
         if (iterator.hasNext())
         {
             Entity pm = iterator.next();
             GeoPt location = (GeoPt) pm.getProperty(LocationProperty);
+            bb.add(location);
             Date timestamp = (Date) pm.getProperty(TimestampProperty);
             json.put(LatitudeParameter, location.getLatitude());
             json.put(LongitudeParameter, location.getLongitude());
@@ -1638,108 +1675,51 @@ public class DS extends CachingDatastoreService
             json.put(TimestampParameter, sdf.format(timestamp));
             String description = (String) pm.getProperty(DescriptionProperty);
             SpotType st = SpotType.getSpotType(description);
+            GeoPt location2 = null;
             while (iterator.hasNext() && SpotType.Ok != st)
             {
                 pm = iterator.next();
+                location2 = (GeoPt) pm.getProperty(LocationProperty);
+                bb.add(location2);
                 description = (String) pm.getProperty(DescriptionProperty);
                 st = SpotType.getSpotType(description);
             }
-            GeoPt location2 = (GeoPt) pm.getProperty(LocationProperty);
-            double distance = getDistance(location, location2);
-            // TODO !!!
             json.put(ZoomParameter, 8);
-        }
-        json.write(cw);
-        cw.cache();
-    }
-    
-    public void writeRegionKeys(CacheWriter cw, BoundingBox bb)
-    {
-        Iterable<Entity> tracksIterable = null;
-        Iterable<Entity> placemarksIterable = null;
-        Iterable<Entity> imageLocationsIterable = null;
-        Iterable<Entity> blogLocationsIterable = null;
-        
-        MapList<BoundingBox,Pair<BoundingBox,Key>> boxList = (MapList<BoundingBox,Pair<BoundingBox,Key>>) getFromCache("RegionList");
-        if (boxList == null)
-        {
-            tracksIterable = fetchTracks();
-        }
-        List<Pair<GeoPt,Key>> locationList = (List<Pair<GeoPt,Key>>) getFromCache("LocationList");
-        if (locationList == null)
-        {
-            placemarksIterable = fetchPlacemarks();
-            imageLocationsIterable = fetchImageLocations();
-            blogLocationsIterable = fetchBlogLocations();
-        }
-        if (boxList == null)
-        {
-            boxList = new HashMapList<>();
-            for (Entity track : tracksIterable)
+            if (location2 != null)
             {
-                BoundingBox bbTrack = new BoundingBox(track);
-                for (Entity trackSeq : fetchTrackSeqs(track.getKey()))
+                double bbWidth = bb.getWidth();
+                double bbHeight = bb.getHeight();
+                for (int zoom = 8;zoom >= 0;zoom--)
                 {
-                    BoundingBox bbTrackSeq = new BoundingBox(trackSeq);
-                    boxList.add(bbTrack, new Pair<BoundingBox,Key>(bbTrackSeq, trackSeq.getKey()));
-                }
-            }
-            putToCache("RegionList", boxList);
-        }
-        if (locationList == null)
-        {
-            locationList = new ArrayList<>();
-            for (Entity placemark : placemarksIterable)
-            {
-                GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
-                if (location != null)
-                {
-                    locationList.add(new Pair<>(location, placemark.getKey()));
-                }
-            }
-            for (Entity metadata : imageLocationsIterable)
-            {
-                GeoPt location = (GeoPt) metadata.getProperty(LocationProperty);
-                if (location != null)
-                {
-                    locationList.add(new Pair<>(location, metadata.getKey()));
-                }
-            }
-            for (Entity blog : blogLocationsIterable)
-            {
-                GeoPt location = (GeoPt) blog.getProperty(LocationProperty);
-                if (location != null)
-                {
-                    locationList.add(new Pair<>(location, blog.getKey()));
-                }
-            }
-            putToCache("LocationList", locationList);
-        }
-        JSONObject json = new JSONObject();
-        JSONArray jarray = new JSONArray();
-        json.put("keys", jarray);
-        for (Entry<BoundingBox,List<Pair<BoundingBox, Key>>> entry : boxList.entrySet())
-        {
-            if (bb.isIntersecting(entry.getKey()))
-            {
-                for (Pair<BoundingBox, Key> pair : entry.getValue())
-                {
-                    if (bb.isIntersecting(pair.getFirst()))
+                    double c = Math.pow(2, zoom);
+                    int neededWidth = (int) (c*bbWidth);
+                    int neededHeight = (int) (c*bbHeight);
+                    if (neededWidth < width && neededHeight < height)
                     {
-                        jarray.put(KeyFactory.keyToString(pair.getSecond()));
+                        json.put(ZoomParameter, zoom);
+                        bb.populate(json);
+                        break;
                     }
                 }
             }
         }
-        for (Pair<GeoPt,Key> pair : locationList)
-        {
-            if (bb.isInside(pair.getFirst()))
-            {
-                jarray.put(KeyFactory.keyToString(pair.getSecond()));
-            }
-        }
         json.write(cw);
         cw.cache();
+    }
+    private GeoData getGeoData()
+    {
+        GeoData geoData = (GeoData) getFromCache("GeoData");
+        if (geoData == null)
+        {
+            geoData = new GeoData(this);
+            putToCache("GeoData", geoData);
+        }
+        return geoData;
+    }
+    public void writeRegionKeys(CacheWriter cw, BoundingBox bb)
+    {
+        GeoData geoData = getGeoData();
+        geoData.writeRegionKeys(cw, bb);
     }
 
     public void writeFeature(CacheWriter cw, Key key)
@@ -1758,6 +1738,7 @@ public class DS extends CachingDatastoreService
         switch (key.getKind())
         {
             case TrackSeqKind:
+            {
                 Date begin = (Date) entity.getProperty(BeginProperty);
                 LineString lineString = new LineString();
                 for (Entity trackPoint : fetchTrackPoints(key))
@@ -1770,10 +1751,11 @@ public class DS extends CachingDatastoreService
                 feature.setProperty("color", settings.getTrackCss3Color());
                 feature.setProperty("opacity", getAlpha(begin));
                 feature.write(cw);
+            }
                 break;
             case BlogKind:
             case MetadataKind:
-            case PlacemarkKind:
+            {
                 GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
                 Point point = new Point(location);
                 feature = new Feature(point);
@@ -1781,6 +1763,23 @@ public class DS extends CachingDatastoreService
                 feature.setProperty("icon", settings.getIcon(entity));
                 feature.setProperty("pmm", settings.getPpm(entity));
                 feature.write(cw);
+            }
+                break;
+            case PlacemarkKind:
+            {
+                Date timestamp = (Date) entity.getProperty(TimestampProperty);
+                LineString lineString = new LineString();
+                for (Entity placemark : fetchPlacemarks(key))
+                {
+                    GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
+                    lineString.add(location);
+                }
+                feature = new Feature(lineString);
+                feature.setId(KeyFactory.keyToString(key));
+                feature.setProperty("color", settings.getTrackCss3Color());
+                feature.setProperty("opacity", getAlpha(timestamp));
+                feature.write(cw);
+            }
                 break;
             default:
                 System.err.println("Unknown entity "+entity);
@@ -1803,10 +1802,15 @@ public class DS extends CachingDatastoreService
         int age = (int) Math.round(c * Math.sqrt(xn - begin.getTime()));
         return 255 - age;
     }
-
-    public static double getDistance(GeoPt l1, GeoPt l2)
+    /**
+     * Return distance in degrees between l1 and 2l
+     * @param l1
+     * @param l2
+     * @return 
+     */
+    public static double getDegreesDistance(GeoPt l1, GeoPt l2)
     {
-        double departure = Math.cos((l1.getLatitude()+l2.getLatitude())/2);
+        double departure = Math.cos(Math.toRadians((l1.getLatitude()+l2.getLatitude())/2));
         return Math.hypot(l1.getLatitude()-l2.getLatitude(), departure*(l1.getLongitude()-l2.getLongitude()));
     }
     

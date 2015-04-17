@@ -21,6 +21,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.GeoPt;
 import java.io.Serializable;
 import java.util.Collection;
+import org.json.JSONObject;
 import static org.vesalainen.mailblog.BlogConstants.NorthEastProperty;
 import static org.vesalainen.mailblog.BlogConstants.SouthWestProperty;
 import org.vesalainen.repacked.net.opengis.kml.LatLonAltBoxType;
@@ -108,10 +109,39 @@ public class BoundingBox implements Serializable
     {
         this((GeoPt) entity.getProperty(NorthEastProperty), (GeoPt) entity.getProperty(SouthWestProperty));
     }
-
+    /**
+     * Return height in degrees
+     * @return 
+     */
+    public double getHeight()
+    {
+        return north - south;
+    }
+    /**
+     * Return width in degrees
+     * @return 
+     */
+    public double getWidth()
+    {
+        if (east >= west)
+        {
+            return east - west;
+        }
+        else
+        {
+            return 360+east-west;
+        }
+    }
     public static boolean isPopulated(Entity entity)
     {
         return entity.hasProperty(SouthWestProperty) && entity.hasProperty(NorthEastProperty);
+    }
+    public void populate(JSONObject json)
+    {
+        json.put("north", north);
+        json.put("south", south);
+        json.put("east", east);
+        json.put("west", west);
     }
     public void populate(Entity entity)
     {

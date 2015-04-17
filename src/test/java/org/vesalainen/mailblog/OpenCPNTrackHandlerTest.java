@@ -22,8 +22,6 @@ import com.google.appengine.api.datastore.GeoPt;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
-import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,10 +39,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.xml.bind.JAXBException;
-import org.junit.After;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.junit.Before;
 import org.vesalainen.gpx.GPX;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.mailblog.exif.ExifException;
@@ -56,29 +52,13 @@ import org.vesalainen.mailblog.types.TimeSpan;
  *
  * @author tkv
  */
-public class OpenCPNTrackHandlerTest
+public class OpenCPNTrackHandlerTest extends DSHelper
 {
-    static final Double Epsilon = 1e-5;
-    
-    private final LocalServiceTestHelper helper = 
-            new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig()
-                    .setDefaultHighRepJobPolicyUnappliedJobPercentage(1));
     
     public OpenCPNTrackHandlerTest()
     {
     }
 
-    @Before
-    public void setUp()
-    {
-        helper.setUp();
-    }
-
-    @After
-    public void tearDown()
-    {
-        helper.tearDown();
-    }
 
     @Test
     public void test()

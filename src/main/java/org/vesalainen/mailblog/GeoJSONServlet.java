@@ -86,6 +86,7 @@ public class GeoJSONServlet extends BaseServlet
                 if (keyStr != null)
                 {
                     Key key = KeyFactory.stringToKey(keyStr);
+                    log(key.toString());
                     try (DS.CacheWriter cw = ds.createCacheWriter(request, response))
                     {
                         cw.setETag(eTag)
@@ -96,14 +97,16 @@ public class GeoJSONServlet extends BaseServlet
                 else
                 {
                     String heightStr = request.getParameter(HeightParameter);
-                    if (heightStr != null)
+                    String widthStr = request.getParameter(WidthParameter);
+                    if (heightStr != null && widthStr != null)
                     {
                         int height = Integer.parseInt(heightStr);
+                        int width = Integer.parseInt(widthStr);
                         try (DS.CacheWriter cw = ds.createCacheWriter(request, response))
                         {
                             cw.setETag(eTag)
                             .setContentType("application/json");
-                            ds.writeMapInit(cw, height);
+                            ds.writeMapInit(cw, height, width);
                         }
                     }
                 }
