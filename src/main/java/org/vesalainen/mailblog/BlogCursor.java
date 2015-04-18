@@ -19,11 +19,8 @@ package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.Cursor;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Timo Vesalainen
@@ -118,15 +115,7 @@ public class BlogCursor extends WebSafe
                 fieldname = reader.getFieldname();
             }
         }
-        catch (NoSuchFieldException ex)
-        {
-            Logger.getLogger(BlogCursor.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        catch (SecurityException ex)
-        {
-            throw new IOException(ex);
-        }
-        catch (IllegalAccessException ex)
+        catch (NoSuchFieldException | SecurityException | IllegalAccessException ex)
         {
             throw new IOException(ex);
         }
