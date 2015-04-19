@@ -29,14 +29,13 @@ $(document).ready(function()
             var map = new google.maps.Map(win, mapOptions);
             if (data['north'])
             {
-                var sw = LatLng(data['south'], data['west']);
-                var ne = LatLng(data['north'], data['east']);
-                var bb = LatLngBounds(sw, ne);
+                var sw = new google.maps.LatLng(data['south'], data['west']);
+                var ne = new google.maps.LatLng(data['north'], data['east']);
+                var bb = new google.maps.LatLngBounds(sw, ne);
                 map.panToBounds(bb);
             }
             google.maps.event.addListener(map, 'bounds_changed', function()
             {
-                var href = window.location.href;
                 var bounds = map.getBounds();
                 var zoom = map.getZoom();
                 $.getJSON("/geojson?bbox="+bounds.toUrlValue()+"&zoom="+zoom, function(data)
@@ -47,7 +46,7 @@ $(document).ready(function()
                         var key = arr[i];
                         if (!map.data.getFeatureById(key))
                         {
-                            map.data.loadGeoJson(href+"/geojson?key="+key, function(array)
+                            map.data.loadGeoJson("/geojson?key="+key, function(array)
                             {
                                 var arr = array;
                             });

@@ -70,7 +70,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -84,12 +83,10 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import static org.vesalainen.mailblog.CachingDatastoreService.getRootKey;
 import org.vesalainen.mailblog.GeoJSON.Feature;
-import org.vesalainen.mailblog.GeoJSON.FeatureCollection;
 import org.vesalainen.mailblog.GeoJSON.LineString;
 import org.vesalainen.mailblog.GeoJSON.Point;
 import org.vesalainen.mailblog.types.GeoPtType;
@@ -97,9 +94,6 @@ import org.vesalainen.mailblog.types.TimeSpan;
 import org.vesalainen.rss.Channel;
 import org.vesalainen.rss.Item;
 import org.vesalainen.rss.RSS;
-import org.vesalainen.util.HashMapList;
-import org.vesalainen.util.MapList;
-import org.vesalainen.util.Pair;
 
 /**
  * @author Timo Vesalainen
@@ -148,6 +142,7 @@ public class DS extends CachingDatastoreService
         }
         return list;
     }
+
     public String createNamespaceSelect()
     {
         StringBuilder sb = new StringBuilder();
@@ -347,7 +342,7 @@ public class DS extends CachingDatastoreService
             }
         }
     }
-    
+
     public static URL getBase(HttpServletRequest request) throws IOException
     {
         try
@@ -449,41 +444,31 @@ public class DS extends CachingDatastoreService
         }
     }
 
-    public void getBlogList(String blogCursor, URL base, boolean all, CacheWriter sb) throws HttpException, IOException
+    public void getBlogList(String nextBlog, URL base, boolean all, CacheWriter sb) throws HttpException, IOException
     {
-        Date begin = null;
         Date end = null;
-        Cursor cursor = null;
-        if (blogCursor != null)
+        if (nextBlog != null)
         {
-            BlogCursor bc = new BlogCursor(blogCursor);
-            if (bc.isSearch())
+            Key key = KeyFactory.stringToKey(nextBlog);
+            Entity entity;
+            try
             {
-                Searches.getBlogListFromSearch(bc, base, sb);
-                return;
+                entity = get(key);
+                end = (Date) entity.getProperty(DateProperty);
             }
-            begin = bc.getBegin();
-            end = bc.getEnd();
-            cursor = bc.getDatastoreCursor();
+            catch (EntityNotFoundException ex)
+            {
+            }
         }
-        Settings settings = getSettings();
         FetchOptions options = FetchOptions.Builder.withDefaults();
         if (!all)
         {
-            options.limit(settings.getShowCount());
-        }
-        if (cursor != null)
-        {
-            options = options.startCursor(cursor);
+            options.limit(2);
         }
         Query query = new Query(BlogKind);
         query.addSort(DateProperty, Query.SortDirection.DESCENDING);
-        List<Filter> filters = new ArrayList<Filter>();
+        List<Filter> filters = new ArrayList<>();
         filters.add(new FilterPredicate(PublishProperty, Query.FilterOperator.EQUAL, true));
-        if (begin != null)
-        {
-            filters.add(new FilterPredicate(DateProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, begin));
-        }
         if (end != null)
         {
             filters.add(new FilterPredicate(DateProperty, Query.FilterOperator.LESS_THAN_OR_EQUAL, end));
@@ -502,19 +487,19 @@ public class DS extends CachingDatastoreService
         }
         System.err.println(query);
         PreparedQuery prepared = prepare(query);
-        QueryResultList<Entity> list = prepared.asQueryResultList(options);
-        cursor = list.getCursor();
-        BlogCursor bc = new BlogCursor()
-                .setDatastoreCursor(cursor)
-                .setBegin(begin)
-                .setEnd(end);
-        for (Entity entity : list)
+        Iterator<Entity> iterator = prepared.asIterator(options);
+        if (iterator.hasNext())
         {
-            sb.append(getBlog(entity, base));
+            sb.append(getBlog(iterator.next(), base));
         }
-        if (list.size() == settings.getShowCount())
+        if (iterator.hasNext())
         {
-            sb.append("<span id=\"nextPage\" class=\"hidden\">" + bc.getWebSafe() + "</span>");
+            Entity next = iterator.next();
+            sb.append("<a class='lasthref' href=/blog?nextblog=" + KeyFactory.keyToString(next.getKey()) + "></a>");
+        }
+        else
+        {
+            sb.append("<p class='lasthref'>");
         }
         sb.cache();
     }
@@ -569,7 +554,7 @@ public class DS extends CachingDatastoreService
         comment.setProperty(CommentProperty, new Text(text));
         comment.setProperty(TimestampProperty, new Date());
         put(comment);
-        sendMailToAdmins(user.getEmail()+" added comment", text);
+        sendMailToAdmins(user.getEmail() + " added comment", text);
     }
 
     public void removeComment(Key commentKey, User currentUser) throws HttpException
@@ -591,7 +576,7 @@ public class DS extends CachingDatastoreService
         {
             throw new HttpException(HttpServletResponse.SC_NOT_FOUND);
         }
-        sendMailToAdmins(currentUser.getEmail()+" removed comment", "");
+        sendMailToAdmins(currentUser.getEmail() + " removed comment", "");
     }
 
     private void sendMailToAdmins(String subject, String message)
@@ -603,7 +588,7 @@ public class DS extends CachingDatastoreService
         {
             Message msg = new MimeMessage(session);
             String appId = ApiProxy.getCurrentEnvironment().getAppId();
-            msg.setFrom(new InternetAddress("admin@"+appId+".appspotmail.com"));
+            msg.setFrom(new InternetAddress("admin@" + appId + ".appspotmail.com"));
             msg.addRecipient(Message.RecipientType.TO,
                     new InternetAddress("admins"));
             msg.setSubject(subject);
@@ -619,7 +604,7 @@ public class DS extends CachingDatastoreService
         {
             e.printStackTrace();
         }
-    }    
+    }
 
     private String getNickname(Email email)
     {
@@ -675,7 +660,7 @@ public class DS extends CachingDatastoreService
             metaProperty(cw, "og:image", blogImage);
         }
     }
-    
+
     public void writeOpenGraph(Key blogKey, URL base, CacheWriter cw) throws HttpException, IOException
     {
         Entity blog;
@@ -737,14 +722,14 @@ public class DS extends CachingDatastoreService
             throw new HttpException(HttpServletResponse.SC_NOT_FOUND, blogKey + " not found");
         }
     }
-    
+
     private String getAttachmentUrl(Key key, URL base)
     {
         assert AttachmentsKind.equals(key.getKind());
         try
         {
             URI baseUri = base.toURI();
-            URI uri = baseUri.resolve("/blob?"+Sha1Parameter+"="+key.getName()+"&"+OriginalParameter+"=true");
+            URI uri = baseUri.resolve("/blob?" + Sha1Parameter + "=" + key.getName() + "&" + OriginalParameter + "=true");
             return uri.toASCIIString();
         }
         catch (URISyntaxException ex)
@@ -752,6 +737,7 @@ public class DS extends CachingDatastoreService
             throw new IllegalArgumentException(ex);
         }
     }
+
     private String getBlogUrl(Key key, URL base)
     {
         assert BlogKind.equals(key.getKind());
@@ -766,10 +752,12 @@ public class DS extends CachingDatastoreService
             throw new IllegalArgumentException(ex);
         }
     }
+
     private void metaProperty(CacheWriter cw, String property, String content) throws IOException
     {
-        cw.append("<meta property=\""+property+"\" content=\""+content+"\">\n");
+        cw.append("<meta property=\"" + property + "\" content=\"" + content + "\">\n");
     }
+
     public void getBlog(Key key, URL base, CacheWriter cw) throws HttpException, IOException
     {
         Entity entity;
@@ -818,14 +806,14 @@ public class DS extends CachingDatastoreService
         String dateString = dateFormat.format(date);
         String locationString = getLocationString(location, key);
         return String.format(
-                locale, 
-                tmpl, 
-                subject, 
-                dateString, 
-                settings.getNickname(), 
-                body, 
-                base.toString(), 
-                key, 
+                locale,
+                tmpl,
+                subject,
+                dateString,
+                settings.getNickname(),
+                body,
+                base.toString(),
+                key,
                 locationString
         );
     }
@@ -834,13 +822,14 @@ public class DS extends CachingDatastoreService
     {
         if (location != null)
         {
-            return "<a class=\"LookAt\"href=\"/kml?"+LookAtParameter+"="+key+"\">"+GeoPtType.getString(location)+"</a>";
+            return "<a class=\"LookAt\"href=\"/kml?" + LookAtParameter + "=" + key + "\">" + GeoPtType.getString(location) + "</a>";
         }
         else
         {
             return "";
         }
     }
+
     public void getCalendar(CacheWriter cw) throws IOException
     {
         Settings settings = getSettings();
@@ -920,6 +909,7 @@ public class DS extends CachingDatastoreService
     {
         return KeyFactory.createKey(getRootKey(), SettingsKind, BaseKey);
     }
+
     public Settings getSettings()
     {
         try
@@ -1089,7 +1079,7 @@ public class DS extends CachingDatastoreService
     {
         System.err.println(json);
         Settings settings = getSettings();
-        Date timestamp ;
+        Date timestamp;
         if (TrackPointKind.equals(placemark.getKind()))
         {
             timestamp = new Date(placemark.getKey().getId());
@@ -1125,8 +1115,9 @@ public class DS extends CachingDatastoreService
                 out.append(locator);
                 out.append("</div>");
             }
-       }
+        }
     }
+
     public Iterable<Entity> fetchLastPlacemarks(Settings settings)
     {
         RunInNamespace<Iterable<Entity>> rin = new RunInNamespace()
@@ -1195,7 +1186,7 @@ public class DS extends CachingDatastoreService
             }
             else
             {
-                throw new IllegalArgumentException("unexpected type "+after);
+                throw new IllegalArgumentException("unexpected type " + after);
             }
         }
         Settings settings = getSettings();
@@ -1230,10 +1221,12 @@ public class DS extends CachingDatastoreService
         };
         return rin.doIt(null, settings.isCommonPlacemarks());
     }
+
     public Iterable<Entity> fetchTrackSeqs()
     {
         return fetchTrackSeqs(null);
     }
+
     public Iterable<Entity> fetchTrackSeqs(final Key ancestor)
     {
         Settings settings = getSettings();
@@ -1253,9 +1246,12 @@ public class DS extends CachingDatastoreService
         };
         return rin.doIt(null, settings.isCommonPlacemarks());
     }
+
     /**
-     * Returns begin of the first TrackSeq or current date if no TrackSeqs found.
-     * @return 
+     * Returns begin of the first TrackSeq or current date if no TrackSeqs
+     * found.
+     *
+     * @return
      */
     public Date getTrackSeqsBegin()
     {
@@ -1311,17 +1307,20 @@ public class DS extends CachingDatastoreService
     {
         return fetchImageMetadata(begin, end, false);
     }
+
     public Iterable<Entity> fetchImageMetadata(Date begin, Date end, boolean withoutLocation)
     {
         PreparedQuery metadataPrepared = createImageMetadataQuery(begin, end, withoutLocation);
         return metadataPrepared.asIterable();
     }
+
     public boolean hasImageMetadata(Date begin, Date end, boolean withoutLocation)
     {
         PreparedQuery metadataPrepared = createImageMetadataQuery(begin, end, withoutLocation);
         int count = metadataPrepared.countEntities(FetchOptions.Builder.withLimit(1));
         return count > 0;
     }
+
     private PreparedQuery createImageMetadataQuery(Date begin, Date end, boolean withoutLocation)
     {
         Query metadataQuery = new Query(MetadataKind);
@@ -1365,10 +1364,10 @@ public class DS extends CachingDatastoreService
         }
         return new GeoPt(lat / list.size(), lon / list.size());
     }
+
     /**
-     * @deprecated 
-     * @param entity
-     * @return 
+     * @deprecated @param entity
+     * @return
      */
     public List<GeoPt> getCoordinates(Entity entity)
     {
@@ -1384,10 +1383,10 @@ public class DS extends CachingDatastoreService
         }
         return (List<GeoPt>) ob;
     }
+
     /**
-     * @deprecated 
-     * @param entity
-     * @return 
+     * @deprecated @param entity
+     * @return
      */
     private List<Date> getTimestamp(Entity entity)
     {
@@ -1485,10 +1484,11 @@ public class DS extends CachingDatastoreService
         };
         rfan.start(this);
     }
-    private static final long DayInMillis = 24*60*60*1000;
+    private static final long DayInMillis = 24 * 60 * 60 * 1000;
+
     public Entity getBlogEntity(String messageId, String subject)
     {
-        Date yesterday = new Date(System.currentTimeMillis()-DayInMillis);
+        Date yesterday = new Date(System.currentTimeMillis() - DayInMillis);
         Query query = new Query(BlogKind);
         query.setFilter(new FilterPredicate(TimestampProperty, Query.FilterOperator.GREATER_THAN_OR_EQUAL, yesterday));
         PreparedQuery prepared = prepare(query);
@@ -1571,7 +1571,7 @@ public class DS extends CachingDatastoreService
                 ts1.populate(track);
                 ts1.clear();
                 put(track);
-                pw.println("fixed "+track);
+                pw.println("fixed " + track);
             }
         }
         pw.println("ready");
@@ -1626,14 +1626,14 @@ public class DS extends CachingDatastoreService
                                 double dLatitude = nextLatitude - prevLatitude;
                                 double dLongitude = nextLongitude - prevLongitude;
                                 double dTrackPointTime = nextTime - prevTime;
-                                double  dImageTime = imageTime - prevTime;
-                                double coeff = dImageTime/dTrackPointTime;
-                                float imageLatitude = (float) (prevLatitude + coeff*dLatitude);
-                                float imageLongitude = (float) (prevLongitude + coeff*dLongitude);
+                                double dImageTime = imageTime - prevTime;
+                                double coeff = dImageTime / dTrackPointTime;
+                                float imageLatitude = (float) (prevLatitude + coeff * dLatitude);
+                                float imageLongitude = (float) (prevLongitude + coeff * dLongitude);
                                 GeoPt imageLocation = new GeoPt(imageLatitude, imageLongitude);
                                 image.setProperty(LocationProperty, imageLocation);
                                 put(image);
-                                pw.println("Located: "+image);
+                                pw.println("Located: " + image);
                                 if (ImageIterator.hasNext())
                                 {
                                     image = ImageIterator.next();
@@ -1689,11 +1689,11 @@ public class DS extends CachingDatastoreService
             {
                 double bbWidth = bb.getWidth();
                 double bbHeight = bb.getHeight();
-                for (int zoom = 8;zoom >= 0;zoom--)
+                for (int zoom = 8; zoom >= 0; zoom--)
                 {
                     double c = Math.pow(2, zoom);
-                    int neededWidth = (int) (c*bbWidth);
-                    int neededHeight = (int) (c*bbHeight);
+                    int neededWidth = (int) (c * bbWidth);
+                    int neededHeight = (int) (c * bbHeight);
                     if (neededWidth < width && neededHeight < height)
                     {
                         json.put(ZoomParameter, zoom);
@@ -1706,6 +1706,7 @@ public class DS extends CachingDatastoreService
         json.write(cw);
         cw.cache();
     }
+
     private GeoData getGeoData()
     {
         GeoData geoData = (GeoData) getFromCache("GeoData");
@@ -1716,6 +1717,7 @@ public class DS extends CachingDatastoreService
         }
         return geoData;
     }
+
     public void writeRegionKeys(CacheWriter cw, BoundingBox bb)
     {
         GeoData geoData = getGeoData();
@@ -1752,7 +1754,7 @@ public class DS extends CachingDatastoreService
                 feature.setProperty("opacity", getAlpha(begin));
                 feature.write(cw);
             }
-                break;
+            break;
             case BlogKind:
             case MetadataKind:
             {
@@ -1764,7 +1766,7 @@ public class DS extends CachingDatastoreService
                 feature.setProperty("pmm", settings.getPpm(entity));
                 feature.write(cw);
             }
-                break;
+            break;
             case PlacemarkKind:
             {
                 Date timestamp = (Date) entity.getProperty(TimestampProperty);
@@ -1780,9 +1782,9 @@ public class DS extends CachingDatastoreService
                 feature.setProperty("opacity", getAlpha(timestamp));
                 feature.write(cw);
             }
-                break;
+            break;
             default:
-                System.err.println("Unknown entity "+entity);
+                System.err.println("Unknown entity " + entity);
         }
         cw.cache();
     }
@@ -1802,29 +1804,39 @@ public class DS extends CachingDatastoreService
         int age = (int) Math.round(c * Math.sqrt(xn - begin.getTime()));
         return 255 - age;
     }
+
     /**
      * Return distance in degrees between l1 and 2l
+     *
      * @param l1
      * @param l2
-     * @return 
+     * @return
      */
     public static double getDegreesDistance(GeoPt l1, GeoPt l2)
     {
-        double departure = Math.cos(Math.toRadians((l1.getLatitude()+l2.getLatitude())/2));
-        return Math.hypot(l1.getLatitude()-l2.getLatitude(), departure*(l1.getLongitude()-l2.getLongitude()));
+        double departure = Math.cos(Math.toRadians((l1.getLatitude() + l2.getLatitude()) / 2));
+        return Math.hypot(l1.getLatitude() - l2.getLatitude(), departure * (l1.getLongitude() - l2.getLongitude()));
     }
-    
+
     public interface Caching
     {
+
         Caching setMaxAge(int maxAge);
+
         Caching setContentType(String contentType);
+
         Caching setCharset(String charset);
+
         Caching setETag(String eTag);
+
         Caching setPrivate(boolean isPrivate);
+
         void cache();
     }
+
     public abstract class CachingImpl implements Caching
     {
+
         private final HttpServletResponse response;
         private String eTag;
         private final String cacheKey;
@@ -1875,18 +1887,18 @@ public class DS extends CachingDatastoreService
             cacheControl();
             return this;
         }
-        
+
         private void cacheControl()
         {
             if (isPrivate)
             {
-                response.setHeader("Cache-Control", "private, max-age="+maxAge+", no-cache");
+                response.setHeader("Cache-Control", "private, max-age=" + maxAge + ", no-cache");
             }
             else
             {
                 if (maxAge > 0)
                 {
-                    response.setHeader("Cache-Control", "public, max-age="+maxAge);
+                    response.setHeader("Cache-Control", "public, max-age=" + maxAge);
                 }
                 else
                 {
@@ -1896,8 +1908,10 @@ public class DS extends CachingDatastoreService
         }
 
     }
+
     public class CacheWriter extends FilterWriter implements Caching
     {
+
         private CachingImpl caching;
         private final StringWriter stringWriter = new StringWriter();
         private boolean cached;
@@ -1923,7 +1937,7 @@ public class DS extends CachingDatastoreService
                             throw new IllegalArgumentException(ex);
                         }
                         cache.put(caching.cacheKey, cachedContent);
-                        System.err.println("caching as "+caching.cacheKey);
+                        System.err.println("caching as " + caching.cacheKey);
                     }
                     cached = true;
                 }
@@ -1997,9 +2011,9 @@ public class DS extends CachingDatastoreService
         }
     }
 
-    
     public class CacheOutputStream extends FilterOutputStream implements Caching
     {
+
         private final CachingImpl caching;
         private final ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
         private boolean cached;
@@ -2018,7 +2032,7 @@ public class DS extends CachingDatastoreService
                         CachedContent cachedContent;
                         cachedContent = new CachedContent(content, caching.response.getContentType(), caching.response.getCharacterEncoding(), caching.eTag, caching.isPrivate);
                         cache.put(caching.cacheKey, cachedContent);
-                        System.err.println("caching as "+caching.cacheKey);
+                        System.err.println("caching as " + caching.cacheKey);
                     }
                     cached = true;
                 }

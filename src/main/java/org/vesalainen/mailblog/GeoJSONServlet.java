@@ -35,7 +35,6 @@ public class GeoJSONServlet extends BaseServlet
     {
         DS ds = DS.get();
         Settings settings = ds.getSettings();
-        /*
         RunInNamespace<Boolean> checkETag = new RunInNamespace() 
         {
             @Override
@@ -57,7 +56,6 @@ public class GeoJSONServlet extends BaseServlet
             return;
         }
         if (!ds.serveFromCache(request, response))
-                */
         {
             RunInNamespace<String> getETag = new RunInNamespace() 
             {

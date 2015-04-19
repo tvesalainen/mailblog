@@ -65,7 +65,6 @@ public interface BlogConstants
     static final String PicMaxHeightProperty = "PicMaxHeight";
     static final String PicMaxWidthProperty = "PicMaxWidth";
     static final String FixPicProperty = "FixPic";
-    static final String ShowCountProperty = "ShowCount";
     static final String PageProperty = "Page";
     static final String WebSizeProperty = "WebSize";
     static final String WebSizeWidthProperty = "WebSizeWidth";
@@ -114,6 +113,7 @@ public interface BlogConstants
     
     static final String RemoveParameter = "remove";
     static final String BlogParameter = "blog";
+    static final String NextBlogParameter = "nextblog";
     static final String BlobParameter = "blob-key";
     static final String CalendarParameter = "calendar";
     static final String OriginalParameter = "original";

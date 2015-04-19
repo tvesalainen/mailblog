@@ -15,10 +15,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses></http:>.
  */
 
-/* global google, src, initialize */
-
-var pageStack = new Array();
-var firstPage = null;
 
 $(document).ready(function(){
 
@@ -34,6 +30,30 @@ $(document).ready(function(){
     
     $("#blog").load("/blog"+search, function(){
         afterLoad();
+    });
+
+    var pending = false;
+    $(window).scroll(function()
+    {
+        if (!pending)
+        {
+            var top = $(window).scrollTop();
+            var dh = $(document).height();
+            var wh = $(window).height();
+            if(top > 0 && top >= dh - wh)
+            {
+                var href = $("#blog").find(".lasthref").last().attr("href");
+                if (href)
+                {
+                    $("#blog").append("<div class='appendhere'></div>");
+                    pending = true;
+                    $("#blog").find(".appendhere").last().load(href, function()
+                    {
+                        pending = false;
+                    });
+                }
+            }
+        }
     });
     
     $("#calendar").load("/blog?calendar=true", function()
@@ -127,53 +147,10 @@ $(document).ready(function(){
     });
 
     $("body").on("click", ".top", function(event){       
-        firstPage = null; 
         $("#blog").load("/blog", function(){
             afterLoad();
         });
-        pageStack.length = 0;
     });
-
-    $("body").on("click", ".backward", function(event){        
-        var cursor = $("#nextPage").text();
-        if (cursor) 
-        {
-            pageStack.push(cursor);
-            $("#blog").load("/blog?cursor="+cursor, function(){
-                afterLoad();
-            });
-        }
-    });
-
-    $("body").on("click", ".forward", function(event){        
-        if (pageStack.length > 0)
-        {
-            if (pageStack.length == 1)
-            {
-                if (firstPage)
-                {
-                  $("#blog").load("/blog?cursor="+firstPage, function(){
-                      afterLoad();
-                  });
-                }
-                else
-                {
-                  $("#blog").load("/blog", function(){
-                      afterLoad();
-                  });
-                }
-            }
-            else
-            {
-                var cursor = pageStack[pageStack.length-2];
-                $("#blog").load("/blog?cursor="+cursor, function(){
-                    afterLoad();
-                });
-            }
-            pageStack.pop();
-        }
-    });
-
     
 });
 
@@ -187,22 +164,5 @@ function afterLoad()
             $(".hidden").hide();
         });
     });
-    var cursor = $("#nextPage").text();
-    if (cursor)
-    {
-        $(".backward").show();
-    }
-    else
-    {
-        $(".backward").hide();
-    }
-    if (pageStack.length > 0)
-    {
-        $(".forward").show();
-    }
-    else
-    {
-        $(".forward").hide();
-    }
     $(".hidden").hide();
 }

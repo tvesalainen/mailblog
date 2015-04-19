@@ -202,11 +202,6 @@ public class Settings implements Serializable
     {
         return getIntProperty(PicMaxWidthProperty);
     }
-    public int getShowCount()
-    {
-        return getIntProperty(ShowCountProperty);
-    }
-
     public int getIntProperty(String property)
     {
         return getIntProperty(property, 0);

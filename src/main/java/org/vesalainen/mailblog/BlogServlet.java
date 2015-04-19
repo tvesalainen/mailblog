@@ -120,11 +120,11 @@ public class BlogServlet extends HttpServlet
                         }
                         else
                         {
-                            String blogCursor = request.getParameter(CursorParameter);
+                            String nextBlog = request.getParameter(NextBlogParameter);
                             boolean all = request.getParameter(AllParameter) != null;
                             try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
                             {
-                                ds.getBlogList(blogCursor, base, all, cacheWriter);
+                                ds.getBlogList(nextBlog, base, all, cacheWriter);
                             }
                         }
                     }
@@ -173,7 +173,7 @@ public class BlogServlet extends HttpServlet
                     try (CacheWriter cacheWriter = ds.createCacheWriter(request, response))
                     {
                         cacheWriter.setPrivate(true);
-                        ds.getBlogList(bc.getWebSafe(), base, false, cacheWriter);
+                        Searches.getBlogListFromSearch(bc, base, cacheWriter);
                     }
                 }
             }

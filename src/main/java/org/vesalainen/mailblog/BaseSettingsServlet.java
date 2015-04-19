@@ -49,9 +49,6 @@ public class BaseSettingsServlet extends SettingsServlet
                 .setTooltip("Link to blog image");
         addProperty(PublishImmediatelyProperty)
                 .setType(Boolean.class);
-        addProperty(ShowCountProperty)
-                .setType(Long.class)
-                .setMandatory();
         addProperty(LocaleProperty)
                 .setType(Locale.class)
                 .setMandatory();

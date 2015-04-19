@@ -1,20 +1,21 @@
 body
 {
-background-image: url('../images/tausta.jpg');
-background-repeat:no-repeat;
-background-attachment:fixed;
+    //background-image: url('../images/tausta.jpg');
+    background-repeat:no-repeat;
+    background-attachment:fixed;
+    margin: 10px;
+    padding: 5px;
 }
 
 #page
 {
-	margin: 0 auto;
-	width: 1000px;
-	background: #fff;
+    width: 100%;
+    background: #fff;
 }
 
 #header
 {
- 
+
 }
 
 #headermainos
@@ -24,76 +25,49 @@ background-attachment:fixed;
 
 #blogname
 {
-    width: 1000px;
-    height: 142px;
-background-image: url('../images/headertausta.jpg');
-color: white;
+    width: 100%;
+    height: 40px;
+    background-image: url('../images/kauaspoistausta.jpg');
+    color: white;
 
 }
 
 #blogname h1
 {
     
-    font-size: 80px;
+    font-size: 20px;
     font-family:"Comic Sans MS", cursive, sans-serif;
     display: inline;
 }
 
-
-#navigation
-{
-	float: left;
-	width: 1000px;
-	background: #333;
-}
-
-#navigation ul
-{
-	margin: 0;
-	padding: 0;
-}
-
-#navigation ul li
-{
-	list-style-type: none;
-	display: inline;
-}
-
-#navigation li a
-{
-	display: block;
-	float: left;
-	padding: 5px 10px;
-	color: #fff;
-	text-decoration: none;
-	border-right: 1px solid #fff;
-}
-
-#navigation li a:hover { background: #383; }
-
-#content
-{
-	float: left;
-	width: 1000px;
-	background: #fff;
-}
-
 #leftside
 {
-	float: left;
-	width: 230px;
-	padding: 20px 0;
-	margin: 0 20px;
-	display: inline;
+    padding: 20px 0;
+    display: inline;
+    font-size: 14px;
+    background: #fff;
 }
 
-
-#blogarea
+#map
 {
-	float: left;
-	width: 500px;
-	padding: 20px 0;
-	margin: 0 0 0 30px;
+    float: left;
+}
+#navigation
+{
+    float: right;
+}
+.map-canvas 
+{ 
+    height: 300px; 
+    width: 50%;
+}
+
+.content
+{
+    float: left;
+    width: 500px;
+    padding: 20px 0;
+    background: #fff;
 }
 
 .subject
@@ -111,13 +85,18 @@ color: white;
 .sender
 {
     font-family:Arial, Helvetica, sans-serif;
-    font-size:10px;
+    font-size:16px;
 }
 
 .body
 {
     font-family:Arial, Helvetica, sans-serif;
     font-size:14px;
+}
+
+.body p:first-letter 
+{
+font-size: 120%;
 }
 
 #rightside
@@ -135,28 +114,98 @@ color: white;
     margin: 0 10px;
 }
 
+.calendar-menu
+{
+    cursor: pointer;
+}
+
+#blogarea
+{
+}
+#blog
+{
+}
 .blog-entry
 {
     cursor: hand; 
     cursor: pointer;
 }
 
-#calendar h2
-{
-margin: 0px; border: 1px solid red;
+.blog-entry:first-letter {
+font-size: 120%;
+font-weight: bold;
 }
 
-#topics h2
+
+#calendar
 {
-margin: 0px; border: 1px solid red;
+
 }
 
-#footer
+#topics
 {
-	clear: left;
-	background: #333;
-	text-align: right;
-	padding: 0px;
-	height: 20px;
-        color: #fff;
+
+}
+
+.top
+{
+    font-size: 12px;
+    font-color: blue;
+    cursor: pointer;
+}
+
+@media screen and (min-width: 768px)
+{
+    #blogname
+    {
+        height: 142px;
+    }
+
+    #blogname h1
+    {
+        font-size: 80px;
+    }
+}
+@media screen and (min-width: 992px)
+{
+    #leftside
+    {
+        float: left;
+        width: 300px
+    }
+    #map
+    {
+        float: none;
+    }
+    #navigation
+    {
+        float: none;
+    }
+    .map-canvas 
+    { 
+        height: 300px; 
+        width: 100%;
+    }
+}
+@media screen and (min-width: 1200px)
+{
+    #leftside
+    {
+        width: 400px
+    }
+    .map-canvas 
+    { 
+        height: 400px; 
+    }
+}
+@media print
+{
+#blogarea { width: 100%;}
+.no-print {display: none;}
+#header {display: none;}
+#navigation {display: none;}
+#rightside {display: none;}
+#leftside {display: none;}
+#footer {display: none;}
+.subject {page-break-before: always;}
 }
