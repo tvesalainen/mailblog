@@ -42,6 +42,7 @@ public interface BlogConstants
     static final String TrackSeqKind = "TrackSeq";
     static final String TrackPointKind = "TrackPoint";
     static final String AttachmentsKind = "Attachments";
+    static final String ResourceKind = "Resource";
     
     static final String TitleProperty = "Title";
     static final String DescriptionProperty = "Description";
@@ -148,6 +149,9 @@ public interface BlogConstants
     static final String TimestampParameter = "timestamp";
     static final String MaidenheadLocatorParameter = "maidenhead";
     static final String ZoomParameter = "zoom";
+    static final String IdParameter = "id";
+    static final String TypeParameter = "type";
+    static final String TextParameter = "text";
     
     static final String StylePath = "/style.kmz";
     static final String PlacemarkPath = "/placemarkPath.kmz";

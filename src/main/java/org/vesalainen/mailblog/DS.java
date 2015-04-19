@@ -17,7 +17,6 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.NamespaceManager;
-import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entities;
 import com.google.appengine.api.datastore.Entity;
@@ -33,7 +32,6 @@ import com.google.appengine.api.datastore.Query.CompositeFilter;
 import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
-import com.google.appengine.api.datastore.QueryResultList;
 import com.google.appengine.api.datastore.Text;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
@@ -72,8 +70,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -100,7 +96,8 @@ import org.vesalainen.rss.RSS;
  */
 public class DS extends CachingDatastoreService
 {
-
+    private static final String Resources = "Resources";
+    
     private static Map<String, DS> nsMap = new HashMap<>();
     private String namespace;
 
@@ -905,6 +902,39 @@ public class DS extends CachingDatastoreService
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
+    public Key createResourceKey()
+    {
+        return KeyFactory.createKey(getRootKey(), ResourceKind, BaseKey);
+    }
+
+    public Resources getResources()
+    {
+        Resources resources = (Resources) getFromCache(Resources);
+        if (resources == null)
+        {
+            Key key = createResourceKey();
+            Entity entity;
+            try
+            {
+                entity = get(key);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                entity = new Entity(key);
+            }
+            try
+            {
+                resources = new Resources(this, entity);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                throw new IllegalArgumentException(ex);
+            }
+            putToCache(Resources, resources);
+        }
+        return resources;
+    }
+
     public Key createSettingsKey()
     {
         return KeyFactory.createKey(getRootKey(), SettingsKind, BaseKey);
@@ -912,23 +942,30 @@ public class DS extends CachingDatastoreService
 
     public Settings getSettings()
     {
-        try
+        Settings settings = (Settings) getFromCache("Settings");
+        if (settings == null)
         {
             Key key = createSettingsKey();
-            Entity entity = get(key);
-            if (entity != null)
+            Entity entity;
+            try
             {
-                return new Settings(this, entity);
+                entity = get(key);
             }
-            else
+            catch (EntityNotFoundException ex)
             {
-                throw new IllegalArgumentException("Root Settings not found");
+                entity = new Entity(key);
             }
+            try
+            {
+                settings = new Settings(this, entity);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                throw new IllegalArgumentException(ex);
+            }
+            putToCache("Settings", settings);
         }
-        catch (EntityNotFoundException ex)
-        {
-            throw new IllegalArgumentException(ex);
-        }
+        return settings;
     }
 
     public Settings getSettingsFor(Email email) throws HttpException
@@ -1816,6 +1853,44 @@ public class DS extends CachingDatastoreService
     {
         double departure = Math.cos(Math.toRadians((l1.getLatitude() + l2.getLatitude()) / 2));
         return Math.hypot(l1.getLatitude() - l2.getLatitude(), departure * (l1.getLongitude() - l2.getLongitude()));
+    }
+
+    public void addResource(final String id, final String type, final String text)
+    {
+        RunInNamespace rin = new RunInNamespace()
+        {
+            @Override
+            protected Object run()
+            {
+                Key key = createResourceKey();
+                Entity entity;
+                try
+                {
+                    entity = get(key);
+                }
+                catch (EntityNotFoundException ex)
+                {
+                    entity = new Entity(key);
+                }
+                if (entity.hasProperty(id))
+                {
+                    throw new IllegalArgumentException(id+" exists");
+                }
+                switch (type)
+                {
+                    case "string":
+                        entity.setUnindexedProperty(id, text);
+                        break;
+                    case "text":
+                        entity.setUnindexedProperty(id, new Text(text));
+                        break;
+                }
+                put(entity);
+                return null;
+            }
+        };
+        rin.doIt(null);
+        putToCache(Resources, null);
     }
 
     public interface Caching

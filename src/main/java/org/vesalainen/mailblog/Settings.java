@@ -20,17 +20,12 @@ package org.vesalainen.mailblog;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.datastore.Text;
-import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TimeZone;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import static org.vesalainen.mailblog.SpotType.Ok;
@@ -39,59 +34,12 @@ import org.vesalainen.mailblog.types.LocaleHelp;
 /**
  * @author Timo Vesalainen
  */
-public class Settings implements Serializable
+public class Settings extends BaseProperty
 {
-    private static final long serialVersionUID = 2L;
-    private Map<String,Object> map = new HashMap<>();
 
-    Settings(final DS db, Entity entity) throws EntityNotFoundException
+    Settings(DS db, Entity entity) throws EntityNotFoundException
     {
-        assert SettingsKind.equals(entity.getKind());
-        RunInNamespace rin = new RunInNamespace() 
-        {
-            @Override
-            protected Object run()
-            {
-                Key key = KeyFactory.createKey(DS.getRootKey(), SettingsKind, BaseKey);
-                try
-                {
-                    Entity entity = db.get(key);
-                    putAll(entity.getProperties());
-                }
-                catch (EntityNotFoundException ex)
-                {
-                }
-                return null;
-            }
-        };
-        rin.doIt(null); // read empty namespace settings
-        
-        populate(db, entity);
-    }
-    
-    private void populate(DS db, Entity entity) throws EntityNotFoundException
-    {
-        Key parent = entity.getParent();
-        if (parent != null && SettingsKind.equals(parent.getKind()))
-        {
-            Entity ent = db.get(parent);
-            populate(db, ent);
-        }
-        putAll(entity.getProperties());
-    }
-    private void putAll(Map<String,Object> m)
-    {
-        for (Entry<String,Object> e : m.entrySet())
-        {
-            if (e.getValue() != null)
-            {
-                map.put(e.getKey(), e.getValue());
-            }
-        }
-    }
-    public Map<String, Object> getMap()
-    {
-        return map;
+        super(SettingsKind, db, entity);
     }
     
     public String getTitle()
@@ -202,23 +150,6 @@ public class Settings implements Serializable
     {
         return getIntProperty(PicMaxWidthProperty);
     }
-    public int getIntProperty(String property)
-    {
-        return getIntProperty(property, 0);
-    }
-    public int getIntProperty(String property, int def)
-    {
-        Long l = (Long) map.get(property);
-        if (l != null)
-        {
-            return l.intValue();
-        }
-        else
-        {
-            return def;
-        }
-    }
-
     public double getTrackBearingTolerance()
     {
         return getDoubleProperty(TrackBearingToleranceProperty);
@@ -240,19 +171,6 @@ public class Settings implements Serializable
     {
         return getDoubleProperty(EyeAltitudeProperty);
     }
-    public double getDoubleProperty(String property)
-    {
-        Double d = (Double) map.get(property);
-        if (d != null)
-        {
-            return d;
-        }
-        else
-        {
-            return 0;
-        }
-    }
-
     private static final String DefaultIcon = "http://maps.google.com/mapfiles/kml/shapes/info.png";
     
     public String getIcon(Entity entity)

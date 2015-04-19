@@ -94,6 +94,14 @@
         <servlet-name>CronServlet</servlet-name>
         <servlet-class>org.vesalainen.mailblog.CronServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ResourceEditServlet</servlet-name>
+        <servlet-class>org.vesalainen.mailblog.ResourceEditServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>ResourceServlet</servlet-name>
+        <servlet-class>org.vesalainen.mailblog.ResourceServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>RemoteApiServlet</servlet-name>
         <url-pattern>/remote_api</url-pattern>
@@ -165,6 +173,14 @@
     <servlet-mapping>
         <servlet-name>CronServlet</servlet-name>
         <url-pattern>/cron/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ResourceEditServlet</servlet-name>
+        <url-pattern>/admin/settings/resource/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ResourceServlet</servlet-name>
+        <url-pattern>/resource/*</url-pattern>
     </servlet-mapping>
     <welcome-file-list>
         <welcome-file>index.html</welcome-file>

@@ -23,6 +23,28 @@ $(document).ready(function(){
     {
         search = "";
     }
+    
+    $.getJSON("/resource", function(data)
+    {
+        $(".string,.text").each(function()
+        {
+            var id = $(this).attr("id");
+            if (data[id])
+            {
+                $(this).text(data[id])
+            }
+            else
+            {
+                var text = $(this).text();
+                var type = "string";
+                if ($(this).attr("text"))
+                {
+                    type = "text";
+                }
+                $.post("/resource", {id: id, type: type, text: text});
+            }
+        });
+    });
     $.get("/opengraph"+search, function(data, status)
     {
         $("head").append(data);
@@ -32,30 +54,6 @@ $(document).ready(function(){
         afterLoad();
     });
 
-    var pending = false;
-    $(window).scroll(function()
-    {
-        if (!pending)
-        {
-            var top = $(window).scrollTop();
-            var dh = $(document).height();
-            var wh = $(window).height();
-            if(top > 0 && top >= dh - wh)
-            {
-                var href = $("#blog").find(".lasthref").last().attr("href");
-                if (href)
-                {
-                    $("#blog").append("<div class='appendhere'></div>");
-                    pending = true;
-                    $("#blog").find(".appendhere").last().load(href, function()
-                    {
-                        pending = false;
-                    });
-                }
-            }
-        }
-    });
-    
     $("#calendar").load("/blog?calendar=true", function()
     {
         $(".hidden").hide();
