@@ -147,6 +147,11 @@ public abstract class EntityServlet extends HttpServlet
         return property;
     }
 
+    protected void clearProperties()
+    {
+        properties.clear();
+    }
+    
     protected Key getKey(HttpServletRequest req) throws HttpException
     {
         String keyString = req.getParameter(Key);
