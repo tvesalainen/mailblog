@@ -170,8 +170,6 @@ $(document).ready(function(){
             var disp = $(cls).css("display");
             if (disp != "none")
             {
-                pageStack.length = 0;
-                firstPage = id;
                 $("#blog").load("/blog?cursor="+id, function(){
                     afterLoad();
                 });
