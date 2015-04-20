@@ -60,6 +60,36 @@ public abstract class BaseProperty implements Serializable
         populate(db, entity);
     }
 
+    protected final void populate(DS db, Entity entity)
+    {
+        Key parent = entity.getParent();
+        if (parent != null && entity.getKind().equals(parent.getKind()))
+        {
+            Entity ent;
+            try
+            {
+                ent = db.get(parent);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                throw new IllegalArgumentException(ex);
+            }
+            populate(db, ent);
+        }
+        putAll(entity.getProperties());
+    }
+
+    protected void putAll(Map<String, Object> m)
+    {
+        for (Map.Entry<String, Object> e : m.entrySet())
+        {
+            if (e.getValue() != null)
+            {
+                map.put(e.getKey(), e.getValue());
+            }
+        }
+    }
+
     public Map<String, Object> getMap()
     {
         return map;
@@ -93,36 +123,6 @@ public abstract class BaseProperty implements Serializable
         else
         {
             return 0;
-        }
-    }
-
-    protected final void populate(DS db, Entity entity)
-    {
-        Key parent = entity.getParent();
-        if (parent != null && BlogConstants.SettingsKind.equals(parent.getKind()))
-        {
-            Entity ent;
-            try
-            {
-                ent = db.get(parent);
-            }
-            catch (EntityNotFoundException ex)
-            {
-                throw new IllegalArgumentException(ex);
-            }
-            populate(db, ent);
-        }
-        putAll(entity.getProperties());
-    }
-
-    protected void putAll(Map<String, Object> m)
-    {
-        for (Map.Entry<String, Object> e : m.entrySet())
-        {
-            if (e.getValue() != null)
-            {
-                map.put(e.getKey(), e.getValue());
-            }
         }
     }
 

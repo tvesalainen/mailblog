@@ -16,6 +16,10 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import java.io.IOException;
 import java.util.Map.Entry;
 import javax.servlet.ServletException;
@@ -39,13 +43,31 @@ public class ResourceEditServlet extends EntityServlet
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
         clearProperties();
-        DS ds = DS.get();
-        Resources resources = ds.getResources();
-        for (Entry<String,Object> entry : resources.getMap().entrySet())
+        RunInNamespace rin = new RunInNamespace()
         {
-            addProperty(entry.getKey())
-                    .setType(entry.getValue().getClass());
-        }
+            @Override
+            protected Object run()
+            {
+                Key key = KeyFactory.createKey(DS.getRootKey(), kind, BaseKey);
+                try
+                {
+                    DS ds = DS.get();
+                    Entity entity = ds.get(key);
+                    log(entity.toString());
+                    for (Entry<String,Object> entry : entity.getProperties().entrySet())
+                    {
+                        addProperty(entry.getKey())
+                                .setType(entry.getValue().getClass());
+                    }
+                }
+                catch (EntityNotFoundException ex)
+                {
+                    log(ex.getMessage(), ex);
+                }
+                return null;
+            }
+        };
+        rin.doIt(null); // read empty namespace settings
         super.doGet(req, resp);
     }
     
