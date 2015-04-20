@@ -70,6 +70,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -281,6 +283,14 @@ public class DS extends CachingDatastoreService
         return false;
     }
 
+    public void clearCache(HttpServletRequest request)
+    {
+        String cacheKey = getCacheKey(request);
+        if (cacheKey != null)
+        {
+            putToCache(cacheKey, null);
+        }
+    }
     public String getCacheKey(HttpServletRequest request)
     {
         String cacheKey = MaidenheadLocator2.getCacheKey(request);
@@ -1402,44 +1412,6 @@ public class DS extends CachingDatastoreService
         return new GeoPt(lat / list.size(), lon / list.size());
     }
 
-    /**
-     * @deprecated @param entity
-     * @return
-     */
-    public List<GeoPt> getCoordinates(Entity entity)
-    {
-        Object ob = entity.getProperty(LocationProperty);
-        if (ob == null)
-        {
-            return Collections.EMPTY_LIST;
-        }
-        if (ob instanceof GeoPt)
-        {
-            GeoPt loc = (GeoPt) ob;
-            return Collections.singletonList(loc);
-        }
-        return (List<GeoPt>) ob;
-    }
-
-    /**
-     * @deprecated @param entity
-     * @return
-     */
-    private List<Date> getTimestamp(Entity entity)
-    {
-        Object ob = entity.getProperty(TimestampProperty);
-        if (ob == null)
-        {
-            return Collections.EMPTY_LIST;
-        }
-        if (ob instanceof Date)
-        {
-            Date date = (Date) ob;
-            return Collections.singletonList(date);
-        }
-        return (List<Date>) ob;
-    }
-
     private String getCoordinatesString(Collection<GeoPt> coordinates)
     {
         StringBuilder sb = new StringBuilder();
@@ -1855,37 +1827,58 @@ public class DS extends CachingDatastoreService
         return Math.hypot(l1.getLatitude() - l2.getLatitude(), departure * (l1.getLongitude() - l2.getLongitude()));
     }
 
-    public void addResource(final String id, final String type, final String text)
+    public void addResource(final String id, final String type, final String text) throws IOException
     {
         RunInNamespace rin = new RunInNamespace()
         {
             @Override
             protected Object run()
             {
-                Key key = createResourceKey();
-                Entity entity;
                 try
                 {
-                    entity = get(key);
+                    Updater updater = new Updater()
+                    {
+                        @Override
+                        protected Object update() throws IOException
+                        {
+                            Key key = createResourceKey();
+                            Entity entity;
+                            try
+                            {
+                                entity = get(key);
+                            }
+                            catch (EntityNotFoundException ex)
+                            {
+                                entity = new Entity(key);
+                            }
+                            if (entity.hasProperty(id))
+                            {
+                                System.err.println(id+" exists");
+                            }
+                            else
+                            {
+                                switch (type)
+                                {
+                                    case "string":
+                                        entity.setUnindexedProperty(id, text);
+                                        break;
+                                    case "text":
+                                        entity.setUnindexedProperty(id, new Text(text));
+                                        break;
+                                    default:
+                                        System.err.println("unknown type "+type);
+                                }
+                                put(entity);
+                            }
+                            return null;
+                        }
+                    };
+                    updater.start();
                 }
-                catch (EntityNotFoundException ex)
+                catch (IOException ex)
                 {
-                    entity = new Entity(key);
+                    System.err.println(ex.getMessage());
                 }
-                if (entity.hasProperty(id))
-                {
-                    throw new IllegalArgumentException(id+" exists");
-                }
-                switch (type)
-                {
-                    case "string":
-                        entity.setUnindexedProperty(id, text);
-                        break;
-                    case "text":
-                        entity.setUnindexedProperty(id, new Text(text));
-                        break;
-                }
-                put(entity);
                 return null;
             }
         };

@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.vesalainen.mailblog;
+package org.vesalainen.mailblog.admin;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
@@ -27,6 +27,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import static org.vesalainen.mailblog.BlogConstants.*;
+import org.vesalainen.mailblog.DS;
+import org.vesalainen.mailblog.HttpException;
 
 /**
  *

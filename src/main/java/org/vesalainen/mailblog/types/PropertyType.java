@@ -27,6 +27,7 @@ import com.google.appengine.api.datastore.Text;
 import java.awt.Color;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -44,8 +45,9 @@ public abstract class PropertyType<T>
     {
         return "text";
     }
-    public String getHtmlInput(Map<String,String> attributes, Object value)
+    public String getHtmlInput(Map<String,String> attrs, Object value)
     {
+        Map<String,String> attributes = mergeAttributes(attrs);
         StringBuilder sb = new StringBuilder();
         sb.append("<input");
         appendAttributes(sb, attributes);
@@ -57,6 +59,16 @@ public abstract class PropertyType<T>
         
         sb.append("/>");
         return sb.toString();
+    }
+    /**
+     * Override this method to add default attributes for example. Default implemantation
+     * returns the parameter
+     * @param attrs
+     * @return 
+     */
+    protected Map<String,String> mergeAttributes(Map<String,String> attrs)
+    {
+        return attrs;
     }
     protected void appendAttribute(StringBuilder sb, String name, int value)
     {

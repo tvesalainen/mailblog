@@ -36,7 +36,7 @@
     </servlet>
     <servlet>
         <servlet-name>PageServlet</servlet-name>
-        <servlet-class>org.vesalainen.mailblog.PageServlet</servlet-class>
+        <servlet-class>org.vesalainen.mailblog.admin.PageServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ContentServlet</servlet-name>
@@ -48,19 +48,19 @@
     </servlet>
     <servlet>
         <servlet-name>TemplateSettingsServlet</servlet-name>
-        <servlet-class>org.vesalainen.mailblog.TemplateSettingsServlet</servlet-class>
+        <servlet-class>org.vesalainen.mailblog.admin.TemplateSettingsServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>BaseSettingsServlet</servlet-name>
-        <servlet-class>org.vesalainen.mailblog.BaseSettingsServlet</servlet-class>
+        <servlet-class>org.vesalainen.mailblog.admin.BaseSettingsServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>CommonSettingsServlet</servlet-name>
-        <servlet-class>org.vesalainen.mailblog.CommonSettingsServlet</servlet-class>
+        <servlet-class>org.vesalainen.mailblog.admin.CommonSettingsServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>BlogEditServlet</servlet-name>
-        <servlet-class>org.vesalainen.mailblog.BlogEditServlet</servlet-class>
+        <servlet-class>org.vesalainen.mailblog.admin.BlogEditServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>RSSServlet</servlet-name>
@@ -76,7 +76,7 @@
     </servlet>
     <servlet>
         <servlet-name>FileUploadServlet</servlet-name>
-        <servlet-class>org.vesalainen.mailblog.FileUploadServlet</servlet-class>
+        <servlet-class>org.vesalainen.mailblog.admin.FileUploadServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>LastPositionServlet</servlet-name>
@@ -96,7 +96,7 @@
     </servlet>
     <servlet>
         <servlet-name>ResourceEditServlet</servlet-name>
-        <servlet-class>org.vesalainen.mailblog.ResourceEditServlet</servlet-class>
+        <servlet-class>org.vesalainen.mailblog.admin.ResourceEditServlet</servlet-class>
     </servlet>
     <servlet>
         <servlet-name>ResourceServlet</servlet-name>

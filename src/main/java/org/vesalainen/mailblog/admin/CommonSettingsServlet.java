@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.vesalainen.mailblog;
+package org.vesalainen.mailblog.admin;
 
 import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.datastore.Entity;
@@ -34,7 +34,7 @@ import static org.vesalainen.mailblog.BlogConstants.*;
  *
  * @author Timo Vesalainen
  */
-public class CommonSettingsServlet extends EntityServlet
+public class CommonSettingsServlet extends FieldSettingsServlet
 {
 
     public CommonSettingsServlet()
@@ -165,23 +165,6 @@ public class CommonSettingsServlet extends EntityServlet
             String loginURL = userService.createLoginURL("");
             resp.getWriter().write(loginURL);
         }
-    }
-
-    @Override
-    protected Key getKey(HttpServletRequest req) throws HttpException
-    {
-        DS ds = DS.get();
-        Key key = KeyFactory.createKey(DS.getRootKey(), kind, BaseKey);
-        String keyString = req.getParameter(Key);
-        if (keyString != null)
-        {
-            Key requestKey = KeyFactory.stringToKey(keyString);
-            if (!key.equals(requestKey))
-            {
-                throw new HttpException(HttpServletResponse.SC_CONFLICT, key+" and request key "+requestKey+" differs");
-            }
-        }
-        return key;
     }
 
     @Override

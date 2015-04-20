@@ -18,6 +18,7 @@
 package org.vesalainen.mailblog.types;
 
 import com.google.appengine.api.datastore.Text;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -27,8 +28,9 @@ public class TextType extends PropertyType<Text>
 {
 
     @Override
-    public String getHtmlInput(Map<String, String> attributes, Object value)
+    public String getHtmlInput(Map<String, String> attrs, Object value)
     {
+        Map<String,String> attributes = mergeAttributes(attrs);
         StringBuilder sb = new StringBuilder();
         sb.append("<textarea");
         appendAttributes(sb, attributes);
@@ -59,6 +61,23 @@ public class TextType extends PropertyType<Text>
     {
         Text value = (Text) obj;
         return value != null ? value.getValue() : "";
+    }
+
+    @Override
+    protected Map<String, String> mergeAttributes(Map<String, String> attrs)
+    {
+        if (attrs.containsKey("rows") || attrs.containsKey("cols"))
+        {
+            return attrs;
+        }
+        else
+        {
+            Map<String, String> a = new HashMap<>();
+            a.putAll(attrs);
+            a.put("cols", "80");
+            a.put("rows", "4");
+            return a;
+        }
     }
 
 }

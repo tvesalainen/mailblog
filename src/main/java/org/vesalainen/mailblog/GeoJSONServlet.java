@@ -88,7 +88,8 @@ public class GeoJSONServlet extends BaseServlet
                     try (DS.CacheWriter cw = ds.createCacheWriter(request, response))
                     {
                         cw.setETag(eTag)
-                        .setContentType("application/json");
+                        .setContentType("application/json")
+                        .setMaxAge(86400);
                         ds.writeFeature(cw, key);
                     }
                 }

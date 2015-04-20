@@ -439,10 +439,12 @@ public final class Interoperability implements Comparable<Interoperability>
                         }
                     }
                     case ExifConstants.OECF:
+                        /* Not been able to test these
                     case ExifConstants.SPATIALFREQUENCYRESPONSE:
                         return new OECF(value);
                     case ExifConstants.CFAPATTERN:
                         return new CFA(value);
+                        */
                     default:
                         return "";   //throw new UnsupportedOperationException(tag()+" tag not supported for UNDEFINED type");
                 }

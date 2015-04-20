@@ -74,33 +74,42 @@
             </div>
             <div id="tabs">
                 <ul>
-                    <li><a href="#tabs-1">Blogi</a></li>
-                    <li id="t2"><a href="#tabs-2">Vene</a></li>
-                    <li><a href="#tabs-3">Miehistö</a></li>
-                    <li><a href="#tabs-4">Yhteystiedot</a></li>
-                    <li><a href="#tabs-5">Linkkejä</a></li>
+                    <li><a href="#tabs-1"><span class="string" id="tab-1-title">Blogi</span></a></li>
+                    <li><a href="#tabs-2"><span class="string" id="tab-2-title">Vene</span></a></li>
+                    <li><a href="#tabs-3"><span class="string" id="tab-3-title">Miehistö</span></a></li>
+                    <li><a href="#tabs-4"><span class="string" id="tab-4-title">Yhteystiedot</span></a></li>
+                    <li><a href="#tabs-5"><span class="string" id="tab-5-title">Linkkejä</span></a></li>
                 </ul>
                 <div id="tabs-1">
                     <div id="leftside">
                         <div id="map" class='map-canvas'></div>
                         <div id="navigation">
-                            Arkisto
+                            <span class="string" id="archive">Arkisto</span>
                             <div id="calendar">
                             </div>
                             <br>
                             <div>
-                                <a href="/kml"><div title="Avaa Google earth ohjelman (jos se on asennettu) ja näyttää uusimman sijainnin">Viimeisin sijainti</div><div class="lastPosition"></div></a>
+                                <a href="/kml"><div class="string" id="gearth-title" title="Avaa Google earth ohjelman (jos se on asennettu) ja näyttää uusimman sijainnin">
+                                        <span class="string" id="last-position">Viimeisin sijainti</span>
+                                    </div>
+                                    <div class="lastPosition">
+                                    
+                                    </div>
+                                </a>
                             </div>
                             <br>
                             <!--                <div><button class="print-all">Tulosta kaikki</button></div>    -->
                             <a href="/rss"><img src="/images/feed-icon-28x28.png">RSS 2.0</a>
                             <br><br>
                             <div>
-                                <label>Haku: <input class="search" name="search" type="search" size="20"/></label>
+                                <label>
+                                    <span class="string" id="search">Haku:</span>
+                                    <input class="search" name="search" type="search" size="20"/>
+                                </label>
                                 <!--<label>Avainsanat: <div class="keywordSelect"></div></label>-->
                             </div>
                             <br>
-                            <div>
+                            <div class="text" id="alternate-site">
                                 <a href="http://www.sailfaraway.net">S/Y Iiris also in English</a>
                             </div>
                             <div id="topics">
@@ -110,90 +119,31 @@
                     <div class="content">
                         <div class="no-print">
                             <table width=100%><tr>
-                                    <td align="center"> <div><span class="top">Viimeisimmät kirjoitukset</span></div></td>
+                                    <td align="center">
+                                        <div>
+                                            <span class="top string" id="latest-writings">Viimeisimmät kirjoitukset</span>
+                                        </div>
+                                    </td>
                                 </tr></table>
                         </div> <!-- no-print -->
-                        <div id="blog"><p>Ladataan...</p></div>
-                        <div class="no-print">
-                            <table width=100%><tr>
-                                    <td align="center"> <div><span class="top">Viimeisimmät kirjoitukset</span></div></td>
-                                </tr></table>
-                        </div> <!-- no-print -->
+                        <div id="blog" class="ajaxload">
+                        </div>
                     </div>    
                 </div>
                 <div id="tabs-2">
-                    <div class="content">
-                        <img src="iiris.jpg">
-                        <p>S/Y Iiris on tyypiltään Roberts 345, mutta kansirakenteet ja sisätilat ovat ensimmäisen omistajan kynästä. Veneen rakennusmateriaaleina on käytetty vähän harvinaisempaa yhdistelmää, runko on terästä ja kansi alumiinia.</p>
-                        <p>Runko on valmistettu Limimetallilla Lemillä vuonna 1989. Loput työt teki Venekolmio Kotkassa. Vene laskettiin ensi kerran veteen kesällä 1990.</p>
-                        <p>Strategiset mitat<br>
-                            Pituus, LOA: 11,90 m<br>
-                            Pituus, runko: 11,20 m<br>
-                            Leveys: 3,55 m<br>
-                            Uppouma :  matkavarustuksessa toivottavasti alle 10 t.</p>
-                        <p>Vene on nähnyt jo paljon maailmaa. Jonnan vanhemmat ovat kiertäneet pallon kaksi kertaa. Ensimmäisen reissun tarinat voi lukea Vene-lehden arkistosta ja toisen kierroksen osoitteessa <a href="http://www.yachtiiris.net">www.yachtiiris.net</a> </p>
-                        <p></p>
+                    <div class="content text" id="tab-2-content">
                     </div>
                 </div>
                 <div id="tabs-3">
-                    <div class="content">
-                        <img src="jonnajatimo.jpg">
-                        <h2>Timo</h2>
-                        <p>Ensimmäinen purjehdukseni lapsena oli serkun Windmillissä Toijalassa. Tästä lähtien 
-                            minulla on ollut palava halu purjehtia.</p>
-
-                        <p>Kotipaikkakunnalla oli vain haiseva oja, jota Keravan joeksi kutsutaan. Tämä ei 
-                            tarjonnut mahdollisuutta  aloittaa purjehdusta, ennen kuin aikuisena.</p>
-
-                        <p>Ensimmäinen veneeni oli Joe 17, jonka hankin Ruoveden mökille metsätöiden vaihteluksi.</p>
-
-                        <p>Ei mennyt kuin pari vuotta kun Joe 17 vaihtui Finn Express 83:ksi merellä.</p>
-
-                        <p>Avioeron myötä olin muutaman vuoden ilman venettä. Olin parissa kisaveneessä gastina.</p>
-
-                        <p>Course 2004 kisassa tapasin Jonnan Tallinnassa, Piritan kasinolla.</p>
-
-                        <p>Seilattiin se kesän loppu Jonnan Guy 22:lla. Seuraavaksi vuodeksi hankittiin kisaveneeksi Inferno 31 Valpuri.</p>
-
-                        <p>Valpurin kisoista on paljon tarinaa <a href="http://www.valpuri.org">valpurin sivuilla</a></p>
-
-                        <p>Kisaura jäi aika lyhyeksi. Tärkeimmät kisat voitettiin ja hommasta jäi hyvät muistot.</p>
-
-                        <p>Kisaamisen jälkeen on tutkittu mahdollisuuksia lähteä maailmalle pidemmäksi ajaksi 
-                            purjehtimaan. Viime keväänä pääsin apen kanssa sopimukseen Iiriksen ostamisesta. Tämän 
-                            jälkeen pitikin sitten kiirettä saada kaikki asiat kuntoon, että päästiin pois Suomesta ennen talven tuloa.</p>
-                        <h2>Jonna</h2>
-                        <p>Purjehdus on kuulunut elämääni siitä asti, kun vanhempani veivät minut veneeseen 2 kk vanhana. Ensimmäisten vuosien seikkailut eivät siis ole ihan kirkkaina mielessä, mutta tiedän purjehtineeni ensi kerran Ruotsiin asti, kun olin 5-vuotias. Vähän vanhempana, 7-vuotiaana, aloitin itsenäisen harjoittelun optimistijollalla.</p>
-
-                        <p>Optimistijollalla kilpailin ahkerasti 15-vuotiaaksi asti ja sen jälkeen siirryin taas matkapurjehtijan elämään. Oman matkaveneen, Tiwan (Guy 22), hankin vuonna 1996. Sillä seilailin Suomenlahtea ristiin rastiin, välillä myös kilpaa.</p>
-
-                        <p>Eräällä kisamatkalla vuonna 2004 tapasin mukavan miehen nimeltä Timo, siitä asti meidän purjehdushistoriamme on yhteinen.</p>
+                    <div class="content text" id="tab-3-content">
                     </div>
                 </div>
                 <div id="tabs-4">
-                    <div class="content">
-                        <p>Jos haluat ottaa meihin yhteyttä, niin se onnistuu helpoiten internetin välityksellä.</p>
-                        <p>Meitä voi lähestyä sähköpostilla: <a href="mailto:iiris@kauaspois.fi">iiris@kauaspois.fi</a></p>
-                        <p>Tai Skypellä, tunnus on iiris.helsinki</p>
-                        <p></p>
-                        <p></p>
-                        <p>Meillä on edelleenkin olemassa vanhat kännykkänumeromme, mutta emme yleensä vastaa niihin. Tekstiviestit saattavat kulkea, varsinkin Jonnan kännykkään.</p>
-                        <p></p>
+                    <div class="content text" id="tab-4-content">
                     </div>
                 </div>
                 <div id="tabs-5">
-                    <div class="content">
-                        <h2>Blogeja</h2>
-                        <p><a href="http://aidaswan.blogspot.com" target="_blank">Aida</a></p>
-                        <p><a href="http://sychiara.blogspot.com" target="_blank">Chiara</a></p>
-                        <p><a href="http://sailinghimene.blogspot.com" target="_blank">Himene</a></p>
-                        <p><a href="http://ulosmaailmaha.blogspot.com" target="_blank">Immigrant</a></p>
-                        <p><a href="http://manta2013.blogspot.com" target="_blank">Manta</a></p>
-                        <p><a href="http://www.seacom.co.uk/reports/index.php?id=Marisol" target="_blank">Marisol</a></p>
-                        <p><a href="http://mummomerella.blogspot.com/" target="_blank">Paloma-X</a></p>
-                        <p><a href="http://sy-panthera.com/" target="_blank">Panthera</a></p>
-
-                        <p></p>
+                    <div class="content text" id="tab-5-content">
                     </div>
                 </div>
             </div>

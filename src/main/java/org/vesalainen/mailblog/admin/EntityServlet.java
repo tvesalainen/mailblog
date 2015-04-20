@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.vesalainen.mailblog;
+package org.vesalainen.mailblog.admin;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
@@ -35,6 +35,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import static org.vesalainen.mailblog.BlogConstants.*;
+import org.vesalainen.mailblog.DS;
+import org.vesalainen.mailblog.HttpException;
 import org.vesalainen.mailblog.types.PropertyType;
 
 /**
@@ -290,6 +292,16 @@ public abstract class EntityServlet extends HttpServlet
     {
     }
 
+    /**
+     * Returns default value. Default implementation returns null.
+     * @param name
+     * @return 
+    */
+   protected Object getDefault(String name)
+   {
+       return null;
+   }
+   
     protected class Property
     {
         private PropertyType type;
@@ -392,7 +404,12 @@ public abstract class EntityServlet extends HttpServlet
         }
         protected String getInputElement(Entity entity)
         {
-            Object value = entity.getProperty(attributes.get("name"));
+            String name = attributes.get("name");
+            Object value = entity.getProperty(name);
+            if (value == null)
+            {
+                value = getDefault(name);
+            }
             return type.getHtmlInput(attributes, value);
         }
     }

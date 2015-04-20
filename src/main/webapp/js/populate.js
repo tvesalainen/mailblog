@@ -31,21 +31,63 @@ $(document).ready(function(){
             var id = $(this).attr("id");
             if (data[id])
             {
-                $(this).text(data[id])
+                if ($(this).attr("title"))
+                {
+                    $(this).attr("title", data[id]);
+                }
+                else
+                {   
+                    $(this).html(data[id])
+                }
             }
             else
             {
-                var text = $(this).text();
+                var html = $(this).attr("title");
+                if (!html)
+                {
+                    html = $(this).html();
+                }
                 var type = "string";
-                if ($(this).attr("text"))
+                if ($(this).hasClass("text"))
                 {
                     type = "text";
                 }
-                $.post("/resource", {id: id, type: type, text: text});
+                $.post("/resource", {id: id, type: type, text: html});
             }
         });
     });
-    $.get("/opengraph"+search, function(data, status)
+   $("#blog").load("/blog"+search, function()
+   {
+        $("#blog").removeClass("ajaxload");
+        afterLoad();
+   });
+
+    var pending = false;
+    $(window).scroll(function()
+    {
+        if (!pending)
+        {
+            var top = $(window).scrollTop();
+            var dh = $(document).height();
+            var wh = $(window).height();
+            if(top > 0 && top >= dh - 1.5*wh)
+            {
+                var href = $("#blog").find(".lasthref").last().attr("href");
+                if (href)
+                {
+                    $("#blog").append("<div class='ajaxload appendhere'></div>");
+                    pending = true;
+                    $("#blog").find(".appendhere").last().load(href, function()
+                    {
+                        $(this).removeClass("ajaxload");
+                        pending = false;
+                    });
+                }
+            }
+        }
+    });
+    
+     $.get("/opengraph"+search, function(data, status)
     {
         $("head").append(data);
     });

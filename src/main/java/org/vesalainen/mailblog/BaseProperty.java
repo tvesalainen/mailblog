@@ -21,6 +21,7 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import static org.vesalainen.mailblog.BlogConstants.*;
@@ -33,7 +34,7 @@ public abstract class BaseProperty implements Serializable
 {
 
     protected static final long serialVersionUID = 2L;
-    protected Map<String, Object> map = new TreeMap<>();
+    protected Map<String, Object> map = new HashMap<>();
 
     public BaseProperty(final String kind, final DS db, Entity entity)
     {

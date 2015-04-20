@@ -17,6 +17,9 @@
 
 package org.vesalainen.mailblog.types;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author Timo Vesalainen
  */
@@ -38,6 +41,22 @@ public class StringType extends PropertyType<String>
     {
         String value = (String) obj;
         return value != null ? value : "";
+    }
+
+    @Override
+    protected Map<String, String> mergeAttributes(Map<String, String> attrs)
+    {
+        if (attrs.containsKey("size"))
+        {
+            return attrs;
+        }
+        else
+        {
+            Map<String, String> a = new HashMap<>();
+            a.putAll(attrs);
+            a.put("size", "80");
+            return a;
+        }
     }
 
 }
