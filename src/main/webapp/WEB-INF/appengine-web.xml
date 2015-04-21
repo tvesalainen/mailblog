@@ -6,8 +6,9 @@
     <threadsafe>true</threadsafe>
 
     <static-files>
+        <include path="/freezed/**" expiration="1d" />
         <include path="/index.html" expiration="0s" />
-        <include path="/css/blog.css" expiration="0s" />
+        <include path="/css/*.css" expiration="0s" />
         <include path="/js/*.js" expiration="0s" />
         <include path="/admin/*.html" expiration="0s" />
         <include path="/admin/*.js" expiration="0s" />
