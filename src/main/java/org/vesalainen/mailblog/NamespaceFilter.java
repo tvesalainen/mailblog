@@ -68,7 +68,7 @@ public class NamespaceFilter implements Filter
     {
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
-        String namespace = "sailfaraway.net";  //request.getParameter("namespace"); FOR TESTING ONLY
+        String namespace = request.getParameter("namespace");
         if (namespace != null)
         {
             NamespaceManager.set(namespace);

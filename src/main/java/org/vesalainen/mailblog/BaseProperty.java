@@ -116,6 +116,10 @@ public abstract class BaseProperty implements Serializable
 
     public double getDoubleProperty(String property)
     {
+        return getDoubleProperty(property, 0.0);
+    }
+    public double getDoubleProperty(String property, double def)
+    {
         Double d = (Double) map.get(property);
         if (d != null)
         {
@@ -123,7 +127,7 @@ public abstract class BaseProperty implements Serializable
         }
         else
         {
-            return 0;
+            return def;
         }
     }
 

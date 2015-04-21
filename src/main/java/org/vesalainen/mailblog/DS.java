@@ -1693,12 +1693,14 @@ public class DS extends CachingDatastoreService
                 description = (String) pm.getProperty(DescriptionProperty);
                 st = SpotType.getSpotType(description);
             }
-            json.put(ZoomParameter, 8);
+            int iz = settings.getZoom();
+            json.put(ZoomParameter, iz);
+            System.err.println("zoom="+iz);
             if (location2 != null)
             {
                 double bbWidth = bb.getWidth();
                 double bbHeight = bb.getHeight();
-                for (int zoom = 8; zoom >= 0; zoom--)
+                for (int zoom = iz; zoom >= 0; zoom--)
                 {
                     double c = Math.pow(2, zoom);
                     int neededWidth = (int) (c * bbWidth);

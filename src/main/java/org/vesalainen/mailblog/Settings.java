@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.Email;
@@ -41,19 +40,22 @@ public class Settings extends BaseProperty
     {
         super(SettingsKind, db, entity);
     }
-    
+
     public String getTitle()
     {
         return (String) map.get(TitleProperty);
     }
+
     public String getDescription()
     {
         return (String) map.get(DescriptionProperty);
     }
+
     public Email getEmail()
     {
         return (Email) map.get(EmailProperty);
     }
+
     public String getNickname()
     {
         String nickname = (String) map.get(NicknameProperty);
@@ -66,15 +68,18 @@ public class Settings extends BaseProperty
             return "";
         }
     }
+
     public Locale getLocale()
     {
-        return LocaleHelp.toLocale((String)map.get(LocaleProperty));
+        return LocaleHelp.toLocale((String) map.get(LocaleProperty));
     }
+
     public TimeZone getTimeZone()
     {
         String id = (String) map.get(TimeZoneProperty);
         return id != null ? TimeZone.getTimeZone(id) : TimeZone.getDefault();
     }
+
     public DateFormat getDateFormat()
     {
         Locale locale = getLocale();
@@ -83,16 +88,18 @@ public class Settings extends BaseProperty
         {
             SimpleDateFormat sdf = (SimpleDateFormat) dateFormat;
             String localizedPattern = sdf.toLocalizedPattern();
-            sdf.applyLocalizedPattern(localizedPattern+" z");
+            sdf.applyLocalizedPattern(localizedPattern + " z");
         }
         TimeZone timeZone = getTimeZone();
         dateFormat.setTimeZone(timeZone);
         return dateFormat;
     }
+
     public String getBlogTemplate()
     {
         return getBlogTemplate(BlogTemplateProperty);
     }
+
     public String getSearchResultTemplate()
     {
         return getBlogTemplate(SearchResultsTemplateProperty);
@@ -111,6 +118,7 @@ public class Settings extends BaseProperty
         tmpl = tmpl.replace("${Location}", "%7$s");
         return tmpl;
     }
+
     public String getCommentTemplate()
     {
         Text text = (Text) map.get(CommentTemplateProperty);
@@ -122,42 +130,51 @@ public class Settings extends BaseProperty
         tmpl = tmpl.replace("${Id}", "%5$s");
         return tmpl;
     }
+
     public boolean isPublishImmediately()
     {
         Boolean b = (Boolean) map.get(PublishImmediatelyProperty);
-        return b != null ? b: false;
+        return b != null ? b : false;
     }
+
     public boolean isFixPic()
     {
         Boolean b = (Boolean) map.get(FixPicProperty);
-        return b != null ? b: false;
+        return b != null ? b : false;
     }
+
     public boolean isCommonPlacemarks()
     {
         Boolean b = (Boolean) map.get(CommonPlacemarksProperty);
-        return b != null ? b: false;
+        return b != null ? b : false;
     }
+
     public boolean dontSendEmail()
     {
         Boolean b = (Boolean) map.get(DontSendEmailProperty);
-        return b != null ? b: false;
+        return b != null ? b : false;
     }
+
     public int getPicMaxHeight()
     {
         return getIntProperty(PicMaxHeightProperty);
     }
+
     public int getPicMaxWidth()
     {
         return getIntProperty(PicMaxWidthProperty);
     }
+
     public double getTrackBearingTolerance()
     {
         return getDoubleProperty(TrackBearingToleranceProperty);
     }
+
     public double getTrackMinimumDistance()
     {
         return getDoubleProperty(TrackMinDistanceProperty);
     }
+
     public double getTrackMaxSpeed()
     {
         Double d = (Double) map.get(TrackMaxSpeedProperty);
@@ -167,12 +184,16 @@ public class Settings extends BaseProperty
         }
         return d;
     }
+    public int getZoom()
+    {
+        return convertAltToZoom(getEyeAltitude());
+    }
     public double getEyeAltitude()
     {
-        return getDoubleProperty(EyeAltitudeProperty);
+        return getDoubleProperty(EyeAltitudeProperty, 300.0);
     }
     private static final String DefaultIcon = "http://maps.google.com/mapfiles/kml/shapes/info.png";
-    
+
     public String getIcon(Entity entity)
     {
         switch (entity.getKind())
@@ -188,6 +209,7 @@ public class Settings extends BaseProperty
                 return DefaultIcon;
         }
     }
+
     public int getPpm(Entity entity)
     {
         switch (entity.getKind())
@@ -202,6 +224,7 @@ public class Settings extends BaseProperty
                 return 1000;
         }
     }
+
     public String getBlogIcon()
     {
         Link link = (Link) map.get(BlogIconProperty);
@@ -270,6 +293,7 @@ public class Settings extends BaseProperty
                 return DefaultIcon;
         }
     }
+
     public String getBlogImage()
     {
         Link link = (Link) map.get(ImageProperty);
@@ -285,40 +309,48 @@ public class Settings extends BaseProperty
 
     /**
      * Returns full opaque track color
-     * @return 
+     *
+     * @return
      */
     public byte[] getTrackColor()
     {
         return getTrackColor(0xff);
     }
+
     /**
      * Return track color
+     *
      * @param alpha
-     * @return 
+     * @return
      */
     public byte[] getTrackColor(int alpha)
     {
         Long l = (Long) map.get(TrackColorProperty);
         return rgbToArray(alpha, l.intValue());
     }
+
     private byte[] rgbToArray(int alpha, int i)
     {
-        return new byte[] {
-            (byte)alpha, 
-            (byte)(i >> 16), 
-            (byte)((i >> 8) & 0xff), 
-            (byte)(i & 0xff)
+        return new byte[]
+        {
+            (byte) alpha,
+            (byte) (i >> 16),
+            (byte) ((i >> 8) & 0xff),
+            (byte) (i & 0xff)
         };
     }
+
     public String getTrackCss3Color()
     {
         Long l = (Long) map.get(TrackColorProperty);
         return css3Color(l.intValue());
     }
+
     private String css3Color(int c)
     {
         return String.format("#%06X", c);
     }
+
     public int getMinOpaque()
     {
         Long l = (Long) map.get(MinOpaqueProperty);
@@ -328,10 +360,34 @@ public class Settings extends BaseProperty
         }
         return l.intValue();
     }
+
     @Override
     public String toString()
     {
         return "Settings{" + "map=" + map + '}';
     }
 
+    public static int convertAltToZoom(double range)
+    {
+        int zoom = (int) Math.round(Math.log(35200000 / range) / Math.log(2));
+        if (zoom < 0)
+        {
+            zoom = 0;
+        }
+        else if (zoom > 19)
+        {
+            zoom = 19;
+        }
+        return zoom;
+    }
+
+    public static int convertZoomToAlt(double zoom)
+    {
+        int range = (int) (35200000 / (Math.pow(2, zoom)));
+        if (range < 300)
+        {
+            range = 300;
+        }
+        return range;
+    }
 }
