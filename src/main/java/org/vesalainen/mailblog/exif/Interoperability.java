@@ -326,7 +326,7 @@ public final class Interoperability implements Comparable<Interoperability>
                     }
                     else
                     {
-                        return str;
+                        return str.trim();
                     }
                 }
             }
@@ -431,7 +431,7 @@ public final class Interoperability implements Comparable<Interoperability>
                         if (!cs.trim().isEmpty())
                         {
                             Charset charset = Charset.forName(cs);
-                            return new String(bb, charset);
+                            return new String(bb, charset).trim();
                         }
                         else
                         {

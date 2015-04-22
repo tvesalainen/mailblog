@@ -34,6 +34,7 @@ import org.junit.After;
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+import static org.vesalainen.mailblog.BlogConstants.*;
 
 /**
  *
@@ -75,6 +76,9 @@ public class ExifParserTest
             ExifParser parser = new ExifParser(mbb);
             Entity entity = new Entity("Metadata");
             parser.populate(entity);
+            assertEquals("0230", entity.getProperty(ExifVersionProperty));
+            assertEquals("WGS-84", entity.getProperty(GPSMapDatumProperty));
+            assertEquals(105.0, entity.getProperty(ImgDirectionProperty));
             System.err.println(entity);
         }
         catch (URISyntaxException | IOException | ExifException ex)

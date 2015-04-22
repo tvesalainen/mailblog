@@ -191,4 +191,6 @@ public class ExifConstants
 
     public static final int IFD_oTH = -2;
     public static final int IFD_1ST = -1;
+    
+    
 }
