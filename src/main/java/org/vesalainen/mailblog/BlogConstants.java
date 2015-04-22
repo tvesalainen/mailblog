@@ -14,20 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.vesalainen.mailblog;
 
 /**
  * @author Timo Vesalainen
  */
-public interface BlogConstants 
+public interface BlogConstants
 {
+
     static final int CHUNKSIZE = 500;
-    
+
     static final String BlogRipper = "X-BlogRipper-";
     static final String ISO8601Format = "yyyy-MM-dd'T'HH:mm:ssX";
     static final String RFC1123Format = "EEE, dd MMM yyyy HH:mm:ss z";
-    
+
     static final String RootKind = "Root";
     static final String BlogKind = "Blog";
     static final String BlobKind = "Blob";
@@ -43,7 +43,7 @@ public interface BlogConstants
     static final String TrackPointKind = "TrackPoint";
     static final String AttachmentsKind = "Attachments";
     static final String ResourceKind = "Resource";
-    
+
     static final String TitleProperty = "Title";
     static final String DescriptionProperty = "Description";
     static final String ImageProperty = "Image";
@@ -111,7 +111,104 @@ public interface BlogConstants
     static final String FieldProperty = "Field";
     static final String SquareProperty = "Square";
     static final String SubsquareProperty = "Subsquare";
-    
+    // Exif properties
+    public static final String ImageWidthProperty = "ImageWidth";
+    public static final String ImageLengthProperty = "ImageLength";
+    public static final String BitsPerSampleProperty = "BitsPerSample";
+    public static final String CompressionProperty = "Compression";
+    public static final String PhotometricInterpretationProperty = "PhotometricInterpretation";
+    public static final String OrientationProperty = "Orientation";
+    public static final String SamplesPerPixelProperty = "SamplesPerPixel";
+    public static final String PlanarConfigurationProperty = "PlanarConfiguration";
+    public static final String YCbCrSubSamplingProperty = "YCbCrSubSampling";
+    public static final String YCbCrPositioningProperty = "YCbCrPositioning";
+    public static final String XResolutionProperty = "XResolution";
+    public static final String YResolutionProperty = "YResolution";
+    public static final String ResolutionUnitProperty = "ResolutionUnit";
+    public static final String TransferFunctionProperty = "TransferFunction";
+    public static final String WhitePointProperty = "WhitePoint";
+    public static final String PrimaryChromaticitiesProperty = "PrimaryChromaticities";
+    public static final String YCbCrCoefficientsProperty = "YCbCrCoefficients";
+    public static final String ReferenceBlackWhiteProperty = "ReferenceBlackWhite";
+    public static final String DateTimeProperty = "DateTime";
+    public static final String ImageDescriptionProperty = "ImageDescription";
+    public static final String MakeProperty = "Make";
+    public static final String ModelProperty = "Model";
+    public static final String SoftwareProperty = "Software";
+    public static final String ArtistProperty = "Artist";
+    public static final String CopyrightProperty = "Copyright";
+    public static final String ExifVersionProperty = "ExifVersion";
+    public static final String FlashpixVersionProperty = "FlashpixVersion";
+    public static final String ColorSpaceProperty = "ColorSpace";
+    public static final String ComponentsConfigurationProperty = "ComponentsConfiguration";
+    public static final String CompressedBitsPerPixelProperty = "CompressedBitsPerPixel";
+    public static final String PixelXDimensionProperty = "PixelXDimension";
+    public static final String PixelYDimensionProperty = "PixelYDimension";
+    public static final String MakerNoteProperty = "MakerNote";
+    public static final String UserCommentProperty = "UserComment";
+    public static final String RelatedSoundFileProperty = "RelatedSoundFile";
+    public static final String DateTimeOriginalProperty = "DateTimeOriginal";
+    public static final String DateTimeDigitizedProperty = "DateTimeDigitized";
+    public static final String ExposureTimeProperty = "ExposureTime";
+    public static final String FNumberProperty = "FNumber";
+    public static final String ExposureProgramProperty = "ExposureProgram";
+    public static final String SpectralSensitivityProperty = "SpectralSensitivity";
+    public static final String ISOSpeedRatingsProperty = "ISOSpeedRatings";
+    public static final String ShutterSpeedValueProperty = "ShutterSpeedValue";
+    public static final String ApertureValueProperty = "ApertureValue";
+    public static final String BrightnessValueProperty = "BrightnessValue";
+    public static final String ExposureBiasValueProperty = "ExposureBiasValue";
+    public static final String MaxApertureValueProperty = "MaxApertureValue";
+    public static final String SubjectDistanceProperty = "SubjectDistance";
+    public static final String MeteringModeProperty = "MeteringMode";
+    public static final String LightSourceProperty = "LightSource";
+    public static final String FlashProperty = "Flash";
+    public static final String FocalLengthProperty = "FocalLength";
+    public static final String SubjectAreaProperty = "SubjectArea";
+    public static final String FlashEnergyProperty = "FlashEnergy";
+    public static final String FocalPlaneXResolutionProperty = "FocalPlaneXResolution";
+    public static final String FocalPlaneYResolutionProperty = "FocalPlaneYResolution";
+    public static final String FocalPlaneResolutionUnitProperty = "FocalPlaneResolutionUnit";
+    public static final String SubjectLocationProperty = "SubjectLocation";
+    public static final String ExposureIndexProperty = "ExposureIndex";
+    public static final String SensingMethodProperty = "SensingMethod";
+    public static final String FileSourceProperty = "FileSource";
+    public static final String SceneTypeProperty = "SceneType";
+    public static final String CustomRenderedProperty = "CustomRendered";
+    public static final String ExposureModeProperty = "ExposureMode";
+    public static final String WhiteBalanceProperty = "WhiteBalance";
+    public static final String DigitalZoomRatioProperty = "DigitalZoomRatio";
+    public static final String FocalLengthIn35mmFilmProperty = "FocalLengthIn35mmFilm";
+    public static final String SceneCaptureTypeProperty = "SceneCaptureType";
+    public static final String GainControlProperty = "GainControl";
+    public static final String ContrastProperty = "Contrast";
+    public static final String SaturationProperty = "Saturation";
+    public static final String SharpnessProperty = "Sharpness";
+    public static final String DeviceSettingDescriptionProperty = "DeviceSettingDescription";
+    public static final String SubjectDistanceRangeProperty = "SubjectDistanceRange";
+    public static final String ImageUniqueIDProperty = "ImageUniqueID";
+    public static final String GPSVersionIDProperty = "GPSVersionID";
+    public static final String GPSSatellitesProperty = "GPSSatellites";
+    public static final String GPSStatusProperty = "GPSStatus";
+    public static final String GPSMeasureModeProperty = "GPSMeasureMode";
+    public static final String GPSDOPProperty = "GPSDOP";
+    public static final String GPSSpeedRefProperty = "GPSSpeedRef";
+    public static final String GPSSpeedProperty = "GPSSpeed";
+    public static final String GPSTrackRefProperty = "GPSTrackRef";
+    public static final String GPSTrackProperty = "GPSTrack";
+    public static final String GPSMapDatumProperty = "GPSMapDatum";
+    public static final String GPSDestLatitudeProperty = "GPSDestLatitude";
+    public static final String GPSDestLongitudeProperty = "GPSDestLongitude";
+    public static final String GPSDestBearingRefProperty = "GPSDestBearingRef";
+    public static final String GPSDestBearingProperty = "GPSDestBearing";
+    public static final String GPSDestDistanceRefProperty = "GPSDestDistanceRef";
+    public static final String GPSDestDistanceProperty = "GPSDestDistance";
+    public static final String GPSProcessingMethodProperty = "GPSProcessingMethod";
+    public static final String GPSAreaInformationProperty = "GPSAreaInformation";
+    public static final String GPSDifferentialProperty = "GPSDifferential";
+    public static final String SerialNumberProperty = "SerialNumber";
+    public static final String CreatorProperty = "Creator";
+
     static final String RemoveParameter = "remove";
     static final String BlogParameter = "blog";
     static final String NextBlogParameter = "nextblog";
@@ -152,13 +249,13 @@ public interface BlogConstants
     static final String IdParameter = "id";
     static final String TypeParameter = "type";
     static final String TextParameter = "text";
-    
+
     static final String StylePath = "/style.kmz";
     static final String PlacemarkPath = "/placemarkPath.kmz";
     static final String TrackSeqPath = "/trackSeq.kmz";
     static final String BlogLocationPath = "/blogLocation.kmz";
-    
+
     static final String BaseKey = "base";
-    
+
     static final String BlogIndex = "BlogIndex";
 }
