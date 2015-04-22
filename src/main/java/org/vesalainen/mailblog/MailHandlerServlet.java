@@ -385,7 +385,7 @@ public class MailHandlerServlet extends HttpServlet
             String filename = bodyPart.getFileName();
             byte[] bytes = getBytes(bodyPart);
             String digestString = DS.getDigest(bytes);
-            createMetadata(digestString, filename, contentType, bytes);
+            Entity metadata = createMetadata(digestString, filename, contentType, bytes);
             if (contentType.startsWith("image/"))
             {
                 int oWidth;
@@ -425,7 +425,12 @@ public class MailHandlerServlet extends HttpServlet
                 String[] cids = bodyPart.getHeader("Content-ID");
                 if (cids != null && cids.length > 0)
                 {
-                    replaceBlogRef(blog, cids[0], digestString, wWidth, wHeight);
+                    String alt = (String) metadata.getProperty(UserCommentProperty);
+                    if (alt == null)
+                    {
+                        alt = "";
+                    }
+                    replaceBlogRef(blog, cids[0], digestString, wWidth, wHeight, alt);
                 }
             }
             if (contentType.startsWith("application/vnd.google-earth.kml+xml") || filename.endsWith(".kml"))
@@ -649,7 +654,7 @@ public class MailHandlerServlet extends HttpServlet
         }
     }
 
-    private void replaceBlogRef(final Entity origBlog, final String cidStr, final String sha1, final int width, final int height) throws IOException
+    private void replaceBlogRef(final Entity origBlog, final String cidStr, final String sha1, final int width, final int height, final String alt) throws IOException
     {
         if (origBlog != null)
         {
@@ -692,7 +697,7 @@ public class MailHandlerServlet extends HttpServlet
                         {
                             StringBuilder sb = new StringBuilder();
                             sb.append(body.substring(0, start));
-                            sb.append("<img src=\"/blob?"+Sha1Parameter+"="+sha1+"\" style=\"width:"+width+"px;height:"+height+"px\">");
+                            sb.append("<img src=\"/blob?"+Sha1Parameter+"="+sha1+"\" alt=\""+alt+"\" style=\"width:"+width+"px;height:"+height+"px\">");
                             sb.append(body.substring(end+1));
                             blog.setUnindexedProperty(HtmlProperty, new Text(sb.toString()));
                         }
