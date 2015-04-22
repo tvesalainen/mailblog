@@ -822,7 +822,7 @@ public class DS extends CachingDatastoreService
                 base.toString(),
                 key,
                 locationString
-        );
+        ).replace("\u200B", "");    // Arial font doesn't have non-width-space
     }
 
     private String getLocationString(GeoPt location, String key)
