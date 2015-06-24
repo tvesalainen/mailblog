@@ -1150,17 +1150,17 @@ public class DS extends CachingDatastoreService
             }
             else
             {
-                out.append("<div>");
+                out.append("<span class=\"timestamp\">");
                 DateFormat dateFormat = settings.getDateFormat();
                 out.append(dateFormat.format(timestamp));
-                out.append("</div>");
-                out.append("<div>");
+                out.append(" </span>");
+                out.append("<span class=\"position\">");
                 String locationString = GeoPtType.getString(location);
                 out.append(locationString);
-                out.append("</div>");
-                out.append("<div title=\"Maidenhead Locator\">");
+                out.append(" </span>");
+                out.append("<span class=\"maidenhead\" title=\"Maidenhead Locator\">");
                 out.append(locator);
-                out.append("</div>");
+                out.append(" </span>");
             }
         }
     }

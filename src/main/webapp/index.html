@@ -2,7 +2,7 @@
 <html>
     <head class="openGraph">
         <link rel="alternate" type="application/rss+xml" title="RSS 2.0 Feed" href="/rss" />
-        <link rel="stylesheet" type="text/css" href="/freezed/1.0.5/css/blog.css">
+        <link rel="stylesheet" type="text/css" href="/css/blog.css">
         <link rel="stylesheet" type="text/css" href="/freezed/1.0.5/css/tabs.css">
         <title class="string" id="title"></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -63,14 +63,20 @@
                         </script>
                     </center>
                 </div>        
-                <br>
                 <div id="blogname">
-                    <center>
-                        <h1>
-                            S/Y Iiris
-                        </h1>
-                    </center>	
+                    <h1>
+                        S/Y Iiris
+                    </h1>
                 </div>		
+                <div>
+                    <span class="string" id="gearth-title" title="Avaa Google earth ohjelman (jos se on asennettu) ja näyttää uusimman sijainnin">
+                        <a href="/kml"><img src="images/Google-Earth-32.png">Google Earth</a>
+                    </span>
+                    <span>
+                        <a href="/rss"><img src="/images/feed-icon-28x28.png">RSS 2.0</a>
+                    </span>
+                    <span class="lastPosition"></span>
+                </div>
             </div>
             <div id="tabs">
                 <ul>
@@ -84,30 +90,15 @@
                     <div id="leftside">
                         <div id="map" class='map-canvas'></div>
                         <div id="navigation">
-                            <span class="string" id="archive">Arkisto</span>
-                            <div id="calendar">
-                            </div>
-                            <br>
-                            <div>
-                                <a href="/kml"><img src="images/Google-Earth-32.png">Google Earth</a>
-                                <a href="/kml"><div class="string" id="gearth-title" title="Avaa Google earth ohjelman (jos se on asennettu) ja näyttää uusimman sijainnin">
-                                        <span class="string" id="last-position">Viimeisin sijainti</span>
-                                    </div>
-                                    <div class="lastPosition">
-                                    
-                                    </div>
-                                </a>
-                            </div>
-                            <br>
-                            <!--                <div><button class="print-all">Tulosta kaikki</button></div>    -->
-                            <a href="/rss"><img src="/images/feed-icon-28x28.png">RSS 2.0</a>
-                            <br><br>
                             <div>
                                 <label>
                                     <span class="string" id="search">Haku:</span>
                                     <input class="search" name="search" type="search" size="20"/>
                                 </label>
                                 <!--<label>Avainsanat: <div class="keywordSelect"></div></label>-->
+                            </div>
+                            <span class="string" id="archive">Arkisto</span>
+                            <div id="calendar">
                             </div>
                             <br>
                             <div class="text" id="alternate-site">
