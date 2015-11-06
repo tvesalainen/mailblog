@@ -22,15 +22,21 @@ public class NMEATrackHandler extends AbstractNMEAObserver
     {
         this.handlers = handlers;
     }
-    
+
     @Override
-    public void setLocation(double latitude, double longitude)
+    public void setLongitude(float longitude)
     {
-        this.latitude = latitude;
         this.longitude = longitude;
         updated = true;
     }
 
+    @Override
+    public void setLatitude(float latitude)
+    {
+        this.latitude = latitude;
+        updated = true;
+    }
+    
     @Override
     public void commit(String reason)
     {
