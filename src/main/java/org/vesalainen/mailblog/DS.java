@@ -701,7 +701,7 @@ public class DS extends CachingDatastoreService
                     {
                         if (contentType.startsWith("image/"))
                         {
-                            metaProperty(cw, "og:image", getAttachmentUrl(metadataKey, base));
+                            metaProperty(cw, "og:image", getJPGUrl(metadataKey, base));
                             if (contentType.startsWith("image/jpeg"))
                             {
                                 metaProperty(cw, "og:image:type", "image/jpeg");
@@ -737,6 +737,21 @@ public class DS extends CachingDatastoreService
         {
             URI baseUri = base.toURI();
             URI uri = baseUri.resolve("/blob?" + Sha1Parameter + "=" + key.getName() + "&" + OriginalParameter + "=true");
+            return uri.toASCIIString();
+        }
+        catch (URISyntaxException ex)
+        {
+            throw new IllegalArgumentException(ex);
+        }
+    }
+
+    private String getJPGUrl(Key key, URL base)
+    {
+        assert AttachmentsKind.equals(key.getKind());
+        try
+        {
+            URI baseUri = base.toURI();
+            URI uri = baseUri.resolve("/blob/" + key.getName() + ".jpg");
             return uri.toASCIIString();
         }
         catch (URISyntaxException ex)

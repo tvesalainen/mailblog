@@ -52,7 +52,20 @@ public class BlobServlet extends HttpServlet
             throws ServletException, IOException
     {
         response.setHeader("Cache-Control", "public, max-age=86400");
-        String sha1 = request.getParameter(Sha1Parameter);
+        String sha1;
+        String original;
+        String pathInfo = request.getPathInfo();
+        if (pathInfo != null && pathInfo.toLowerCase().endsWith(".jpg"))
+        {
+            sha1 = pathInfo.substring(1, pathInfo.length()-4);
+            original = "true";
+        }
+        else
+        {
+            sha1 = request.getParameter(Sha1Parameter);
+            original = request.getParameter(OriginalParameter);
+        }
+        log("sha1="+sha1);
         if (sha1 != null)
         {
             String ifNoneMatch = request.getHeader("If-None-Match");
@@ -74,7 +87,6 @@ public class BlobServlet extends HttpServlet
                 String eTag = String.valueOf(timestamp.getTime());
                 response.setHeader("ETag", eTag);
                 BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
-                String original = request.getParameter(OriginalParameter);
                 if (original != null)
                 {
                     BlobKey originalBlobKey = (BlobKey) metadata.getProperty(OriginalSizeProperty);
