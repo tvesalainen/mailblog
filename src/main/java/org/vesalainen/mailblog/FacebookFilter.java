@@ -44,7 +44,10 @@ public class FacebookFilter implements Filter
         HttpServletRequest request = (HttpServletRequest) req;
         HttpServletResponse response = (HttpServletResponse) res;
         String userAgent = request.getHeader("User-Agent");
-        if (userAgent != null && userAgent.startsWith("facebookexternalhit/1.1"))
+        String pathInfo = request.getPathInfo();
+        boolean jpg = pathInfo != null && pathInfo.toLowerCase().endsWith(".jpg");
+        boolean fbCrawler = userAgent != null && userAgent.startsWith("facebookexternalhit/1.1");
+        if (fbCrawler && !jpg)
         {
             URL base = DS.getBase(request);
             DS ds = DS.get();
