@@ -30,7 +30,7 @@ import static org.vesalainen.mailblog.BlogConstants.BlogParameter;
  *
  * @author tkv
  */
-public class OpenGraphServlet extends HttpServlet
+public class FacebookServlet extends HttpServlet
 {
     /**
      * Handles the HTTP
