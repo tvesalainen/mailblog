@@ -676,7 +676,8 @@ public class DS extends CachingDatastoreService
             blog = get(blogKey);
             Settings settings = getSettings();
             String subject = (String) blog.getProperty(SubjectProperty);
-            Collection<Key> attachments = (Collection<Key>) blog.getProperty(AttachmentsProperty);
+            Text text = (Text) blog.getProperty(HtmlProperty);
+            String sha1 = findSha1(text.getValue());
             metaProperty(cw, "og:title", subject);
             metaProperty(cw, "og:url", getBlogUrl(blogKey, base));
             String title = settings.getTitle();
@@ -689,36 +690,33 @@ public class DS extends CachingDatastoreService
             {
                 metaProperty(cw, "og:locale", locale.toString());
             }
-            if (attachments != null)
+            if (sha1 != null)
             {
-                for (Key metadataKey : attachments)
+                Entity metadata = getMetadata(sha1);
+                String contentType = (String) metadata.getProperty(ContentTypeProperty);
+                Object width = metadata.getProperty("PixelXDimension");
+                Object height = metadata.getProperty("PixelYDimension");
+                if (contentType != null)
                 {
-                    Entity metadata = get(metadataKey);
-                    String contentType = (String) metadata.getProperty(ContentTypeProperty);
-                    Object width = metadata.getProperty("PixelXDimension");
-                    Object height = metadata.getProperty("PixelYDimension");
-                    if (contentType != null)
+                    if (contentType.startsWith("image/"))
                     {
-                        if (contentType.startsWith("image/"))
+                        metaProperty(cw, "og:image", getJPGUrl(metadata.getKey(), base));
+                        if (contentType.startsWith("image/jpeg"))
                         {
-                            metaProperty(cw, "og:image", getJPGUrl(metadataKey, base));
-                            if (contentType.startsWith("image/jpeg"))
-                            {
-                                metaProperty(cw, "og:image:type", "image/jpeg");
-                            }
-                            if (contentType.startsWith("image/gif"))
-                            {
-                                metaProperty(cw, "og:image:type", "image/gif");
-                            }
-                            if (contentType.startsWith("image/png"))
-                            {
-                                metaProperty(cw, "og:image:type", "image/png");
-                            }
-                            if (width != null && height != null)
-                            {
-                                metaProperty(cw, "og:image:width", width.toString());
-                                metaProperty(cw, "og:image:height", height.toString());
-                            }
+                            metaProperty(cw, "og:image:type", "image/jpeg");
+                        }
+                        if (contentType.startsWith("image/gif"))
+                        {
+                            metaProperty(cw, "og:image:type", "image/gif");
+                        }
+                        if (contentType.startsWith("image/png"))
+                        {
+                            metaProperty(cw, "og:image:type", "image/png");
+                        }
+                        if (width != null && height != null)
+                        {
+                            metaProperty(cw, "og:image:width", width.toString());
+                            metaProperty(cw, "og:image:height", height.toString());
                         }
                     }
                 }
@@ -1901,6 +1899,21 @@ public class DS extends CachingDatastoreService
         };
         rin.doIt(null);
         putToCache(Resources, null);
+    }
+
+    private String findSha1(String text)
+    {
+        String ss = Sha1Parameter+"=";
+        int i1 = text.indexOf(ss);
+        if (i1 != -1)
+        {
+            int i2 = text.indexOf('"', i1);
+            if (i2 != -1)
+            {
+                return text.substring(i1+ss.length(), i2);
+            }
+        }
+        return null;
     }
 
     public interface Caching
