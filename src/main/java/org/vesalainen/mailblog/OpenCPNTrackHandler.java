@@ -20,95 +20,26 @@ import org.w3c.dom.Element;
 /**
  * @author Timo Vesalainen
  */
-public class OpenCPNTrackHandler implements TrackHandler
+public class OpenCPNTrackHandler extends BaseTrackHandler implements TrackHandler
 {
-    private final DS ds;
-    private Key trackKey;
-    private Key trackSeqKey;
-    private final List<Entity> trackPoints = new ArrayList<>();
-    private final BoundingBox trackBbox = new BoundingBox();
-    private final TimeSpan trackSpan = new TimeSpan();
-    private final BoundingBox trackSeqBbox = new BoundingBox();
-    private final TimeSpan trackSeqSpan = new TimeSpan();
-    private Entity track;
-    private Entity trackSeq;
 
     public OpenCPNTrackHandler(DS ds)
     {
-        this.ds = ds;
+        super(ds);
     }
     
     @Override
     public boolean startTrack(String name, Collection<Object> extensions)
     {
-        String guid = getGuid(extensions);
-        if (guid != null)
-        {
-            trackKey = ds.getTrackKey(guid);
-            try
-            {
-                ds.get(trackKey);
-                ds.deleteWithChilds(trackKey);
-            }
-            catch (EntityNotFoundException ex)
-            {
-            }
-            track = new Entity(trackKey);
-            if (name != null)
-            {
-                track.setProperty(NameProperty, name);
-            }
-            return true;
-        }
-        else
-        {
-            System.err.println("no guid! Skipping track...");
-            return false;
-        }
-    }
-
-    @Override
-    public void endTrack()
-    {
-        trackBbox.populate(track);
-        trackBbox.clear();
-        trackSpan.populate(track);
-        trackSpan.clear();
-        trackKey = ds.put(track);
-        trackKey = null;
-    }
-
-    @Override
-    public void startTrackSeq()
-    {
-        trackSeq = new Entity(TrackSeqKind, trackKey);
-        trackSeqKey = ds.put(trackSeq);
-    }
-
-    @Override
-    public void endTrackSeq()
-    {
-        trackBbox.add(trackSeqBbox);
-        trackSpan.add(trackSeqSpan);
-        trackSeqBbox.populate(trackSeq);
-        trackSeqBbox.clear();
-        trackSeqSpan.populate(trackSeq);
-        trackSeqSpan.clear();
-        ds.put(trackSeq);
-        ds.put(trackPoints);
-        trackPoints.clear();
-        trackSeq = null;
+        return startTrack(name, getGuid(extensions));
     }
 
     @Override
     public void trackPoint(double latitude, double longitude, long time)
     {
-        trackSeqBbox.add(latitude, longitude);
-        trackSeqSpan.add(time);
-        Entity point = new Entity(TrackPointKind, time, trackSeqKey);
-        point.setProperty(LocationProperty, new GeoPt((float)latitude, (float)longitude));
-        trackPoints.add(point);
+        trackPoint((float)latitude, (float)longitude, time);
     }
+    
     public static String getGuid(Collection<Object> extensions)
     {
         for (Object ob : extensions)

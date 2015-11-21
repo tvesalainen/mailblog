@@ -486,7 +486,7 @@ public class MailHandlerServlet extends HttpServlet
                 }
                 catch (JAXBException ex)
                 {
-                    log("reading kmz failed", ex);
+                    log("reading gpx failed", ex);
                 }
             }        
             if (contentType.startsWith("application/X-jsr179-location-nmea") || filename.endsWith(".nmea"))
