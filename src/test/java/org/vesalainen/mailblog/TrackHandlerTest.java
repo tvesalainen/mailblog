@@ -47,61 +47,30 @@ import org.vesalainen.mailblog.exif.ExifException;
 import org.vesalainen.mailblog.exif.ExifParser;
 import org.vesalainen.mailblog.exif.ExifParserTest;
 import org.vesalainen.mailblog.types.TimeSpan;
+import org.vesalainen.nmea.util.TrackInput;
 
 /**
  *
  * @author tkv
  */
-public class OpenCPNTrackHandlerTest extends DSHelper
+public class TrackHandlerTest extends DSHelper
 {
     
-    public OpenCPNTrackHandlerTest()
+    public TrackHandlerTest()
     {
     }
 
 
     @Test
-    public void test()
+    public void testOpenCPN()
     {
         try (InputStream is = ExifParserTest.class.getClassLoader().getResourceAsStream("laspalmas-lasgalletas.gpx"))
         {
-            SimpleDateFormat sdf = new SimpleDateFormat(ISO8601Format);
-            Date expBegin = sdf.parse("2015-03-01T17:15:40Z");
-            Date expEnd = sdf.parse("2015-03-02T13:35:07Z");
             GPX gpx = new GPX(is);
             DS ds = DS.get();
             OpenCPNTrackHandler th = new OpenCPNTrackHandler(ds);
             gpx.browse(1, 0.1, th);
-            
-            Query q1 = new Query(TrackKind);
-            PreparedQuery p1 = ds.prepare(q1);
-            for (Entity track : p1.asIterable())
-            {
-                BoundingBox bb1 = new BoundingBox(track);
-                TimeSpan ts1 = new TimeSpan(track);
-                assertEquals(expBegin, ts1.getBegin());
-                assertEquals(expEnd, ts1.getEnd());
-                Query q2 = new Query(TrackSeqKind);
-                q2.setAncestor(track.getKey());
-                PreparedQuery p2 = ds.prepare(q2);
-                for (Entity trackSeq : p2.asIterable())
-                {
-                    BoundingBox bb2 = new BoundingBox(trackSeq);
-                    assertTrue(bb1.isInside(bb2));
-                    TimeSpan ts2 = new TimeSpan(trackSeq);
-                    assertTrue(ts1.isInside(ts2));
-                    Query q3 = new Query(TrackPointKind);
-                    q3.setAncestor(trackSeq.getKey());
-                    PreparedQuery p3 = ds.prepare(q3);
-                    for (Entity trackPoint : p3.asIterable())
-                    {
-                        long time = trackPoint.getKey().getId();
-                        assertTrue(ts2.isInside(time));
-                        GeoPt location = (GeoPt) trackPoint.getProperty(LocationProperty);
-                        assertTrue(bb2.isInside(location));
-                    }
-                }
-            }
+            testDS(ds);
         }
         catch (ParseException | IOException | JAXBException ex)
         {
@@ -110,6 +79,59 @@ public class OpenCPNTrackHandlerTest extends DSHelper
         }
     }
 
+    @Test
+    public void testCompressed()
+    {
+        try (InputStream is = ExifParserTest.class.getClassLoader().getResourceAsStream("20150301171540.trc"))
+        {
+            TrackInput trackInput = new TrackInput(is);
+            DS ds = DS.get();
+            CompressedTrackHandler cth = new CompressedTrackHandler(ds);
+            cth.handle(trackInput);
+            testDS(ds);
+        }
+        catch (ParseException | IOException ex)
+        {
+            ex.printStackTrace();
+            fail(ex.getMessage());
+        }
+    }
+
+    private void testDS(DS ds) throws ParseException
+    {
+        SimpleDateFormat sdf = new SimpleDateFormat(ISO8601Format);
+        Date expBegin = sdf.parse("2015-03-01T17:15:40Z");
+        Date expEnd = sdf.parse("2015-03-02T13:35:07Z");
+        Query q1 = new Query(TrackKind);
+        PreparedQuery p1 = ds.prepare(q1);
+        for (Entity track : p1.asIterable())
+        {
+            BoundingBox bb1 = new BoundingBox(track);
+            TimeSpan ts1 = new TimeSpan(track);
+            assertEquals(expBegin, ts1.getBegin());
+            assertEquals(expEnd, ts1.getEnd());
+            Query q2 = new Query(TrackSeqKind);
+            q2.setAncestor(track.getKey());
+            PreparedQuery p2 = ds.prepare(q2);
+            for (Entity trackSeq : p2.asIterable())
+            {
+                BoundingBox bb2 = new BoundingBox(trackSeq);
+                assertTrue(bb1.isInside(bb2));
+                TimeSpan ts2 = new TimeSpan(trackSeq);
+                assertTrue(ts1.isInside(ts2));
+                Query q3 = new Query(TrackPointKind);
+                q3.setAncestor(trackSeq.getKey());
+                PreparedQuery p3 = ds.prepare(q3);
+                for (Entity trackPoint : p3.asIterable())
+                {
+                    long time = trackPoint.getKey().getId();
+                    assertTrue(ts2.isInside(time));
+                    GeoPt location = (GeoPt) trackPoint.getProperty(LocationProperty);
+                    assertTrue(bb2.isInside(location));
+                }
+            }
+        }
+    }
     @Test
     public void testLocatePics()
     {

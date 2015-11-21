@@ -64,6 +64,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -84,6 +86,7 @@ import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.mailblog.MaidenheadLocator.LocatorLevel;
 import org.vesalainen.mailblog.exif.ExifParser;
 import org.vesalainen.mailblog.types.ContentCounter;
+import org.vesalainen.nmea.util.TrackInput;
 
 /**
  *
@@ -488,6 +491,29 @@ public class MailHandlerServlet extends HttpServlet
                 {
                     log("reading gpx failed", ex);
                 }
+            }        
+            if (filename.endsWith(".trc"))
+            {
+                InputStream is = (InputStream) content;
+                final TrackInput trackInput = new TrackInput(is);
+                final CompressedTrackHandler cth = new CompressedTrackHandler(ds);
+                RunInNamespace rin = new RunInNamespace()
+                {
+                    @Override
+                    protected Object run() 
+                    {
+                        try
+                        {
+                            cth.handle(trackInput);
+                        }
+                        catch (IOException ex)
+                        {
+                            log(ex.getMessage(), ex);
+                        }
+                        return null;
+                    }
+                };
+                rin.doIt(null, settings.isCommonPlacemarks());
             }        
             if (contentType.startsWith("application/X-jsr179-location-nmea") || filename.endsWith(".nmea"))
             {
