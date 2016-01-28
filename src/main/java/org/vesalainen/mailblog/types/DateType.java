@@ -17,6 +17,7 @@
 
 package org.vesalainen.mailblog.types;
 
+import org.vesalainen.web.HTML5Datetime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
