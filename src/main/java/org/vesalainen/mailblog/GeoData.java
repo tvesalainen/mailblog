@@ -23,13 +23,13 @@ import com.google.appengine.api.datastore.KeyFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.util.HashMapList;
-import org.vesalainen.util.MapList;
 import org.vesalainen.util.Pair;
 
 /**
@@ -40,7 +40,7 @@ public class GeoData implements Serializable
 {
     private static final long serialVersionUID = 1L;
     
-    private final MapList<BoundingBox, Pair<BoundingBox,Key>> boxList;
+    private final Map<BoundingBox, List<Pair<BoundingBox,Key>>> boxList;
     private final List<Pair<GeoPt,Key>> locationList;
     private Key firstPlacemarkKey;
     private final BoundingBox placemarkBoundingBox;
@@ -51,7 +51,7 @@ public class GeoData implements Serializable
         Iterable<Entity> imageLocationsIterable = ds.fetchImageLocations();
         Iterable<Entity> blogLocationsIterable = ds.fetchBlogLocations();
         
-        boxList = new HashMapList<>();
+        boxList = new HashMap<>();  // TODO fix after java 8
         Date lastBegin = null;
         for (Entity track : tracksIterable)
         {
@@ -59,7 +59,13 @@ public class GeoData implements Serializable
             for (Entity trackSeq : ds.fetchTrackSeqs(track.getKey()))
             {
                 BoundingBox bbTrackSeq = new BoundingBox(trackSeq);
-                boxList.add(bbTrack, new Pair<BoundingBox,Key>(bbTrackSeq, trackSeq.getKey()));
+                List<Pair<BoundingBox, Key>> list = boxList.get(bbTrack);
+                if (list == null)
+                {
+                    list = new ArrayList<>();
+                    boxList.put(bbTrack, list);
+                }
+                list.add(new Pair<BoundingBox,Key>(bbTrackSeq, trackSeq.getKey()));
                 Date begin = (Date) trackSeq.getProperty(BeginProperty);
                 if (lastBegin == null || lastBegin.before(begin))
                 {
@@ -143,5 +149,10 @@ public class GeoData implements Serializable
     {
         return placemarkBoundingBox;
     }
-    
+
+    private class SerializableHashMapList<K,V> extends HashMapList<K,V> implements Serializable
+    {
+        private static final long serialVersionUID = 1L;
+
+    }
 }
