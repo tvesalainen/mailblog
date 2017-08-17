@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 
 /**
  *
- * @author tkv
+ * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  * @deprecated This is unfinished. horizontal and vertical values not in same
  * byteorder as others???
  */

@@ -32,7 +32,7 @@ import d3.env.TSAGeoMag;
 
 /**
  *
- * @author tkv
+ * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
 public class Exif2Entity
 {

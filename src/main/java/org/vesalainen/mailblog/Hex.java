@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author tkv
+ * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
 public class Hex
 {

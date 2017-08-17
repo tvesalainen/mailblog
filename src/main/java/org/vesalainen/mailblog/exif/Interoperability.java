@@ -29,7 +29,7 @@ import java.util.Date;
 
 /**
  *
- * @author tkv
+ * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
 public final class Interoperability implements Comparable<Interoperability>
 {

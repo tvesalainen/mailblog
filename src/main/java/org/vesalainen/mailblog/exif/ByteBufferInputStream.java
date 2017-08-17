@@ -28,7 +28,7 @@ import java.nio.channels.FileChannel.MapMode;
 
 /**
  *
- * @author tkv
+ * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
 public class ByteBufferInputStream extends InputStream
 {

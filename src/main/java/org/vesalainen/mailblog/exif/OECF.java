@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Indicates the Opto-Electric Conversion Function (OECF) specified in ISO 14524.
  * OECF is the relationship between the camera optical input and the image values.
- * @author tkv
+ * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  * @deprecated Not found in files. Not able to test
  */
 public class OECF

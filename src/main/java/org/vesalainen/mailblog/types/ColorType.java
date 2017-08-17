@@ -11,7 +11,7 @@ import org.vesalainen.mailblog.HttpException;
 
 /**
  *
- * @author tkv
+ * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
 public class ColorType extends PropertyType<Long> 
 {

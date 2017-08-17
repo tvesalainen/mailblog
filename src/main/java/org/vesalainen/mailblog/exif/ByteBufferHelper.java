@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 
 /**
  *
- * @author tkv
+ * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
 public class ByteBufferHelper
 {

@@ -12,7 +12,7 @@ import org.json.JSONObject;
 import static org.vesalainen.mailblog.BlogConstants.*;
 
 /*
- * Copyright (C) 2015 tkv
+ * Copyright (C) 2015 Timo Vesalainen <timo.vesalainen@iki.fi>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ import static org.vesalainen.mailblog.BlogConstants.*;
  */
 /**
  *
- * @author tkv
+ * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
 public class ResourceServlet extends BaseServlet
 {

@@ -18,7 +18,7 @@ package org.vesalainen.mailblog.exif;
 
 /**
  *
- * @author tkv
+ * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
 public class ExifException extends Exception
 {

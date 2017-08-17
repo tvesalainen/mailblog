@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 
 /**
  *
- * @author tkv
+ * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
 public class URIBuilder
 {
