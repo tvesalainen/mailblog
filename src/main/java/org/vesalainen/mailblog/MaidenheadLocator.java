@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * @deprecated Use org.vesalainen.ham.maidenhead.MaidenheadLocator
  * @author Timo Vesalainen
  * @see <a href="http://en.wikipedia.org/wiki/Maidenhead_Locator_System">Maidenhead Locator System</a>
  */
