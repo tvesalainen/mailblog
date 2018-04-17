@@ -6,13 +6,13 @@
     <parent>
         <groupId>org.vesalainen</groupId>
         <artifactId>parent</artifactId>
-        <version>1.0.9</version>
+        <version>1.8.1</version>
     </parent>    
     <modelVersion>4.0.0</modelVersion>
     <packaging>war</packaging>
     <groupId>org.vesalainen.mailblog</groupId>
     <artifactId>mailblog</artifactId>
-    <version>1.0.6-branch-1</version><!-- REMEMBER appengine-web-app.version !!!!!-->
+    <version>1.8.7</version><!-- REMEMBER appengine-web-app.version !!!!!-->
 
     <name>Mail Blog</name>
     <description>
@@ -21,11 +21,8 @@
         different namespaces.
     </description>
     <properties>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
         <appengine-web-app.application>adventurersblog</appengine-web-app.application>
-        <appengine-web-app.version>1-0-6-branch-1</appengine-web-app.version> <!-- this is the same as project.version with dots changed to dashes-->
-        <appengine.target.version>1.9.53</appengine.target.version>
+        <appengine-web-app.version>1-8-7</appengine-web-app.version> <!-- this is the same as project.version with dots changed to dashes-->
     </properties>
 
     <dependencies>
@@ -81,7 +78,6 @@
         <dependency>
             <groupId>org.vesalainen</groupId>
             <artifactId>util</artifactId>
-            <version>1.0.5-branch-1</version>
         </dependency>
     </dependencies>
       

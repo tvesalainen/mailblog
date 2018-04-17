@@ -42,7 +42,7 @@ public class NMEATrackHandler extends AbstractNMEAObserver
     {
         if (updated)
         {
-            long timestamp = clock.getTime();
+            long timestamp = clock.millis();
             for (NMEATrackLevelHandler handler : handlers)
             {
                 handler.setWaypoint(latitude, longitude, timestamp);

@@ -3,7 +3,6 @@ package org.vesalainen.mailblog;
 
 import java.io.FileInputStream;
 import org.vesalainen.parsers.nmea.AbstractNMEAObserver;
-import org.vesalainen.parsers.nmea.Clock;
 import org.vesalainen.parsers.nmea.NMEAParser;
 import org.vesalainen.parsers.nmea.ais.AbstractAISObserver;
 
