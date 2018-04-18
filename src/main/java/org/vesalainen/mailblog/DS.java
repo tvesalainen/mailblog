@@ -1441,7 +1441,6 @@ public class DS extends CachingDatastoreService
 
     public void addPlacemark(final Date time, final GeoPt geoPt, final String title, final String description)
     {
-        Entity placemark = null;
         Settings settings = getSettings();
         RunInNamespace<Entity> rin = new RunInNamespace()
         {
@@ -1454,12 +1453,11 @@ public class DS extends CachingDatastoreService
                 placemark.setProperty(TimestampProperty, time);
                 placemark.setUnindexedProperty(TitleProperty, title);
                 placemark.setUnindexedProperty(DescriptionProperty, description);
-                System.err.println(placemark);
                 put(placemark);
                 return placemark;
             }
         };
-        placemark = rin.doIt(null, settings.isCommonPlacemarks());
+        rin.doIt(null, settings.isCommonPlacemarks());
         clearPlacemarkCache();
     }
 

@@ -76,6 +76,14 @@
             <artifactId>date</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.vesalainen.parsers</groupId>
+            <artifactId>coordinates</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.vesalainen.parsers</groupId>
+            <artifactId>date</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.vesalainen</groupId>
             <artifactId>util</artifactId>
         </dependency>

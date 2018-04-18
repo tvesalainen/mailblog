@@ -20,15 +20,16 @@ package org.vesalainen.mailblog.types;
 import com.google.appengine.api.datastore.GeoPt;
 import java.util.Locale;
 import javax.servlet.http.HttpServletResponse;
+import static org.vesalainen.mailblog.GeoPtParser.GEO_PT_PARSER;
 import org.vesalainen.mailblog.HttpException;
 import org.vesalainen.parser.util.LineLocatorException;
+import org.vesalainen.parsers.coordinates.CoordinatesParser;
 
 /**
  * @author Timo Vesalainen
  */
 public class GeoPtType extends PropertyType<GeoPt> 
 {
-    private static GeoPtParser parser = GeoPtParser.getInstance();
     @Override
     public GeoPt newInstance(String value) throws HttpException
     {
@@ -36,7 +37,7 @@ public class GeoPtType extends PropertyType<GeoPt>
         {
             try
             {
-                return parser.parseCoordinate(value);
+                return GEO_PT_PARSER.parseCoordinate(value);
             }
             catch (LineLocatorException lle)
             {

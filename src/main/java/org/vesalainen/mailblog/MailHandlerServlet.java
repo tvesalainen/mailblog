@@ -282,11 +282,7 @@ public class MailHandlerServlet extends HttpServlet
                             throw new ServletException("blob upload failed code="+hr.getResponseCode());
                         }
                     }
-                    catch (InterruptedException ex)
-                    {
-                        throw new IOException(ex);
-                    }
-                    catch (ExecutionException ex)
+                    catch (InterruptedException | ExecutionException ex)
                     {
                         throw new IOException(ex);
                     }
@@ -764,6 +760,8 @@ public class MailHandlerServlet extends HttpServlet
 
     private Entity updateBlog(final String messageId, final MimeMessage message, final String htmlBody, final boolean publishImmediately, final Email senderEmail) throws IOException
     {
+        BodyPropertyHandler bodyPropertyHandler = new BodyPropertyHandler();
+        final String body = bodyPropertyHandler.replace(htmlBody);
         Updater<Entity> updater = new Updater<Entity>()
         {
             @Override
@@ -782,8 +780,8 @@ public class MailHandlerServlet extends HttpServlet
                     if (
                             subject == null || 
                             subject.length() < 2 ||
-                            htmlBody == null ||
-                            ContentCounter.countChars(htmlBody) < 5
+                            body == null ||
+                            ContentCounter.countChars(body) < 5
                             )
                     {
                         ds.deleteWithChilds(blog.getKey());
@@ -804,7 +802,7 @@ public class MailHandlerServlet extends HttpServlet
                     blog.setProperty(SubjectProperty, subject);
                     blog.setProperty(SenderProperty, senderEmail);
                     setProperty(message, DateProperty, blog, true);
-                    blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
+                    blog.setUnindexedProperty(HtmlProperty, new Text(body));
                     blog.setProperty(TimestampProperty, new Date());
                     Entity placemark = ds.fetchLastPlacemark(settings);
                     if (placemark != null)
