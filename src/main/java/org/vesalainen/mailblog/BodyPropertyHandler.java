@@ -59,7 +59,7 @@ public class BodyPropertyHandler extends BodyPropertyFinder
             try
             {
                 GeoPt location = GEO_PT_PARSER.parseCoordinate(locStr);
-                Date time = Dates.parseRMSExpress(dtStr);
+                Date time = Dates.parseRMSExpress(dtStr.replace('.', ':'));
                 DS ds = DS.get();
                 ds.addPlacemark(time, location, messenger, type);
             }
