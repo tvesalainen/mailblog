@@ -16,8 +16,17 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.GeoPt;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.repackaged.com.google.datastore.v1.Key;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import static org.vesalainen.mailblog.BlogConstants.PlacemarkKind;
+import static org.vesalainen.mailblog.CachingDatastoreService.getRootKey;
 
 /**
  *
@@ -31,10 +40,19 @@ public class BodyPropertyHandlerTest extends DSHelper
     }
 
     @Test
-    public void test1()
+    public void test1() throws EntityNotFoundException
     {
         BodyPropertyHandler bph = new BodyPropertyHandler();
-        bph.replace("${dateTime=2018-04-21 20.06.27Z}${location=08-28,99N 079-56,65W}${messenger=Iiris}${type=Custom}");
+        ZonedDateTime zdt = ZonedDateTime.parse("2018-04-21T20:06:27Z");
+        Date date = Date.from(zdt.toInstant());
+        String replaced = bph.replace("a${dateTime=2018-04-21 20.06.27Z}b${location=08-28,99N 079-56,65W}c${messenger=Iiris}d${type=Custom}e");
+        assertEquals("abcde", replaced);
+        DS ds = DS.get();
+        Entity placemark = ds.get(KeyFactory.createKey(getRootKey(), PlacemarkKind, date.getTime()));
+        assertNotNull(placemark);
+        assertEquals("Iiris", placemark.getProperty("Title"));
+        GeoPt pt = new GeoPt(8.483167F,-79.944168F);
+        assertEquals(pt, placemark.getProperty("Location"));
     }
     
 }
