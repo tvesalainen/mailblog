@@ -70,8 +70,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -1300,6 +1298,7 @@ public class DS extends CachingDatastoreService
                 {
                     trackSeqQuery.setAncestor(ancestor);
                 }
+                trackSeqQuery.addSort(BeginProperty);
                 PreparedQuery trackSeqPrepared = prepare(trackSeqQuery);
                 return trackSeqPrepared.asIterable();
             }
@@ -1581,7 +1580,7 @@ public class DS extends CachingDatastoreService
                 PreparedQuery p2 = prepare(q2);
                 for (Entity trackSeq : p2.asIterable())
                 {
-                    BoundingBox bb2 = new BoundingBox(trackSeq);
+                    BoundingBox bb2 = BoundingBox.getInstance(trackSeq);
                     bb1.add(bb2);
                     TimeSpan ts2 = new TimeSpan(trackSeq);
                     ts1.add(ts2);
@@ -1603,14 +1602,14 @@ public class DS extends CachingDatastoreService
         Iterable<Entity> trackIterable = fetchTracks();
         for (Entity track : trackIterable)
         {
-            BoundingBox bb1 = new BoundingBox(track);
+            BoundingBox bb1 = BoundingBox.getInstance(track);
             TimeSpan ts1 = new TimeSpan(track);
             if (hasImageMetadata(ts1.getBegin(), ts1.getEnd(), true))
             {
                 Iterable<Entity> trackSeqIterable = fetchTrackSeqs(track.getKey());
                 for (Entity trackSeq : trackSeqIterable)
                 {
-                    BoundingBox bb2 = new BoundingBox(trackSeq);
+                    BoundingBox bb2 = BoundingBox.getInstance(trackSeq);
                     TimeSpan ts2 = new TimeSpan(trackSeq);
                     if (hasImageMetadata(ts2.getBegin(), ts2.getEnd(), true))
                     {
@@ -1791,12 +1790,13 @@ public class DS extends CachingDatastoreService
             break;
             case PlacemarkKind:
             {
+                GeoData geoData = getGeoData();
                 Date timestamp = (Date) entity.getProperty(TimestampProperty);
                 LineString lineString = new LineString();
-                for (Entity placemark : fetchPlacemarks(key))
+                Collection<GeoPt> placemarkPoints = geoData.getPlacemarkPoints(key);
+                if (placemarkPoints != null)
                 {
-                    GeoPt location = (GeoPt) placemark.getProperty(LocationProperty);
-                    lineString.add(location);
+                    lineString.add(placemarkPoints);
                 }
                 feature = new Feature(lineString);
                 feature.setId(KeyFactory.keyToString(key));

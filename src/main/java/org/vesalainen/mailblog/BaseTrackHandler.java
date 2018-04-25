@@ -30,6 +30,8 @@ public class BaseTrackHandler
     private final TimeSpan trackSpan = new TimeSpan();
     private final BoundingBox trackSeqBbox = new BoundingBox();
     private final TimeSpan trackSeqSpan = new TimeSpan();
+    private GeoPt trackSeqFirst;
+    private GeoPt trackSeqLast;
     private Entity track;
     private Entity trackSeq;
 
@@ -79,6 +81,8 @@ public class BaseTrackHandler
     {
         trackSeq = new Entity(TrackSeqKind, trackKey);
         trackSeqKey = ds.put(trackSeq);
+        trackSeqFirst = null;
+        trackSeqLast = null;
     }
 
     public void endTrackSeq()
@@ -89,6 +93,8 @@ public class BaseTrackHandler
         trackSeqBbox.clear();
         trackSeqSpan.populate(trackSeq);
         trackSeqSpan.clear();
+        trackSeq.setProperty(FirstProperty, trackSeqFirst);
+        trackSeq.setProperty(LastProperty, trackSeqLast);
         ds.put(trackSeq);
         ds.put(trackPoints);
         trackPoints.clear();
@@ -100,7 +106,13 @@ public class BaseTrackHandler
         trackSeqBbox.add(latitude, longitude);
         trackSeqSpan.add(time);
         Entity point = new Entity(TrackPointKind, time, trackSeqKey);
-        point.setProperty(LocationProperty, new GeoPt(latitude, longitude));
+        GeoPt location = new GeoPt(latitude, longitude);
+        point.setProperty(LocationProperty, location);
         trackPoints.add(point);
+        if (trackSeqFirst == null)
+        {
+            trackSeqFirst = location;
+        }
+        trackSeqLast = location;
     }
 }

@@ -22,8 +22,7 @@ import com.google.appengine.api.datastore.GeoPt;
 import java.io.Serializable;
 import java.util.Collection;
 import org.json.JSONObject;
-import static org.vesalainen.mailblog.BlogConstants.NorthEastProperty;
-import static org.vesalainen.mailblog.BlogConstants.SouthWestProperty;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.repacked.net.opengis.kml.LatLonAltBoxType;
 
 /**
@@ -46,6 +45,10 @@ public class BoundingBox implements Serializable
     {
     }
 
+    public BoundingBox(GeoPt point)
+    {
+        this(point, point);
+    }
     public BoundingBox(GeoPt northEast, GeoPt southWest)
     {
         this(northEast.getLatitude(), northEast.getLongitude(), southWest.getLatitude(), southWest.getLongitude());
@@ -105,9 +108,18 @@ public class BoundingBox implements Serializable
         init = true;
     }
 
-    public BoundingBox(Entity entity)
+    public static BoundingBox getInstance(Entity entity)
     {
-        this((GeoPt) entity.getProperty(NorthEastProperty), (GeoPt) entity.getProperty(SouthWestProperty));
+            switch (entity.getKind())
+            {
+                case PlacemarkKind:
+                    return new BoundingBox((GeoPt) entity.getProperty(LocationProperty));
+                case TrackKind:
+                case TrackSeqKind:
+                    return new BoundingBox((GeoPt) entity.getProperty(NorthEastProperty), (GeoPt) entity.getProperty(SouthWestProperty));
+                default:
+                    throw new UnsupportedOperationException(entity.getKind()+" not supported");
+            }
     }
     /**
      * Return height in degrees

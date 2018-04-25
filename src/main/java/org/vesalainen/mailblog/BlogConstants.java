@@ -102,6 +102,8 @@ public interface BlogConstants
     static final String EyeAltitudeProperty = "EyeAltitude";
     static final String BeginProperty = "Begin";
     static final String EndProperty = "End";
+    static final String FirstProperty = "First";
+    static final String LastProperty = "Last";
     static final String TrackColorProperty = "TrackColor";
     static final String MinOpaqueProperty = "MinOpaque";
     static final String NameProperty = "Name";

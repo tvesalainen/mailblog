@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Timo Vesalainen <timo.vesalainen@iki.fi>
+ * Copyright (C) 2018 Timo Vesalainen <timo.vesalainen@iki.fi>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,9 @@
  */
 package org.vesalainen.mailblog;
 
-import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
-import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import com.google.appengine.tools.remoteapi.RemoteApiInstaller;
+import com.google.appengine.tools.remoteapi.RemoteApiOptions;
+import java.io.IOException;
 import org.junit.After;
 import org.junit.Before;
 
@@ -25,25 +26,30 @@ import org.junit.Before;
  *
  * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
-public class DSHelper
+public class RemoteHelper
 {
-    static final Double Epsilon = 1e-5;
-    protected final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
+    
+    protected RemoteApiOptions options;
+    protected RemoteApiInstaller installer;
 
-    public DSHelper()
+    public RemoteHelper()
     {
     }
 
     @Before
-    public void setUp()
+    public void before() throws IOException
     {
-        helper.setUp();
+        options = new RemoteApiOptions();
+        options.server("adventurersblog.appspot.com", 443);
+        options.useApplicationDefaultCredential();
+        installer = new RemoteApiInstaller();
+        installer.install(options);
     }
 
     @After
-    public void tearDown()
+    public void after()
     {
-        helper.tearDown();
+        installer.uninstall();
     }
     
 }

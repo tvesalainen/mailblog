@@ -39,4 +39,7 @@
         <property name="Location" direction="asc"/>
         <property name="DateTimeOriginal" direction="asc"/>
     </datastore-index>
+    <datastore-index kind="TrackSeq" ancestor="true" source="manual">
+        <property name="Begin" direction="asc"/>
+    </datastore-index>
 </datastore-indexes>
