@@ -193,7 +193,7 @@ public class GeoData implements Serializable
         });
         return json;
     }
-    public Collection<GeoPt> getPlacemarkPoints(Key key)
+    public List<GeoPt> getPlacemarkPoints(Key key)
     {
         return placemarkList.get(key);
     }

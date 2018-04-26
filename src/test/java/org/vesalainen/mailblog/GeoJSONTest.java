@@ -48,6 +48,7 @@ public class GeoJSONTest
     GeoPt p6 = new GeoPt(11F, 12F);
     List<GeoPt> list1 = new ArrayList<>();
     List<GeoPt> list2 = new ArrayList<>();
+    List<List<GeoPt>> lists = new ArrayList<>();
     public GeoJSONTest()
     {
         list1.add(p1);
@@ -58,6 +59,9 @@ public class GeoJSONTest
         list2.add(p4);
         list2.add(p5);
         list2.add(p6);
+        
+        lists.add(list1);
+        lists.add(list2);
     }
 
     @Test
@@ -100,7 +104,8 @@ public class GeoJSONTest
     @Test
     public void testPolygon()
     {
-        Polygon o = new Polygon(list1);
+        Polygon o = new Polygon();
+        o.add(list1);
         JSONObject json = o.getJson();
         assertEquals("Polygon", json.get("type"));
         JSONArray ar = json.getJSONArray("coordinates");
@@ -133,7 +138,8 @@ public class GeoJSONTest
     @Test
     public void testMultiLineString()
     {
-        MultiLineString o = new MultiLineString(list1);
+        MultiLineString o = new MultiLineString();
+        o.add(list1);
         JSONObject json = o.getJson();
         assertEquals("MultiLineString", json.get("type"));
         JSONArray ar1 = json.getJSONArray("coordinates");
@@ -154,8 +160,7 @@ public class GeoJSONTest
         GeometryCollection o = new GeometryCollection();
         JSONObject json = o.getJson();
         assertEquals("GeometryCollection", json.get("type"));
-        MultiLineString mls = o.addMultiLineString(list1);
-        mls.add(list2);
+        MultiLineString mls = o.addMultiLineString(lists);
         JSONArray ar1 = json.getJSONArray("geometries");
         assertNotNull(ar1);
         assertEquals(1, ar1.length());
@@ -185,8 +190,7 @@ public class GeoJSONTest
         FeatureCollection o = new FeatureCollection();
         JSONObject json = o.getJson();
         assertEquals("FeatureCollection", json.get("type"));
-        MultiLineString mls = new MultiLineString(list1);
-        mls.add(list2);
+        MultiLineString mls = new MultiLineString(lists);
         Feature f = o.addGeometry(mls);
         assertNotNull(f);
         f.setId("1234");
@@ -217,5 +221,16 @@ public class GeoJSONTest
         assertEquals(1, ba.getDouble(1), Epsilon);
         assertEquals(12, ba.getDouble(2), Epsilon);
         assertEquals(11, ba.getDouble(3), Epsilon);
+    }
+    @Test
+    public void testAntiMeridian()
+    {
+        List<GeoPt> list = new ArrayList<>();
+        list.add(new GeoPt(20, -176));
+        list.add(new GeoPt(20, -178));
+        list.add(new GeoPt(20, 179));
+        list.add(new GeoPt(20, 178));
+        GeoJSON ls = GeoJSON.lineString(list);
+        assertTrue((ls instanceof MultiLineString));
     }
 }

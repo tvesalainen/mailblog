@@ -1763,13 +1763,13 @@ public class DS extends CachingDatastoreService
             case TrackSeqKind:
             {
                 Date begin = (Date) entity.getProperty(BeginProperty);
-                LineString lineString = new LineString();
+                List<GeoPt> list = new ArrayList<>();
                 for (Entity trackPoint : fetchTrackPoints(key))
                 {
                     GeoPt location = (GeoPt) trackPoint.getProperty(LocationProperty);
-                    lineString.add(location);
+                    list.add(location);
                 }
-                feature = new Feature(lineString);
+                feature = new Feature((GeoJSON.Geometry) GeoJSON.lineString(list));
                 feature.setId(KeyFactory.keyToString(key));
                 feature.setProperty("color", settings.getTrackCss3Color());
                 feature.setProperty("opacity", getAlpha(begin));
@@ -1792,17 +1792,15 @@ public class DS extends CachingDatastoreService
             {
                 GeoData geoData = getGeoData();
                 Date timestamp = (Date) entity.getProperty(TimestampProperty);
-                LineString lineString = new LineString();
-                Collection<GeoPt> placemarkPoints = geoData.getPlacemarkPoints(key);
+                List<GeoPt> placemarkPoints = geoData.getPlacemarkPoints(key);
                 if (placemarkPoints != null)
                 {
-                    lineString.add(placemarkPoints);
+                    feature = new Feature((GeoJSON.Geometry) GeoJSON.lineString(placemarkPoints));
+                    feature.setId(KeyFactory.keyToString(key));
+                    feature.setProperty("color", settings.getTrackCss3Color());
+                    feature.setProperty("opacity", getAlpha(timestamp));
+                    feature.write(cw);
                 }
-                feature = new Feature(lineString);
-                feature.setId(KeyFactory.keyToString(key));
-                feature.setProperty("color", settings.getTrackCss3Color());
-                feature.setProperty("opacity", getAlpha(timestamp));
-                feature.write(cw);
             }
             break;
             default:

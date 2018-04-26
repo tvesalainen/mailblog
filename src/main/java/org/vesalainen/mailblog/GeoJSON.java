@@ -19,12 +19,15 @@ package org.vesalainen.mailblog;
 import com.google.appengine.api.datastore.GeoPt;
 import java.io.Writer;
 import java.util.Collection;
+import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.vesalainen.util.CollectionHelp;
 
 /**
  *
  * @author Timo Vesalainen <timo.vesalainen@iki.fi>
+ * @see <a href="https://tools.ietf.org/html/rfc7946">The GeoJSON Format</a>
  */
 public class GeoJSON
 {
@@ -54,7 +57,41 @@ public class GeoJSON
         }
         json.write(writer);
     }
-    
+    /**
+     * Returns either LineString or MultiLineString depending on crossing
+     * antimeridian.
+     * @param points
+     * @return 
+     */
+    public static GeoJSON lineString(List<GeoPt> points)
+    {
+        if (points.isEmpty())
+        {
+            return new LineString();
+        }
+        boolean antimeridian = false;
+        boolean est = east(points.get(0));
+        for (GeoPt p : points)
+        {
+            if (est != east(p))
+            {
+                antimeridian = true;
+                break;
+            }
+        }
+        if (antimeridian)
+        {
+            return new MultiLineString(CollectionHelp.split(points, GeoJSON::east));
+        }
+        else
+        {
+            return new LineString(points);
+        }
+    }
+    private static boolean east(GeoPt p)
+    {
+        return p.getLongitude() >= 0;
+    }
     public static class GeometryCollection extends GeoJSON
     {
         JSONArray geometries = new JSONArray();
@@ -72,7 +109,7 @@ public class GeoJSON
         {
             this.bbox = bbox;
         }
-        public MultiLineString addMultiLineString(Collection<GeoPt> points)
+        public MultiLineString addMultiLineString(List<List<GeoPt>> points)
         {
             return (MultiLineString) addGeometry(new MultiLineString(points));
         }
@@ -80,7 +117,7 @@ public class GeoJSON
         {
             return (MultiPoint) addGeometry(new MultiPoint(points));
         }
-        public Polygon addPolygon(Collection<GeoPt> points)
+        public Polygon addPolygon(List<List<GeoPt>> points)
         {
             return (Polygon) addGeometry(new Polygon(points));
         }
@@ -115,7 +152,7 @@ public class GeoJSON
         {
             this.bbox = bbox;
         }
-        public Feature addMultiLineString(Collection<GeoPt> points)
+        public Feature addMultiLineString(List<List<GeoPt>> points)
         {
             return (Feature) addGeometry(new MultiLineString(points));
         }
@@ -123,7 +160,7 @@ public class GeoJSON
         {
             return (Feature) addGeometry(new MultiPoint(points));
         }
-        public Feature addPolygon(Collection<GeoPt> points)
+        public Feature addPolygon(List<List<GeoPt>> points)
         {
             return (Feature) addGeometry(new Polygon(points));
         }
@@ -270,42 +307,58 @@ public class GeoJSON
         protected JSONArray coordinates = new JSONArray();
         protected JSONArray array;
 
-        protected Geometry3D(String type, Collection<GeoPt> locations)
+        protected Geometry3D(String type)
         {
             super(type);
             json.put("coordinates", coordinates);
-            add(locations);
         }
-        public final void add(Collection<GeoPt> locations)
+        protected Geometry3D(String type, List<List<GeoPt>> locations)
+        {
+            super(type);
+            json.put("coordinates", coordinates);
+            for (List<GeoPt> list : locations)
+            {
+                add(list);
+            }
+        }
+        public final void add(List<GeoPt> locations)
         {
             array = new JSONArray();
             coordinates.put(array);
             for (GeoPt location : locations)
             {
-                add(location);
+                JSONArray point = new JSONArray();
+                array.put(point);
+                point.put(location.getLongitude());
+                point.put(location.getLatitude());
             }
-        }
-        public final void add(GeoPt location)
-        {
-            JSONArray point = new JSONArray();
-            array.put(point);
-            point.put(location.getLongitude());
-            point.put(location.getLatitude());
         }
         
     }
     public static class Polygon extends Geometry3D
     {
-        public Polygon(Collection<GeoPt> locations)
+        public Polygon()
+        {
+            super("Polygon");
+        }
+
+        public Polygon(List<List<GeoPt>> locations)
         {
             super("Polygon", locations);
         }
+        
     }
     public static class MultiLineString extends Geometry3D
     {
-        public MultiLineString(Collection<GeoPt> locations)
+        public MultiLineString()
+        {
+            super("MultiLineString");
+        }
+
+        public MultiLineString(List<List<GeoPt>> locations)
         {
             super("MultiLineString", locations);
         }
+        
     }
 }
