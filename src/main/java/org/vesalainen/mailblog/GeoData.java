@@ -61,9 +61,10 @@ public class GeoData implements Serializable
         Iterable<Entity> blogLocationsIterable = ds.fetchBlogLocations();
 
         Iterable<Entity> merge = Merger.merge(new Comp(), trackSeqIterable, placemarksIterable);
-        BoundingBox bb = null;
+        BoundingBox bb;
         BoundingBox pb = null;
         Entity prev = null;
+        Date lastTrackEnd = null;
         List<GeoPt> locList = null;
         List<GeoPt> prevList = null;
         for (Entity entity : merge)
@@ -84,30 +85,28 @@ public class GeoData implements Serializable
                     }
                     else
                     {
-                        switch (prev.getKind())
+                        locList = new ArrayList<>();
+                        if (lastTrackEnd == null || timestamp.after(lastTrackEnd))
                         {
-                            case PlacemarkKind:
-                                prevList.add(location);  // prev
-                                pb.add(location);       // prev
-                                boxList.add(bb, key);
-                                locList = new ArrayList<>();
-                                locList.add(location);
-                                placemarkList.put(key, locList);
-                                break;
-                            case TrackSeqKind:
-                                GeoPt last = (GeoPt) prev.getProperty(LastProperty);
-                                Date end = (Date) prev.getProperty(EndProperty);
-                                if (timestamp.after(end))
-                                {
+                            switch (prev.getKind())
+                            {
+                                case PlacemarkKind:
+                                    prevList.add(location);  // prev
+                                    pb.add(location);       // prev
                                     boxList.add(bb, key);
-                                    locList = new ArrayList<>();
+                                    locList.add(location);
+                                    placemarkList.put(key, locList);
+                                    break;
+                                case TrackSeqKind:
+                                    GeoPt last = (GeoPt) prev.getProperty(LastProperty);
+                                    boxList.add(bb, key);
                                     locList.add(last);
                                     locList.add(location);
                                     placemarkList.put(key, locList);
-                                }
-                                break;
-                            default:
-                                throw new UnsupportedOperationException(entity.getKind()+" not supported");
+                                    break;
+                                default:
+                                    throw new UnsupportedOperationException(entity.getKind()+" not supported");
+                            }
                         }
                     }
                     break;
@@ -119,6 +118,7 @@ public class GeoData implements Serializable
                     else
                     {
                         GeoPt first = (GeoPt) entity.getProperty(FirstProperty);
+                        lastTrackEnd = (Date) entity.getProperty(EndProperty);
                         switch (prev.getKind())
                         {
                             case PlacemarkKind:
