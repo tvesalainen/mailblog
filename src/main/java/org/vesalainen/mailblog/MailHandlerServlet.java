@@ -311,7 +311,7 @@ public class MailHandlerServlet extends HttpServlet
             }
             else
             {
-                log("body not MultiPart of String");
+                log("body not MultiPart or String");
             }
         }
     }
