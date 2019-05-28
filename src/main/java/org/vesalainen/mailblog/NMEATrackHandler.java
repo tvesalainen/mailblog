@@ -24,14 +24,14 @@ public class NMEATrackHandler extends AbstractNMEAObserver
     }
 
     @Override
-    public void setLongitude(float longitude)
+    public void setLongitude(double longitude)
     {
         this.longitude = longitude;
         updated = true;
     }
 
     @Override
-    public void setLatitude(float latitude)
+    public void setLatitude(double latitude)
     {
         this.latitude = latitude;
         updated = true;

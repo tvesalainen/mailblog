@@ -39,7 +39,7 @@ public class CompressedTrackHandler extends BaseTrackHandler
         startTrackSeq();
         while (trackInput.read())
         {
-            trackPoint(trackInput.getLatitude(), trackInput.getLongitude(), trackInput.getTime());
+            trackPoint((float)trackInput.getLatitude(), (float)trackInput.getLongitude(), trackInput.getTime());
         }
         endTrackSeq();
         endTrack();
