@@ -87,6 +87,7 @@ import org.vesalainen.mailblog.GeoJSON.LineString;
 import org.vesalainen.mailblog.GeoJSON.Point;
 import org.vesalainen.mailblog.types.GeoPtType;
 import org.vesalainen.mailblog.types.TimeSpan;
+import org.vesalainen.navi.Navis;
 import org.vesalainen.rss.Channel;
 import org.vesalainen.rss.Item;
 import org.vesalainen.rss.RSS;
@@ -1412,16 +1413,9 @@ public class DS extends CachingDatastoreService
         return blogLocationPrepared.asIterable();
     }
 
-    public static GeoPt center(Collection<GeoPt> list)
+    public static GeoPt center(List<GeoPt> list)
     {
-        float lat = 0;
-        float lon = 0;
-        for (GeoPt pt : list)
-        {
-            lat += pt.getLatitude();
-            lon += pt.getLongitude();
-        }
-        return new GeoPt(lat / list.size(), lon / list.size());
+        return Navis.locationCenter((double y,double x)->new GeoPt((float)y,(float)x), (i)->list.get(i).getLatitude(), (i)->list.get(i).getLongitude(), list.size());
     }
 
     private String getCoordinatesString(Collection<GeoPt> coordinates)

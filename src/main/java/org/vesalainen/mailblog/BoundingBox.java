@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import org.json.JSONObject;
 import static org.vesalainen.mailblog.BlogConstants.*;
+import org.vesalainen.navi.Navis;
 import org.vesalainen.repacked.net.opengis.kml.LatLonAltBoxType;
 
 /**
@@ -260,7 +261,10 @@ public class BoundingBox implements Serializable
     {
         return new GeoPt((float)north, (float)east);
     }
-
+    public GeoPt getCenter()
+    {
+        return Navis.locationCenter((double y,double x)->new GeoPt((float)y,(float)x), south, west, north, east);
+    }
     public double getNorth()
     {
         return north;

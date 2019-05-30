@@ -169,10 +169,20 @@ public class BoundingBoxTest
         box1.add(10, 170);
         box1.add(20, -170);
         assertEquals(20, box1.getWidth(), Epsilon);
+        assertEquals(10, box1.getHeight(), Epsilon);
         BoundingBox box2 = new BoundingBox();
         box2.add(9, 10);
         box2.add(21, 20);
         assertEquals(10, box2.getWidth(), Epsilon);
+        assertEquals(12, box1.getHeight(), Epsilon);
     }
-
+    @Test
+    public void testCenter()
+    {
+        BoundingBox box1 = new BoundingBox();
+        box1.add(10, 170);
+        box1.add(20, -170);
+        GeoPt exp = new GeoPt(15, 180);
+        assertEquals(exp, box1.getCenter());
+    }
 }
