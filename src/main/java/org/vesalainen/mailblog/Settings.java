@@ -27,8 +27,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 import static org.vesalainen.mailblog.BlogConstants.*;
-import static org.vesalainen.mailblog.SpotType.Ok;
 import org.vesalainen.mailblog.types.LocaleHelp;
+import static org.vesalainen.mailblog.SpotType.Anchored;
 
 /**
  * @author Timo Vesalainen
@@ -204,7 +204,7 @@ public class Settings extends BaseProperty
                 return getImageIcon();
             case PlacemarkKind:
                 String description = (String) entity.getProperty(DescriptionProperty);
-                return getSpotIcon(description);
+                return getFeatureIcon(description);
             default:
                 return DefaultIcon;
         }
@@ -251,22 +251,22 @@ public class Settings extends BaseProperty
         }
     }
 
-    public String getSpotOkIcon()
+    public String getAnchoredIcon()
     {
-        return getSpotIcon(AnchoredIconProperty);
+        return getFeatureIcon(AnchoredIconProperty);
     }
 
-    public String getSpotCustomIcon()
+    public String getWaypointIcon()
     {
-        return getSpotIcon(WaypointIconProperty);
+        return getFeatureIcon(WaypointIconProperty);
     }
 
-    public String getSpotHelpIcon()
+    public String getDestinationIcon()
     {
-        return getSpotIcon(DestinationIconProperty);
+        return getFeatureIcon(DestinationIconProperty);
     }
 
-    private String getSpotIcon(String property)
+    private String getFeatureIcon(String property)
     {
         Link link = (Link) map.get(property);
         if (link != null)
@@ -283,12 +283,12 @@ public class Settings extends BaseProperty
     {
         switch (type)
         {
-            case Ok:
-                return getSpotIcon(AnchoredIconProperty);
+            case Anchored:
+                return getFeatureIcon(AnchoredIconProperty);
             case Waypoint:
-                return getSpotIcon(WaypointIconProperty);
-            case Help:
-                return getSpotIcon(DestinationIconProperty);
+                return getFeatureIcon(WaypointIconProperty);
+            case Destination:
+                return getFeatureIcon(DestinationIconProperty);
             default:
                 return DefaultIcon;
         }

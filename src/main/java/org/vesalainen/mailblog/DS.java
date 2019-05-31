@@ -1691,7 +1691,7 @@ public class DS extends CachingDatastoreService
             bb.add(location);
             String description = (String) pm.getProperty(DescriptionProperty);
             SpotType st = SpotType.getSpotType(description);
-            if (SpotType.Ok == st)
+            if (SpotType.Anchored == st)
             {
                 break;
             }

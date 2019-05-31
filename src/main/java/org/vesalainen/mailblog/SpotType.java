@@ -10,7 +10,7 @@ package org.vesalainen.mailblog;
  */
 public enum SpotType
 {
-    Ok, Waypoint, Help, SOS, None, Destination ;
+    Anchored, Waypoint, None, Destination ;
     
     public static String getSpotStyleId(SpotType type)
     {
@@ -22,14 +22,12 @@ public enum SpotType
         {
             case "Destination":
                 return Destination;
+            case "Anchored":
             case "Check-in/OK":
-                return Ok;
+                return Anchored;
+            case "Waypoint":
             case "Custom":
                 return Waypoint;
-            case "Help":
-                return Help;
-            case "SOS":
-                return SOS;
             default:
                 return None;
         }
