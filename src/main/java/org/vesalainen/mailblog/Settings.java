@@ -253,17 +253,17 @@ public class Settings extends BaseProperty
 
     public String getSpotOkIcon()
     {
-        return getSpotIcon(SpotOkIconProperty);
+        return getSpotIcon(AnchoredIconProperty);
     }
 
     public String getSpotCustomIcon()
     {
-        return getSpotIcon(SpotCustomIconProperty);
+        return getSpotIcon(WaypointIconProperty);
     }
 
     public String getSpotHelpIcon()
     {
-        return getSpotIcon(SpotHelpIconProperty);
+        return getSpotIcon(DestinationIconProperty);
     }
 
     private String getSpotIcon(String property)
@@ -284,11 +284,11 @@ public class Settings extends BaseProperty
         switch (type)
         {
             case Ok:
-                return getSpotIcon(SpotOkIconProperty);
-            case Custom:
-                return getSpotIcon(SpotCustomIconProperty);
+                return getSpotIcon(AnchoredIconProperty);
+            case Waypoint:
+                return getSpotIcon(WaypointIconProperty);
             case Help:
-                return getSpotIcon(SpotHelpIconProperty);
+                return getSpotIcon(DestinationIconProperty);
             default:
                 return DefaultIcon;
         }

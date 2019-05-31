@@ -31,6 +31,7 @@ import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import static org.vesalainen.mailblog.BlogConstants.*;
+import static org.vesalainen.mailblog.SpotType.Destination;
 import org.vesalainen.util.HashMapList;
 import org.vesalainen.util.MapList;
 import org.vesalainen.util.Merger;
@@ -74,7 +75,17 @@ public class GeoData implements Serializable
             switch (entity.getKind())
             {
                 case PlacemarkKind:
+                    String description = (String) entity.getProperty(DescriptionProperty);
+                    SpotType type = SpotType.getSpotType(description);
                     GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
+                    if (type == Destination)
+                    {
+                        boxList.add(bb, key);
+                        locList = new ArrayList<>();
+                        locList.add(location);
+                        placemarkList.put(key, locList);
+                        continue;
+                    }
                     Date timestamp = (Date) entity.getProperty(TimestampProperty);
                     if (prev == null)
                     {

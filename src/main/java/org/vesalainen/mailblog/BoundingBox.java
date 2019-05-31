@@ -64,6 +64,15 @@ public class BoundingBox implements Serializable
         init = true;
     }
     
+    public BoundingBox(JSONObject json)
+    {
+        this.north = json.getDouble("north");
+        this.east = json.getDouble("east");
+        this.south = json.getDouble("south");
+        this.west = json.getDouble("west");
+        init = true;
+    }
+
     /**
      * Creates a BoundingBox from a string "south,west,north,east"
      * @param str 

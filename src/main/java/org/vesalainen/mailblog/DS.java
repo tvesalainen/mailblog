@@ -48,6 +48,7 @@ import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -85,6 +86,7 @@ import static org.vesalainen.mailblog.CachingDatastoreService.getRootKey;
 import org.vesalainen.mailblog.GeoJSON.Feature;
 import org.vesalainen.mailblog.GeoJSON.LineString;
 import org.vesalainen.mailblog.GeoJSON.Point;
+import static org.vesalainen.mailblog.SpotType.Destination;
 import org.vesalainen.mailblog.types.GeoPtType;
 import org.vesalainen.mailblog.types.TimeSpan;
 import org.vesalainen.navi.Navis;
@@ -1671,57 +1673,51 @@ public class DS extends CachingDatastoreService
 
     public void writeMapInit(CacheWriter cw, int height, int width)
     {
+        JSONObject json = mapInit(height, width);
+        json.write(cw);
+        cw.cache();
+    }
+    JSONObject mapInit(int height, int width)
+    {
         Settings settings = getSettings();
         JSONObject json = new JSONObject();
         Iterable<Entity> lastPlacemarksIterable = fetchLastPlacemarks(settings);
         Iterator<Entity> iterator = lastPlacemarksIterable.iterator();
         BoundingBox bb = new BoundingBox();
-        if (iterator.hasNext())
+        while (iterator.hasNext())
         {
             Entity pm = iterator.next();
             GeoPt location = (GeoPt) pm.getProperty(LocationProperty);
             bb.add(location);
-            Date timestamp = (Date) pm.getProperty(TimestampProperty);
-            json.put(LatitudeParameter, location.getLatitude());
-            json.put(LongitudeParameter, location.getLongitude());
-            SimpleDateFormat sdf = new SimpleDateFormat(ISO8601Format);
-            json.put(TimestampParameter, sdf.format(timestamp));
             String description = (String) pm.getProperty(DescriptionProperty);
             SpotType st = SpotType.getSpotType(description);
-            GeoPt location2 = null;
-            while (iterator.hasNext() && SpotType.Ok != st)
+            if (SpotType.Ok == st)
             {
-                pm = iterator.next();
-                location2 = (GeoPt) pm.getProperty(LocationProperty);
-                bb.add(location2);
-                description = (String) pm.getProperty(DescriptionProperty);
-                st = SpotType.getSpotType(description);
-            }
-            int iz = settings.getZoom();
-            json.put(ZoomParameter, iz);
-            System.err.println("zoom="+iz);
-            if (location2 != null)
-            {
-                double bbWidth = bb.getWidth();
-                double bbHeight = bb.getHeight();
-                for (int zoom = iz; zoom >= 0; zoom--)
-                {
-                    double c = Math.pow(2, zoom);
-                    int neededWidth = (int) (c * bbWidth);
-                    int neededHeight = (int) (c * bbHeight);
-                    if (neededWidth < width && neededHeight < height)
-                    {
-                        json.put(ZoomParameter, zoom);
-                        bb.populate(json);
-                        break;
-                    }
-                }
+                break;
             }
         }
-        json.write(cw);
-        cw.cache();
+        GeoPt center = bb.getCenter();
+        json.put(LatitudeParameter, center.getLatitude());
+        json.put(LongitudeParameter, center.getLongitude());
+        int iz = settings.getZoom();
+        json.put(ZoomParameter, iz);
+        System.err.println("zoom="+iz);
+        double bbWidth = bb.getWidth();
+        double bbHeight = bb.getHeight();
+        for (int zoom = iz; zoom >= 0; zoom--)
+        {
+            double c = Math.pow(2, zoom);
+            int neededWidth = (int) (c * bbWidth);
+            int neededHeight = (int) (c * bbHeight);
+            if (neededWidth < width && neededHeight < height)
+            {
+                json.put(ZoomParameter, zoom);
+                bb.populate(json);
+                break;
+            }
+        }
+        return json;
     }
-
     private GeoData getGeoData()
     {
         GeoData geoData = (GeoData) getFromCache("GeoData");
@@ -1784,16 +1780,31 @@ public class DS extends CachingDatastoreService
             break;
             case PlacemarkKind:
             {
-                GeoData geoData = getGeoData();
-                Date timestamp = (Date) entity.getProperty(TimestampProperty);
-                List<GeoPt> placemarkPoints = geoData.getPlacemarkPoints(key);
-                if (placemarkPoints != null)
+                String description = (String) entity.getProperty(DescriptionProperty);
+                SpotType type = SpotType.getSpotType(description);
+                if (type == Destination)
                 {
-                    feature = new Feature((GeoJSON.Geometry) GeoJSON.lineString(placemarkPoints));
+                    GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
+                    Point point = new Point(location);
+                    feature = new Feature(point);
                     feature.setId(KeyFactory.keyToString(key));
-                    feature.setProperty("color", settings.getTrackCss3Color());
-                    feature.setProperty("opacity", getAlpha(timestamp));
+                    feature.setProperty("icon", settings.getIcon(entity));
+                    feature.setProperty("pmm", settings.getPpm(entity));
                     feature.write(cw);
+                }
+                else
+                {
+                    GeoData geoData = getGeoData();
+                    Date timestamp = (Date) entity.getProperty(TimestampProperty);
+                    List<GeoPt> placemarkPoints = geoData.getPlacemarkPoints(key);
+                    if (placemarkPoints != null)
+                    {
+                        feature = new Feature((GeoJSON.Geometry) GeoJSON.lineString(placemarkPoints));
+                        feature.setId(KeyFactory.keyToString(key));
+                        feature.setProperty("color", settings.getTrackCss3Color());
+                        feature.setProperty("opacity", getAlpha(timestamp));
+                        feature.write(cw);
+                    }
                 }
             }
             break;
@@ -2003,6 +2014,11 @@ public class DS extends CachingDatastoreService
         private CachingImpl caching;
         private final StringWriter stringWriter = new StringWriter();
         private boolean cached;
+
+        public CacheWriter(Writer out)
+        {
+            super(out);
+        }
 
         private CacheWriter(HttpServletRequest request, HttpServletResponse response) throws IOException
         {

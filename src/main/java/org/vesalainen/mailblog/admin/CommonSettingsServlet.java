@@ -18,8 +18,6 @@ package org.vesalainen.mailblog.admin;
 
 import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -75,15 +73,15 @@ public class CommonSettingsServlet extends FieldSettingsServlet
                 .setType(Long.class)
                 .setAttribute("min", "0")
                 .setTooltip("Minimum pixels per mile for hilite icon");
-        addProperty(SpotOkIconProperty)
+        addProperty(AnchoredIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
                 .setTooltip("Used to show a place where Spot Ok button was pressed");
-        addProperty(SpotCustomIconProperty)
+        addProperty(WaypointIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
                 .setTooltip("Used to show a place where Spot Custom button was pressed");
-        addProperty(SpotHelpIconProperty)
+        addProperty(DestinationIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
                 .setTooltip("Used to show a place where Spot Help button was pressed");

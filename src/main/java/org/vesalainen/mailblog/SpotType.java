@@ -10,7 +10,7 @@ package org.vesalainen.mailblog;
  */
 public enum SpotType
 {
-    Ok, Custom, Help, SOS, None ;
+    Ok, Waypoint, Help, SOS, None, Destination ;
     
     public static String getSpotStyleId(SpotType type)
     {
@@ -20,10 +20,12 @@ public enum SpotType
     {
         switch (type)
         {
+            case "Destination":
+                return Destination;
             case "Check-in/OK":
                 return Ok;
             case "Custom":
-                return Custom;
+                return Waypoint;
             case "Help":
                 return Help;
             case "SOS":

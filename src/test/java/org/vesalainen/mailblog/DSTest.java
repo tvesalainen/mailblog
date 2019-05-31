@@ -16,9 +16,21 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.GeoPt;
+import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.Date;
+import org.json.JSONObject;
+import org.junit.After;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Before;
+import org.vesalainen.mailblog.DS.CacheWriter;
 import org.vesalainen.util.CollectionHelp;
 
 /**
@@ -27,11 +39,26 @@ import org.vesalainen.util.CollectionHelp;
  */
 public class DSTest extends DSHelper
 {
-    
     public DSTest()
     {
     }
 
+    @Test
+    public void testGMap()
+    {
+        DS ds = DS.get();
+        ds.addPlacemark(new Date(119, 5, 1), new GeoPt(-8, -140), "heippa", "Check-in/OK");
+        ds.addPlacemark(new Date(119, 5, 2), new GeoPt(-9, -141), "heippa", "Custom");
+        ds.addPlacemark(new Date(119, 5, 3), new GeoPt(-10, -142), "heippa", "Destination");
+        
+        JSONObject json = ds.mapInit(400, 500);
+        assertEquals(-9, json.getDouble("latitude"), 1e-10);
+        assertEquals(-141, json.getDouble("longitude"), 1e-10);
+        
+        BoundingBox bb = new BoundingBox(json);
+        GeoData gd = new GeoData(ds);
+        JSONObject regionKeys = gd.regionKeys(bb);
+    }
     @Test
     public void testDistance()
     {

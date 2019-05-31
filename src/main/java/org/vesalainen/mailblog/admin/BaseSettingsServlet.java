@@ -17,8 +17,6 @@
 package org.vesalainen.mailblog.admin;
 
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Link;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
@@ -29,8 +27,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import static org.vesalainen.mailblog.BlogConstants.*;
-import org.vesalainen.mailblog.DS;
-import org.vesalainen.mailblog.HttpException;
 
 /**
  *
