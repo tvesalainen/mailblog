@@ -86,9 +86,9 @@ public interface BlogConstants
     static final String BlogIconProperty = "BlogIcon";
     static final String ImageIconProperty = "ImageIcon";
     static final String HiLiteIconProperty = "HiLiteIcon";
-    static final String SpotOkIconProperty = "SpotOkIcon";
-    static final String SpotCustomIconProperty = "SpotCustomIcon";
-    static final String SpotHelpIconProperty = "SpotHelpIcon";
+    static final String AnchoredIconProperty = "AnchoredIcon";
+    static final String WaypointIconProperty = "WaypointIcon";
+    static final String DestinationIconProperty = "DestinationIcon";
     static final String BlogIconPpmProperty = "BlogIconPpm";
     static final String ImageIconPpmProperty = "ImageIconPpm";
     static final String HiLiteIconPpmProperty = "HiLiteIconPpm";
