@@ -76,15 +76,15 @@ public class CommonSettingsServlet extends FieldSettingsServlet
         addProperty(AnchoredIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
-                .setTooltip("Used to show a place where Spot Ok button was pressed");
+                .setTooltip("Used to show a place where boat was last anchored/moored");
         addProperty(WaypointIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
-                .setTooltip("Used to show a place where Spot Custom button was pressed");
+                .setTooltip("Used to show a waypoint location ");
         addProperty(DestinationIconProperty)
                 .setType(Link.class)
                 .setAttribute("size", "100")
-                .setTooltip("Used to show a place where Spot Help button was pressed");
+                .setTooltip("Used to show next destination location");
         addProperty(PlacemarkIconPpmProperty)
                 .setType(Long.class)
                 .setAttribute("min", "0")
