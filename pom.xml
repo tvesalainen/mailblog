@@ -12,7 +12,7 @@
     <packaging>war</packaging>
     <groupId>org.vesalainen.mailblog</groupId>
     <artifactId>mailblog</artifactId>
-    <version>1.8.7</version><!-- REMEMBER appengine-web-app.version !!!!!-->
+    <version>1.8.8</version><!-- REMEMBER appengine-web-app.version !!!!!-->
 
     <name>Mail Blog</name>
     <description>
@@ -22,7 +22,7 @@
     </description>
     <properties>
         <appengine-web-app.application>adventurersblog</appengine-web-app.application>
-        <appengine-web-app.version>1-8-7</appengine-web-app.version> <!-- this is the same as project.version with dots changed to dashes-->
+        <appengine-web-app.version>1-8-8</appengine-web-app.version> <!-- this is the same as project.version with dots changed to dashes-->
     </properties>
 
     <dependencies>

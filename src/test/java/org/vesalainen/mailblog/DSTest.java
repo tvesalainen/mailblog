@@ -20,16 +20,22 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.GeoPt;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Link;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.Date;
+import java.util.Map;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.junit.Before;
+import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.mailblog.DS.CacheWriter;
 import org.vesalainen.util.CollectionHelp;
 
@@ -47,6 +53,13 @@ public class DSTest extends DSHelper
     public void testGMap()
     {
         DS ds = DS.get();
+        Key settingsKey = ds.createSettingsKey();
+        Entity settings = new Entity(settingsKey);
+        settings.setProperty(TrackColorProperty, Long.valueOf(255));
+        settings.setProperty(WaypointIconProperty, new Link("waypoing.png"));
+        settings.setProperty(DestinationIconProperty, new Link("destination.png"));
+        settings.setProperty(AnchoredIconProperty, new Link("anchored.png"));
+        ds.put(settings);
         ds.addPlacemark(new Date(119, 5, 1), new GeoPt(-8, -140), "heippa", "Check-in/OK");
         ds.addPlacemark(new Date(119, 5, 2), new GeoPt(-9, -141), "heippa", "Custom");
         ds.addPlacemark(new Date(119, 5, 3), new GeoPt(-10, -142), "heippa", "Destination");
@@ -55,9 +68,17 @@ public class DSTest extends DSHelper
         assertEquals(-9, json.getDouble("latitude"), 1e-10);
         assertEquals(-141, json.getDouble("longitude"), 1e-10);
         
-        BoundingBox bb = new BoundingBox(json);
+        GeoPtBoundingBox bb = new GeoPtBoundingBox(json);
         GeoData gd = new GeoData(ds);
         JSONObject regionKeys = gd.regionKeys(bb);
+        JSONArray array = regionKeys.getJSONArray("keys");
+        array.forEach((Object k)->
+        {
+            String strKey = (String) k;
+            Key key = KeyFactory.stringToKey(strKey);
+            GeoJSON feature = ds.getFeature(key);
+            System.err.println(feature);
+        });
     }
     @Test
     public void testDistance()

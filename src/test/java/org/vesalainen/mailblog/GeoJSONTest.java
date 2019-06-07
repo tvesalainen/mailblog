@@ -170,7 +170,7 @@ public class GeoJSONTest
         JSONArray joar1 = jo.getJSONArray("coordinates");
         assertNotNull(joar1);
         assertEquals(2, joar1.length());
-        BoundingBox box = new BoundingBox();
+        GeoPtBoundingBox box = new GeoPtBoundingBox();
         box.add(list1);
         box.add(list2);
         o.setBbox(box);
@@ -208,7 +208,7 @@ public class GeoJSONTest
         JSONObject job = jo.getJSONObject("geometry");
         assertNotNull(job);
         assertEquals("MultiLineString", job.get("type"));
-        BoundingBox box = new BoundingBox();
+        GeoPtBoundingBox box = new GeoPtBoundingBox();
         box.add(list1);
         box.add(list2);
         o.setBbox(box);

@@ -30,10 +30,10 @@ import static org.junit.Assert.*;
  *
  * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
-public class BoundingBoxTest
+public class GeoPtBoundingBoxTest
 {
     private static final double Epsilon = 1e-6;
-    public BoundingBoxTest()
+    public GeoPtBoundingBoxTest()
     {
     }
     
@@ -46,19 +46,19 @@ public class BoundingBoxTest
         float west = 4.56F;
         GeoPt northEast = new GeoPt(north, east);
         GeoPt southWest = new GeoPt(south, west);
-        BoundingBox box1 = new BoundingBox(northEast, southWest);
+        GeoPtBoundingBox box1 = new GeoPtBoundingBox(northEast, southWest);
         assertEquals(north, box1.getNorth(), Epsilon);
         assertEquals(east, box1.getEast(), Epsilon);
         assertEquals(south, box1.getSouth(), Epsilon);
         assertEquals(west, box1.getWest(), Epsilon);
         assertEquals(northEast, box1.getNorthEast());
         assertEquals(southWest, box1.getSouthWest());
-        BoundingBox box2 = new BoundingBox(north, east, south, west);
+        GeoPtBoundingBox box2 = new GeoPtBoundingBox(north, east, south, west);
         assertEquals(north, box2.getNorth(), Epsilon);
         assertEquals(east, box2.getEast(), Epsilon);
         assertEquals(south, box2.getSouth(), Epsilon);
         assertEquals(west, box2.getWest(), Epsilon);
-        BoundingBox box3 = BoundingBox.getSouthWestNorthEastInstance(String.format(Locale.US, "%f,%f,%f,%f", south, west, north, east));
+        GeoPtBoundingBox box3 = new GeoPtBoundingBox(String.format(Locale.US, "%f,%f,%f,%f", south, west, north, east));
         assertEquals(north, box3.getNorth(), Epsilon);
         assertEquals(east, box3.getEast(), Epsilon);
         assertEquals(south, box3.getSouth(), Epsilon);
@@ -67,7 +67,7 @@ public class BoundingBoxTest
     @Test
     public void testSerialize()
     {
-        BoundingBox box = new BoundingBox();
+        GeoPtBoundingBox box = new GeoPtBoundingBox();
         box.add(1, 2);
         box.add(3, 4);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -84,8 +84,8 @@ public class BoundingBoxTest
         try (ObjectInputStream ois = new ObjectInputStream(bais))
         {
             Object ob = ois.readObject();
-            assertTrue(ob instanceof BoundingBox);
-            BoundingBox box2 = (BoundingBox) ob;
+            assertTrue(ob instanceof GeoPtBoundingBox);
+            GeoPtBoundingBox box2 = (GeoPtBoundingBox) ob;
             assertEquals(box.getNorth(), box2.getNorth(), Epsilon);
             assertEquals(box.getEast(), box2.getEast(), Epsilon);
             assertEquals(box.getSouth(), box2.getSouth(), Epsilon);
@@ -99,7 +99,7 @@ public class BoundingBoxTest
     @Test
     public void testIsInside1()
     {
-        BoundingBox box = new BoundingBox();
+        GeoPtBoundingBox box = new GeoPtBoundingBox();
         box.add(10, 10);
         box.add(20, 20);
         assertTrue(box.isInside(15, 15));
@@ -112,7 +112,7 @@ public class BoundingBoxTest
     @Test
     public void testIsInside2()
     {
-        BoundingBox box = new BoundingBox();
+        GeoPtBoundingBox box = new GeoPtBoundingBox();
         box.add(10, -179);
         box.add(20, 179);
         assertTrue(box.isInside(15, -179.001));
@@ -121,10 +121,10 @@ public class BoundingBoxTest
     @Test
     public void testIsIntersection1()
     {
-        BoundingBox box1 = new BoundingBox();
+        GeoPtBoundingBox box1 = new GeoPtBoundingBox();
         box1.add(10, 10);
         box1.add(20, 20);
-        BoundingBox box2 = new BoundingBox();
+        GeoPtBoundingBox box2 = new GeoPtBoundingBox();
         box2.add(15, 15);
         box2.add(20, 20);
         assertTrue(box1.isIntersecting(box2));
@@ -132,10 +132,10 @@ public class BoundingBoxTest
     @Test
     public void testIsIntersection2()
     {
-        BoundingBox box1 = new BoundingBox();
+        GeoPtBoundingBox box1 = new GeoPtBoundingBox();
         box1.add(10, 10);
         box1.add(20, 20);
-        BoundingBox box2 = new BoundingBox();
+        GeoPtBoundingBox box2 = new GeoPtBoundingBox();
         box2.add(21, 21);
         box2.add(23, 22);
         assertFalse(box1.isIntersecting(box2));
@@ -143,10 +143,10 @@ public class BoundingBoxTest
     @Test
     public void testIsIntersection3()
     {
-        BoundingBox box1 = new BoundingBox();
+        GeoPtBoundingBox box1 = new GeoPtBoundingBox();
         box1.add(10, 10);
         box1.add(20, 20);
-        BoundingBox box2 = new BoundingBox();
+        GeoPtBoundingBox box2 = new GeoPtBoundingBox();
         box2.add(11, 9);
         box2.add(19, 22);
         assertTrue(box1.isIntersecting(box2));
@@ -154,10 +154,10 @@ public class BoundingBoxTest
     @Test
     public void testIsIntersection4()
     {
-        BoundingBox box1 = new BoundingBox();
+        GeoPtBoundingBox box1 = new GeoPtBoundingBox();
         box1.add(10, 10);
         box1.add(20, 20);
-        BoundingBox box2 = new BoundingBox();
+        GeoPtBoundingBox box2 = new GeoPtBoundingBox();
         box2.add(9, 9);
         box2.add(21, 22);
         assertTrue(box1.isIntersecting(box2));
@@ -165,21 +165,21 @@ public class BoundingBoxTest
     @Test
     public void testDimensions()
     {
-        BoundingBox box1 = new BoundingBox();
+        GeoPtBoundingBox box1 = new GeoPtBoundingBox();
         box1.add(10, 170);
         box1.add(20, -170);
         assertEquals(20, box1.getWidth(), Epsilon);
         assertEquals(10, box1.getHeight(), Epsilon);
-        BoundingBox box2 = new BoundingBox();
+        GeoPtBoundingBox box2 = new GeoPtBoundingBox();
         box2.add(9, 10);
         box2.add(21, 20);
         assertEquals(10, box2.getWidth(), Epsilon);
-        assertEquals(12, box1.getHeight(), Epsilon);
+        assertEquals(12, box2.getHeight(), Epsilon);
     }
     @Test
     public void testCenter()
     {
-        BoundingBox box1 = new BoundingBox();
+        GeoPtBoundingBox box1 = new GeoPtBoundingBox();
         box1.add(10, 170);
         box1.add(20, -170);
         GeoPt exp = new GeoPt(15, 180);

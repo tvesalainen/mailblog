@@ -32,7 +32,7 @@ import org.vesalainen.util.CollectionHelp;
 public class GeoJSON
 {
     protected final JSONObject json = new JSONObject();
-    protected BoundingBox bbox = new BoundingBox();
+    protected GeoPtBoundingBox bbox = new GeoPtBoundingBox();
     
     protected GeoJSON(String type)
     {
@@ -92,6 +92,13 @@ public class GeoJSON
     {
         return p.getLongitude() >= 0;
     }
+
+    @Override
+    public String toString()
+    {
+        return json.toString();
+    }
+    
     public static class GeometryCollection extends GeoJSON
     {
         JSONArray geometries = new JSONArray();
@@ -105,7 +112,7 @@ public class GeoJSON
          * Therefore it is possible to update this bounding box after setting.
          * @param bbox 
          */
-        public void setBbox(BoundingBox bbox)
+        public void setBbox(GeoPtBoundingBox bbox)
         {
             this.bbox = bbox;
         }
@@ -148,7 +155,7 @@ public class GeoJSON
          * Therefore it is possible to update this bounding box after setting.
          * @param bbox 
          */
-        public void setBbox(BoundingBox bbox)
+        public void setBbox(GeoPtBoundingBox bbox)
         {
             this.bbox = bbox;
         }
@@ -195,7 +202,7 @@ public class GeoJSON
          * Therefore it is possible to update this bounding box after setting.
          * @param bbox 
          */
-        public void setBbox(BoundingBox bbox)
+        public void setBbox(GeoPtBoundingBox bbox)
         {
             this.bbox = bbox;
         }

@@ -5,12 +5,28 @@
 
 package org.vesalainen.mailblog;
 
+import static org.vesalainen.mailblog.BlogConstants.*;
+
 /**
  * @author Timo Vesalainen
  */
 public enum SpotType
 {
-    Anchored, Waypoint, None, Destination ;
+    Unknown(""), 
+    Anchored(AnchoredIconProperty), 
+    Waypoint(WaypointIconProperty), 
+    Destination(DestinationIconProperty) ;
+    private String iconProperty;
+    
+    SpotType(String property)
+    {
+        this.iconProperty = property;
+    }
+
+    public String getIconProperty()
+    {
+        return iconProperty;
+    }
     
     public static String getSpotStyleId(SpotType type)
     {
@@ -29,7 +45,7 @@ public enum SpotType
             case "Custom":
                 return Waypoint;
             default:
-                return None;
+                return Unknown;
         }
     }
 }

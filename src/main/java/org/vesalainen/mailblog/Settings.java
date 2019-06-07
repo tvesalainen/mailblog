@@ -204,7 +204,8 @@ public class Settings extends BaseProperty
                 return getImageIcon();
             case PlacemarkKind:
                 String description = (String) entity.getProperty(DescriptionProperty);
-                return getFeatureIcon(description);
+                SpotType type = SpotType.getSpotType(description);
+                return getFeatureIcon(type.getIconProperty());
             default:
                 return DefaultIcon;
         }

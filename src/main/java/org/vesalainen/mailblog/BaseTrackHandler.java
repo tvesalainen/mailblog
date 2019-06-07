@@ -26,9 +26,9 @@ public class BaseTrackHandler
     private Key trackKey;
     private Key trackSeqKey;
     private final List<Entity> trackPoints = new ArrayList<>();
-    private final BoundingBox trackBbox = new BoundingBox();
+    private final GeoPtBoundingBox trackBbox = new GeoPtBoundingBox();
     private final TimeSpan trackSpan = new TimeSpan();
-    private final BoundingBox trackSeqBbox = new BoundingBox();
+    private final GeoPtBoundingBox trackSeqBbox = new GeoPtBoundingBox();
     private final TimeSpan trackSeqSpan = new TimeSpan();
     private GeoPt trackSeqFirst;
     private GeoPt trackSeqLast;

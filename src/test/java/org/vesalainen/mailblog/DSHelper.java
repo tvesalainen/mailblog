@@ -16,9 +16,15 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
+import com.google.appengine.api.memcache.dev.LocalMemcacheService;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import org.junit.After;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 
 /**
@@ -27,8 +33,12 @@ import org.junit.Before;
  */
 public class DSHelper
 {
+
     static final Double Epsilon = 1e-5;
-    protected final LocalServiceTestHelper helper = new LocalServiceTestHelper(new LocalDatastoreServiceTestConfig());
+    protected final LocalServiceTestHelper helper = new LocalServiceTestHelper(
+            new LocalDatastoreServiceTestConfig(),
+            new LocalMemcacheServiceTestConfig().setMaxSize(10, LocalMemcacheServiceTestConfig.SizeUnit.KB)
+    );
 
     public DSHelper()
     {
@@ -45,5 +55,5 @@ public class DSHelper
     {
         helper.tearDown();
     }
-    
+
 }

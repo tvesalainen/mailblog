@@ -22,7 +22,6 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -44,7 +43,7 @@ public class GeoData implements Serializable
 {
     private static final long serialVersionUID = 1L;
     
-    private final MapList<BoundingBox, Key> boxList = new HashMapList<>();
+    private final MapList<GeoPtBoundingBox, Key> boxList = new HashMapList<>();
     private final Map<Key,List<GeoPt>> placemarkList = new HashMap<>();
     private final MapList<GeoPt,Key> locationList = new HashMapList<>();
 
@@ -62,15 +61,15 @@ public class GeoData implements Serializable
         Iterable<Entity> blogLocationsIterable = ds.fetchBlogLocations();
 
         Iterable<Entity> merge = Merger.merge(new Comp(), trackSeqIterable, placemarksIterable);
-        BoundingBox bb;
-        BoundingBox pb = null;
+        GeoPtBoundingBox bb;
+        GeoPtBoundingBox pb = null;
         Entity prev = null;
         Date lastTrackEnd = null;
         List<GeoPt> locList = null;
         List<GeoPt> prevList = null;
         for (Entity entity : merge)
         {
-            bb = BoundingBox.getInstance(entity);
+            bb = GeoPtBoundingBox.getInstance(entity);
             Key key = entity.getKey();
             switch (entity.getKind())
             {
@@ -170,14 +169,14 @@ public class GeoData implements Serializable
         }
     }
     
-    public void writeRegionKeys(DS.CacheWriter cw, BoundingBox bb)
+    public void writeRegionKeys(DS.CacheWriter cw, GeoPtBoundingBox bb)
     {
         System.err.println("writeRegionKeys "+bb);
         JSONObject json = regionKeys(bb);
         json.write(cw);
         cw.cache();
     }
-    JSONObject regionKeys(BoundingBox bb)
+    JSONObject regionKeys(GeoPtBoundingBox bb)
     {
         JSONObject json = new JSONObject();
         JSONArray jarray = new JSONArray();

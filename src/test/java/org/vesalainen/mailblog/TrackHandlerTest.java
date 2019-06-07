@@ -106,7 +106,7 @@ public class TrackHandlerTest extends DSHelper
         PreparedQuery p1 = ds.prepare(q1);
         for (Entity track : p1.asIterable())
         {
-            BoundingBox bb1 = BoundingBox.getInstance(track);
+            GeoPtBoundingBox bb1 = GeoPtBoundingBox.getInstance(track);
             TimeSpan ts1 = new TimeSpan(track);
             assertEquals(expBegin, ts1.getBegin());
             assertEquals(expEnd, ts1.getEnd());
@@ -115,7 +115,7 @@ public class TrackHandlerTest extends DSHelper
             PreparedQuery p2 = ds.prepare(q2);
             for (Entity trackSeq : p2.asIterable())
             {
-                BoundingBox bb2 = BoundingBox.getInstance(trackSeq);
+                GeoPtBoundingBox bb2 = GeoPtBoundingBox.getInstance(trackSeq);
                 assertTrue(bb1.isInside(bb2));
                 TimeSpan ts2 = new TimeSpan(trackSeq);
                 assertTrue(ts1.isInside(ts2));

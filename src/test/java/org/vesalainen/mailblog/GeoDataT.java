@@ -42,7 +42,7 @@ public class GeoDataT extends RemoteHelper
     public void testSomeMethod() throws IOException
     {
         GeoData d = new GeoData();
-        BoundingBox bb = BoundingBox.getSouthWestNorthEastInstance("6.938551,-81.19235,10.197208,-78.549039");
+        GeoPtBoundingBox bb = GeoPtBoundingBox.getSouthWestNorthEastInstance("6.938551,-81.19235,10.197208,-78.549039");
         JSONObject regionKeys = d.regionKeys(bb);
         try (Writer w = new OutputStreamWriter(System.err))
         {

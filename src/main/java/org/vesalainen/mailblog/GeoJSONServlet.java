@@ -70,7 +70,7 @@ public class GeoJSONServlet extends BaseServlet
             String bboxStr = request.getParameter(BoundingBoxParameter);
             if (bboxStr != null)
             {
-                BoundingBox bb = BoundingBox.getSouthWestNorthEastInstance(bboxStr);
+                GeoPtBoundingBox bb = new GeoPtBoundingBox(bboxStr);
                 try (DS.CacheWriter cw = ds.createCacheWriter(request, response))
                 {
                     cw.setETag(eTag)

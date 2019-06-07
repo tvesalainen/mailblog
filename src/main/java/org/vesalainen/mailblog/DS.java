@@ -84,6 +84,7 @@ import org.json.JSONObject;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import static org.vesalainen.mailblog.CachingDatastoreService.getRootKey;
 import org.vesalainen.mailblog.GeoJSON.Feature;
+import org.vesalainen.mailblog.GeoJSON.FeatureCollection;
 import org.vesalainen.mailblog.GeoJSON.LineString;
 import org.vesalainen.mailblog.GeoJSON.Point;
 import static org.vesalainen.mailblog.SpotType.Destination;
@@ -1567,16 +1568,16 @@ public class DS extends CachingDatastoreService
         PreparedQuery p1 = prepare(q1);
         for (Entity track : p1.asIterable())
         {
-            if (!BoundingBox.isPopulated(track) || !TimeSpan.isPopulated(track))
+            if (!GeoPtBoundingBox.isPopulated(track) || !TimeSpan.isPopulated(track))
             {
-                BoundingBox bb1 = new BoundingBox();
+                GeoPtBoundingBox bb1 = new GeoPtBoundingBox();
                 TimeSpan ts1 = new TimeSpan();
                 Query q2 = new Query(TrackSeqKind);
                 q2.setAncestor(track.getKey());
                 PreparedQuery p2 = prepare(q2);
                 for (Entity trackSeq : p2.asIterable())
                 {
-                    BoundingBox bb2 = BoundingBox.getInstance(trackSeq);
+                    GeoPtBoundingBox bb2 = GeoPtBoundingBox.getInstance(trackSeq);
                     bb1.add(bb2);
                     TimeSpan ts2 = new TimeSpan(trackSeq);
                     ts1.add(ts2);
@@ -1598,14 +1599,14 @@ public class DS extends CachingDatastoreService
         Iterable<Entity> trackIterable = fetchTracks();
         for (Entity track : trackIterable)
         {
-            BoundingBox bb1 = BoundingBox.getInstance(track);
+            GeoPtBoundingBox bb1 = GeoPtBoundingBox.getInstance(track);
             TimeSpan ts1 = new TimeSpan(track);
             if (hasImageMetadata(ts1.getBegin(), ts1.getEnd(), true))
             {
                 Iterable<Entity> trackSeqIterable = fetchTrackSeqs(track.getKey());
                 for (Entity trackSeq : trackSeqIterable)
                 {
-                    BoundingBox bb2 = BoundingBox.getInstance(trackSeq);
+                    GeoPtBoundingBox bb2 = GeoPtBoundingBox.getInstance(trackSeq);
                     TimeSpan ts2 = new TimeSpan(trackSeq);
                     if (hasImageMetadata(ts2.getBegin(), ts2.getEnd(), true))
                     {
@@ -1683,7 +1684,7 @@ public class DS extends CachingDatastoreService
         JSONObject json = new JSONObject();
         Iterable<Entity> lastPlacemarksIterable = fetchLastPlacemarks(settings);
         Iterator<Entity> iterator = lastPlacemarksIterable.iterator();
-        BoundingBox bb = new BoundingBox();
+        GeoPtBoundingBox bb = new GeoPtBoundingBox();
         while (iterator.hasNext())
         {
             Entity pm = iterator.next();
@@ -1729,13 +1730,22 @@ public class DS extends CachingDatastoreService
         return geoData;
     }
 
-    public void writeRegionKeys(CacheWriter cw, BoundingBox bb)
+    public void writeRegionKeys(CacheWriter cw, GeoPtBoundingBox bb)
     {
         GeoData geoData = getGeoData();
         geoData.writeRegionKeys(cw, bb);
     }
 
     public void writeFeature(CacheWriter cw, Key key)
+    {
+        GeoJSON feature = getFeature(key);
+        if (feature != null)
+        {
+            feature.write(cw);
+            cw.cache();
+        }
+    }
+    GeoJSON getFeature(Key key)
     {
         Entity entity;
         try
@@ -1746,7 +1756,6 @@ public class DS extends CachingDatastoreService
         {
             throw new IllegalArgumentException(ex);
         }
-        Feature feature;
         Settings settings = getSettings();
         switch (key.getKind())
         {
@@ -1759,51 +1768,79 @@ public class DS extends CachingDatastoreService
                     GeoPt location = (GeoPt) trackPoint.getProperty(LocationProperty);
                     list.add(location);
                 }
-                feature = new Feature((GeoJSON.Geometry) GeoJSON.lineString(list));
+                Feature feature = new Feature((GeoJSON.Geometry) GeoJSON.lineString(list));
                 feature.setId(KeyFactory.keyToString(key));
                 feature.setProperty("color", settings.getTrackCss3Color());
                 feature.setProperty("opacity", getAlpha(begin));
-                feature.write(cw);
+                return feature;
             }
-            break;
             case BlogKind:
             case MetadataKind:
             {
                 GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
                 Point point = new Point(location);
-                feature = new Feature(point);
+                Feature feature = new Feature(point);
                 feature.setId(KeyFactory.keyToString(key));
                 feature.setProperty("icon", settings.getIcon(entity));
                 feature.setProperty("pmm", settings.getPpm(entity));
-                feature.write(cw);
+                return feature;
             }
-            break;
             case PlacemarkKind:
             {
                 String description = (String) entity.getProperty(DescriptionProperty);
                 SpotType type = SpotType.getSpotType(description);
-                if (type == Destination)
+                switch (type)
                 {
-                    GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
-                    Point point = new Point(location);
-                    feature = new Feature(point);
-                    feature.setId(KeyFactory.keyToString(key));
-                    feature.setProperty("icon", settings.getIcon(entity));
-                    feature.setProperty("pmm", settings.getPpm(entity));
-                    feature.write(cw);
-                }
-                else
-                {
-                    GeoData geoData = getGeoData();
-                    Date timestamp = (Date) entity.getProperty(TimestampProperty);
-                    List<GeoPt> placemarkPoints = geoData.getPlacemarkPoints(key);
-                    if (placemarkPoints != null)
+                    case Destination:
                     {
-                        feature = new Feature((GeoJSON.Geometry) GeoJSON.lineString(placemarkPoints));
+                        GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
+                        Point point = new Point(location);
+                        Feature feature = new Feature(point);
                         feature.setId(KeyFactory.keyToString(key));
-                        feature.setProperty("color", settings.getTrackCss3Color());
-                        feature.setProperty("opacity", getAlpha(timestamp));
-                        feature.write(cw);
+                        feature.setProperty("icon", settings.getIcon(entity));
+                        feature.setProperty("pmm", settings.getPpm(entity));
+                        return feature;
+                    }
+                    case Anchored:
+                    {
+                        GeoData geoData = getGeoData();
+                        GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
+                        Point point = new Point(location);
+                        Feature feature = new Feature(point);
+                        feature.setId(KeyFactory.keyToString(key));
+                        feature.setProperty("icon", settings.getIcon(entity));
+                        feature.setProperty("pmm", settings.getPpm(entity));
+                        Date timestamp = (Date) entity.getProperty(TimestampProperty);
+                        List<GeoPt> placemarkPoints = geoData.getPlacemarkPoints(key);
+                        if (placemarkPoints != null)
+                        {
+                            FeatureCollection featureCollection = new FeatureCollection();
+                            featureCollection.addFeature(feature);
+                            feature = new Feature((GeoJSON.Geometry) GeoJSON.lineString(placemarkPoints));
+                            feature.setId(KeyFactory.keyToString(key));
+                            feature.setProperty("color", settings.getTrackCss3Color());
+                            feature.setProperty("opacity", getAlpha(timestamp));
+                            featureCollection.addFeature(feature);
+                            return featureCollection;
+                        }
+                        else
+                        {
+                            return feature;
+                        }
+                    }
+                    default:
+                    {
+                        GeoData geoData = getGeoData();
+                        Date timestamp = (Date) entity.getProperty(TimestampProperty);
+                        List<GeoPt> placemarkPoints = geoData.getPlacemarkPoints(key);
+                        if (placemarkPoints != null)
+                        {
+                            Feature feature = new Feature((GeoJSON.Geometry) GeoJSON.lineString(placemarkPoints));
+                            feature.setId(KeyFactory.keyToString(key));
+                            feature.setProperty("color", settings.getTrackCss3Color());
+                            feature.setProperty("opacity", getAlpha(timestamp));
+                            return feature;
+                        }
                     }
                 }
             }
@@ -1811,7 +1848,7 @@ public class DS extends CachingDatastoreService
             default:
                 System.err.println("Unknown entity " + entity);
         }
-        cw.cache();
+        return null;
     }
 
     public int getAlpha(Date begin)
