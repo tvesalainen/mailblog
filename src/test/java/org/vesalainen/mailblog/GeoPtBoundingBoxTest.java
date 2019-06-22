@@ -40,10 +40,10 @@ public class GeoPtBoundingBoxTest
     @Test
     public void testInit()
     {
-        float north = 1.23F;
-        float east = 2.34F;
-        float south = 3.45F;
-        float west = 4.56F;
+        float south = 1.23F;
+        float west = 2.34F;
+        float north = 3.45F;
+        float east = 4.56F;
         GeoPt northEast = new GeoPt(north, east);
         GeoPt southWest = new GeoPt(south, west);
         GeoPtBoundingBox box1 = new GeoPtBoundingBox(northEast, southWest);

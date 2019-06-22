@@ -25,14 +25,15 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import static org.vesalainen.mailblog.SpotType.Destination;
-import org.vesalainen.util.HashMapList;
-import org.vesalainen.util.MapList;
+import org.vesalainen.util.CollectionHelp;
 import org.vesalainen.util.Merger;
 
 /**
@@ -43,9 +44,9 @@ public class GeoData implements Serializable
 {
     private static final long serialVersionUID = 1L;
     
-    private final MapList<GeoPtBoundingBox, Key> boxList = new HashMapList<>();
-    private final Map<Key,List<GeoPt>> placemarkList = new HashMap<>();
-    private final MapList<GeoPt,Key> locationList = new HashMapList<>();
+    private final GeoPtRangeMap<Key> boxList = new GeoPtRangeMap<>();
+    private final Map<Key,GeoPt[]> placemarkList = new HashMap<>();
+    private final GeoPtLocationMap<Key> locationList = new GeoPtLocationMap<>();
 
     public GeoData()
     {
@@ -61,102 +62,15 @@ public class GeoData implements Serializable
         Iterable<Entity> blogLocationsIterable = ds.fetchBlogLocations();
 
         Iterable<Entity> merge = Merger.merge(new Comp(), trackSeqIterable, placemarksIterable);
-        GeoPtBoundingBox bb;
-        GeoPtBoundingBox pb = null;
-        Entity prev = null;
-        Date lastTrackEnd = null;
-        List<GeoPt> locList = null;
-        List<GeoPt> prevList = null;
-        for (Entity entity : merge)
-        {
-            bb = GeoPtBoundingBox.getInstance(entity);
-            Key key = entity.getKey();
-            switch (entity.getKind())
-            {
-                case PlacemarkKind:
-                    String description = (String) entity.getProperty(DescriptionProperty);
-                    SpotType type = SpotType.getSpotType(description);
-                    GeoPt location = (GeoPt) entity.getProperty(LocationProperty);
-                    if (type == Destination)
-                    {
-                        boxList.add(bb, key);
-                        locList = new ArrayList<>();
-                        locList.add(location);
-                        placemarkList.put(key, locList);
-                        continue;
-                    }
-                    Date timestamp = (Date) entity.getProperty(TimestampProperty);
-                    if (prev == null)
-                    {
-                        boxList.add(bb, key);
-                        locList = new ArrayList<>();
-                        locList.add(location);
-                        placemarkList.put(key, locList);
-                    }
-                    else
-                    {
-                        locList = new ArrayList<>();
-                        if (lastTrackEnd == null || timestamp.after(lastTrackEnd))
-                        {
-                            switch (prev.getKind())
-                            {
-                                case PlacemarkKind:
-                                    prevList.add(location);  // prev
-                                    pb.add(location);       // prev
-                                    boxList.add(bb, key);
-                                    locList.add(location);
-                                    placemarkList.put(key, locList);
-                                    break;
-                                case TrackSeqKind:
-                                    GeoPt last = (GeoPt) prev.getProperty(LastProperty);
-                                    boxList.add(bb, key);
-                                    locList.add(last);
-                                    locList.add(location);
-                                    placemarkList.put(key, locList);
-                                    break;
-                                default:
-                                    throw new UnsupportedOperationException(entity.getKind()+" not supported");
-                            }
-                        }
-                    }
-                    break;
-                case TrackSeqKind:
-                    if (prev == null)
-                    {
-                        boxList.add(bb, key);
-                    }
-                    else
-                    {
-                        GeoPt first = (GeoPt) entity.getProperty(FirstProperty);
-                        lastTrackEnd = (Date) entity.getProperty(EndProperty);
-                        switch (prev.getKind())
-                        {
-                            case PlacemarkKind:
-                                prevList.add(first);  // prev
-                                pb.add(first);       // prev
-                                boxList.add(bb, key);
-                                break;
-                            case TrackSeqKind:
-                                boxList.add(bb, key);
-                                break;
-                            default:
-                                throw new UnsupportedOperationException(entity.getKind()+" not supported");
-                        }
-                    }
-                    break;
-                default:
-                    throw new UnsupportedOperationException(entity.getKind()+" not supported");
-            }
-            prev = entity;
-            pb = bb;
-            prevList = locList;
-        }
+        Iterator<Entity> iterator = merge.iterator();
+        PathBuilder builder = new PathBuilder(iterator);
+        builder.build();
         for (Entity metadata : imageLocationsIterable)
         {
             GeoPt location = (GeoPt) metadata.getProperty(LocationProperty);
             if (location != null)
             {
-                locationList.add(location, metadata.getKey());
+                locationList.put(location, metadata.getKey());
             }
         }
         for (Entity blog : blogLocationsIterable)
@@ -164,7 +78,7 @@ public class GeoData implements Serializable
             GeoPt location = (GeoPt) blog.getProperty(LocationProperty);
             if (location != null)
             {
-                locationList.add(location, blog.getKey());
+                locationList.put(location, blog.getKey());
             }
         }
     }
@@ -181,31 +95,192 @@ public class GeoData implements Serializable
         JSONObject json = new JSONObject();
         JSONArray jarray = new JSONArray();
         json.put("keys", jarray);
-        boxList.forEach((b, l)->
+        Stream<Key> overlapping = boxList.overlapping(bb);
+        overlapping.forEach((k)->
         {
-            if (bb.isIntersecting(b))
-            {
-                for (Key k : l)
-                {
-                    jarray.put(KeyFactory.keyToString(k));
-                }
-            }
+            jarray.put(KeyFactory.keyToString(k));
         });
-        locationList.forEach((g, l)->
+        Stream<Key> keys = locationList.strickEntries(bb).map((e)->e.getValue());
+        keys.forEach((k)->
         {
-            if (bb.isInside(g))
-            {
-                for (Key k : l)
-                {
-                    jarray.put(KeyFactory.keyToString(k));
-                }
-            }
+            jarray.put(KeyFactory.keyToString(k));
         });
         return json;
     }
     public List<GeoPt> getPlacemarkPoints(Key key)
     {
-        return placemarkList.get(key);
+        return CollectionHelp.create(placemarkList.get(key));
+    }
+    private class PathBuilder
+    {
+        Iterator<Entity> iterator;
+        List<GeoPt> locList = new ArrayList<>();
+        Entity prevEntity;
+        Entity curEntity;
+
+        public PathBuilder(Iterator<Entity> iterator)
+        {
+            this.iterator = iterator;
+        }
+        private void build()
+        {
+            String state = "start";
+            while (true)
+            {
+                switch (state)
+                {
+                    case "start":
+                        state = next();
+                        switch (state)
+                        {
+                            case PlacemarkKind:
+                                startingPlacemark(curEntity);
+                                break;
+                            case TrackSeqKind:
+                                startingTrackSeq(curEntity);
+                                break;
+                            case "end":
+                                break;
+                        }
+                        break;
+                    case PlacemarkKind:
+                        state = next();
+                        switch (state)
+                        {
+                            case PlacemarkKind:
+                                placemarkToPlacemark(prevEntity, curEntity);
+                                break;
+                            case TrackSeqKind:
+                                placemarkToTrackSeq(prevEntity, curEntity);
+                                break;
+                            case "end":
+                                endingPlacemark(prevEntity);
+                                break;
+                        }
+                        break;
+                    case TrackSeqKind:
+                        Date end = (Date) curEntity.getProperty(EndProperty);
+                        state = next(end);
+                        switch (state)
+                        {
+                            case PlacemarkKind:
+                                trackSeqToPlacemark(prevEntity, curEntity);
+                                break;
+                            case TrackSeqKind:
+                                trackSeqToTrackSeq(prevEntity, curEntity);
+                                break;
+                            case "end":
+                                endingTrackSeq(prevEntity);
+                                break;
+                        }
+                        break;
+                    case "end":
+                        return;
+                }
+            }
+        }
+        private String next()
+        {
+            return next(null);
+        }
+        private String next(Date end)
+        {
+            prevEntity = curEntity;
+            while (iterator.hasNext())
+            {
+                curEntity = iterator.next();
+                if (notOverlappingPlacemark(end) && notDestination())
+                {
+                    return curEntity.getKind();
+                }
+            }
+            return "end";
+        }
+
+        private boolean notOverlappingPlacemark(Date end)
+        {
+            if (end != null)
+            {
+                if (PlacemarkKind.equals(curEntity.getKind()))
+                {
+                    Date timestamp = (Date) curEntity.getProperty(TimestampProperty);
+                    return end.before(timestamp);
+                }
+            }
+            return true;
+        }
+        private boolean notDestination()
+        {
+            if (PlacemarkKind.equals(curEntity.getKind()))
+            {
+                String description = (String) curEntity.getProperty(DescriptionProperty);
+                SpotType st = SpotType.getSpotType(description);
+                return SpotType.Destination != st;
+            }
+            return true;
+        }
+
+        private void startingPlacemark(Entity placemark)
+        {
+        }
+
+        private void startingTrackSeq(Entity trackSeq)
+        {
+            addTrackSeq(trackSeq);
+        }
+
+        private void placemarkToPlacemark(Entity prevPlacemark, Entity curPlacemark)
+        {
+            GeoPt curLoc = (GeoPt) curPlacemark.getProperty(LocationProperty);
+            addPlacemark(prevPlacemark, curLoc);
+        }
+
+        private void placemarkToTrackSeq(Entity placemark, Entity trackSeq)
+        {
+            GeoPt firstLoc = (GeoPt) trackSeq.getProperty(FirstProperty);
+            addPlacemark(placemark, firstLoc);
+        }
+
+        private void trackSeqToPlacemark(Entity trackSeq, Entity placemark)
+        {
+            addTrackSeq(trackSeq);
+            GeoPt lastLoc = (GeoPt) trackSeq.getProperty(LastProperty);
+            locList.add(lastLoc);
+        }
+
+        private void trackSeqToTrackSeq(Entity prevTrackSeq, Entity curTrackSeq)
+        {
+            addTrackSeq(prevTrackSeq);
+        }
+
+        private void endingTrackSeq(Entity trackSeq)
+        {
+            addTrackSeq(trackSeq);
+        }
+
+        private void endingPlacemark(Entity placemark)
+        {
+        }
+
+        private void addTrackSeq(Entity trackSeq)
+        {
+            GeoPtBoundingBox bb = GeoPtBoundingBox.getInstance(trackSeq);
+            boxList.put(bb, trackSeq.getKey());
+        }
+
+        private void addPlacemark(Entity placemark, GeoPt nextLoc)
+        {
+            GeoPt loc = (GeoPt) placemark.getProperty(LocationProperty);
+            Key key = placemark.getKey();
+            locList.add(loc);
+            locList.add(nextLoc);
+            placemarkList.put(key, locList.toArray(new GeoPt[locList.size()]));
+            GeoPtBoundingBox bb = new GeoPtBoundingBox();
+            bb.add(locList);
+            boxList.put(bb, key);
+            locList.clear();
+        }
+
     }
     private static class Comp implements Comparator<Entity>
     {

@@ -17,25 +17,18 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.GeoPt;
-import org.vesalainen.util.navi.AbstractLocationSupport;
-import org.vesalainen.util.navi.LocationSupport;
+import org.vesalainen.util.navi.AbstractLocationMap;
 
 /**
  *
  * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
-public class GeoPtSupport extends AbstractLocationSupport<GeoPt>
+public class GeoPtLocationMap<T> extends AbstractLocationMap<GeoPt,T>
 {
-    public static final GeoPtSupport LOCATION_SUPPORT = new GeoPtSupport();
 
-    public GeoPtSupport()
+    public GeoPtLocationMap()
     {
-        super(
-                (l)->l.getLongitude(), 
-                (l)->l.getLatitude(), 
-                (lat,lon)->new GeoPt((float)lat, (float)lon),
-                GeoPtBoundingBox::new
-        );
+        super(GeoPtSupport.LOCATION_SUPPORT);
     }
     
 }

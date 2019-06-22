@@ -24,13 +24,13 @@ import java.io.Serializable;
 import org.json.JSONObject;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.repacked.net.opengis.kml.LatLonAltBoxType;
+import org.vesalainen.util.navi.AbstractLocationSupport;
 
 /**
  * @author Timo Vesalainen
  */
 public class GeoPtBoundingBox extends AbstractBoundingBox<GeoPt> implements Serializable
 {
-    protected static final long serialVersionUID = 1L;
 
     public GeoPtBoundingBox()
     {
@@ -45,6 +45,11 @@ public class GeoPtBoundingBox extends AbstractBoundingBox<GeoPt> implements Seri
     public GeoPtBoundingBox(GeoPt northEast, GeoPt southWest)
     {
         super(GeoPtSupport.LOCATION_SUPPORT, northEast, southWest);
+    }
+
+    public GeoPtBoundingBox(GeoPt center, double dia)
+    {
+        super(GeoPtSupport.LOCATION_SUPPORT, center, dia);
     }
 
     public GeoPtBoundingBox(double latitude, double longitude, double dia)
@@ -72,8 +77,6 @@ public class GeoPtBoundingBox extends AbstractBoundingBox<GeoPt> implements Seri
     {
             switch (entity.getKind())
             {
-                case PlacemarkKind:
-                    return new GeoPtBoundingBox((GeoPt) entity.getProperty(LocationProperty));
                 case TrackKind:
                 case TrackSeqKind:
                     return new GeoPtBoundingBox((GeoPt) entity.getProperty(NorthEastProperty), (GeoPt) entity.getProperty(SouthWestProperty));
@@ -87,10 +90,10 @@ public class GeoPtBoundingBox extends AbstractBoundingBox<GeoPt> implements Seri
     }
     public void populate(JSONObject json)
     {
-        json.put("north", north);
-        json.put("south", south);
-        json.put("east", east);
-        json.put("west", west);
+        json.put("north", getNorth());
+        json.put("south", getSouth());
+        json.put("east", getEast());
+        json.put("west", getWest());
     }
     public void populate(Entity entity)
     {
@@ -99,10 +102,10 @@ public class GeoPtBoundingBox extends AbstractBoundingBox<GeoPt> implements Seri
     }
     public void populate(LatLonAltBoxType box)
     {
-        box.setNorth(north);
-        box.setSouth(south);
-        box.setWest(west);
-        box.setEast(east);
+        box.setNorth(getNorth());
+        box.setSouth(getSouth());
+        box.setWest(getEast());
+        box.setEast(getWest());
     }
 
 

@@ -17,16 +17,16 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.GeoPt;
-import org.vesalainen.util.navi.AbstractLocationDB;
+import org.vesalainen.util.navi.AbstractLocationRangeMap;
 
 /**
  *
  * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
-public class GeoPtLocationDB<T> extends AbstractLocationDB<GeoPt,T>
+public class GeoPtRangeMap<T> extends AbstractLocationRangeMap<GeoPt,T>
 {
 
-    public GeoPtLocationDB()
+    public GeoPtRangeMap()
     {
         super(GeoPtSupport.LOCATION_SUPPORT);
     }
