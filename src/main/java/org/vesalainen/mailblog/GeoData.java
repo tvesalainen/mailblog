@@ -260,6 +260,7 @@ public class GeoData implements Serializable
 
         private void endingPlacemark(Entity placemark)
         {
+            addPlacemark(placemark, null);
         }
 
         private void addTrackSeq(Entity trackSeq)
@@ -273,7 +274,10 @@ public class GeoData implements Serializable
             GeoPt loc = (GeoPt) placemark.getProperty(LocationProperty);
             Key key = placemark.getKey();
             locList.add(loc);
-            locList.add(nextLoc);
+            if (nextLoc != null)
+            {
+                locList.add(nextLoc);
+            }
             placemarkList.put(key, locList.toArray(new GeoPt[locList.size()]));
             GeoPtBoundingBox bb = new GeoPtBoundingBox();
             bb.add(locList);

@@ -57,6 +57,55 @@ public class DSTest extends DSHelper
     @Test
     public void testGMap()
     {
+        DS ds = DS.get();
+        Key settingsKey = ds.createSettingsKey();
+        Entity settings = new Entity(settingsKey);
+        settings.setProperty(TrackColorProperty, Long.valueOf(255));
+        settings.setProperty(WaypointIconProperty, new Link("waypoing.png"));
+        settings.setProperty(DestinationIconProperty, new Link("destination.png"));
+        settings.setProperty(AnchoredIconProperty, new Link("anchored.png"));
+        ds.put(settings);
+        
+        ds.addPlacemark(Date.from(Instant.parse("2019-06-20T10:15:30.00Z")), new GeoPt(-16.22F, -145.55F), "Pakokota", "Check-in/OK");
+        ds.addPlacemark(Date.from(Instant.parse("2019-05-26T10:15:30.00Z")), new GeoPt(-16.06F, -145.62F), "Rotoava", "Check-in/OK");
+        ds.addPlacemark(Date.from(Instant.parse("2019-05-25T10:15:30.00Z")), new GeoPt(-14.93F, -144.7F), "Nuku Hiva - Fakarava 3", "Custom");
+        ds.addPlacemark(Date.from(Instant.parse("2019-05-24T10:15:30.00Z")), new GeoPt(-13.9F, -143.9F), "Nuku Hiva - Fakarava 2", "Custom");
+        ds.addPlacemark(Date.from(Instant.parse("2019-05-22T10:15:30.00Z")), new GeoPt(-11.95F, -141.8F), "Nuku Hiva - Fakarava 1", "Custom");
+        ds.addPlacemark(Date.from(Instant.parse("2018-11-15T10:15:30.00Z")), new GeoPt(-8.9F, -140.1F), "Nuku Hiva", "Check-in/OK");
+        
+        Entity trackSeq = createTrackSeq(Date.from(Instant.parse("2019-06-19T08:15:30.00Z")), Date.from(Instant.parse("2019-06-19T10:15:30.00Z")), -16.05F, -145.6F, -16.22F, -145.55F);
+        ds.put(trackSeq);
+        
+        
+        JSONObject json = ds.mapInit(300, 241);
+        assertEquals(-16.219999313354492, json.getDouble("latitude"), 1e-10);
+        assertEquals(-145.5500030517578, json.getDouble("longitude"), 1e-10);
+        
+        GeoPtBoundingBox bb = new GeoPtBoundingBox("-16.237194,-145.567653,-16.21247,-145.547002");   // -16.237194,-145.567653,-16.21247,-145.547002
+        System.err.println(bb);
+        GeoData gd = new GeoData(ds);
+        JSONObject regionKeys = gd.regionKeys(bb);
+        JSONArray array = regionKeys.getJSONArray("keys");
+        array.forEach((Object k)->
+        {
+            String strKey = (String) k;
+            Key key = KeyFactory.stringToKey(strKey);
+            GeoJSON feature = ds.getFeature(key);
+            try
+            {
+                Entity entity = ds.get(key);
+                System.err.println(entity);
+                System.err.println(feature);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                throw new IllegalArgumentException(ex);
+            }
+        });
+    }
+    //@Test
+    public void testGMap2()
+    {
         Instant now = Instant.now();
         DS ds = DS.get();
         Key settingsKey = ds.createSettingsKey();
