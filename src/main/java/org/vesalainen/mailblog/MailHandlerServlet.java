@@ -774,6 +774,7 @@ public class MailHandlerServlet extends HttpServlet
                     {
                         subject = subject.substring(7);
                     }
+                    subject = UTF_8_Fixer.fix(subject);
                     DS ds = DS.get();
                     Settings settings = ds.getSettings();
                     Entity blog = ds.getBlogEntity(messageId, subject);
