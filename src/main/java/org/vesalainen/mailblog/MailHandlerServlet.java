@@ -297,7 +297,7 @@ public class MailHandlerServlet extends HttpServlet
         {
             if (content instanceof String)
             {
-                String bodyPart = (String) content;
+                String bodyPart = UTF_8_Fixer.fix((String) content);
                 if (contentType.startsWith("text/plain"))
                 {
                     bodyPart = textPlainToHtml(bodyPart);
