@@ -26,9 +26,8 @@ import org.vesalainen.util.logging.JavaLogging;
  * them with empty string.
  * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
-public class BodyPropertyFinder extends JavaLogging
+public abstract class BodyPropertyFinder extends JavaLogging
 {
-    protected Map<String,String> map = new HashMap<>();
     protected ExpressionParser parser  = new ExpressionParser(this::handle);
 
     public BodyPropertyFinder(Class<? extends BodyPropertyFinder> cls)
@@ -40,20 +39,20 @@ public class BodyPropertyFinder extends JavaLogging
     {
         return parser.replace(text);
     }
-    private String handle(String text)
+    protected String handle(String text)
     {
         String[] split = text.split("=");
         if (split.length != 2)
         {
             warning("illegal property %s", text);
+            return "";
         }
         else
         {
             String key = split[0].trim();
             String value = split[1].trim();
-            info("${%s=%s}", key, value);
-            map.put(key, value);
+            return handle(key, value);
         }
-        return "";
     }
+    protected abstract String handle(String key, String value);
 }

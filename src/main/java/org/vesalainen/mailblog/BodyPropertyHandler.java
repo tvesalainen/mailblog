@@ -18,6 +18,8 @@ package org.vesalainen.mailblog;
 
 import com.google.appengine.api.datastore.GeoPt;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import static java.util.logging.Level.SEVERE;
 import static org.vesalainen.mailblog.GeoPtParser.GEO_PT_PARSER;
 import org.vesalainen.parsers.date.Dates;
@@ -29,6 +31,7 @@ import org.vesalainen.regex.SyntaxErrorException;
  */
 public class BodyPropertyHandler extends BodyPropertyFinder
 {
+    protected Map<String,String> map = new HashMap<>();
 
     public BodyPropertyHandler()
     {
@@ -80,6 +83,14 @@ public class BodyPropertyHandler extends BodyPropertyFinder
                 warning("something is missing %s", map);
             }
         }
+    }
+
+    @Override
+    protected String handle(String key, String value)
+    {
+        info("${%s=%s}", key, value);
+        map.put(key, value);
+        return "";
     }
     
 }

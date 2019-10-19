@@ -236,6 +236,7 @@ public class MailHandlerServlet extends HttpServlet
         {
             Multipart multipart = (Multipart) message.getContent();
             List<BodyPart> bodyPartList = findParts(multipart);
+            ImagePropertyHandler bodyPropertyHandler = new ImagePropertyHandler(bodyPartList);
             try
             {
                 Entity blog = null;
@@ -243,6 +244,7 @@ public class MailHandlerServlet extends HttpServlet
                 if (htmlBody != null && htmlBody.length() > 10)
                 {
                     boolean publishImmediately = settings.isPublishImmediately();
+                    htmlBody = bodyPropertyHandler.replace(htmlBody);
                     blog = updateBlog(messageId, message, htmlBody, publishImmediately, senderEmail);
                     if (!ripping)
                     {
@@ -297,12 +299,14 @@ public class MailHandlerServlet extends HttpServlet
         {
             if (content instanceof String)
             {
+                BodyPropertyHandler bodyPropertyHandler = new BodyPropertyHandler();
                 String bodyPart = UTF_8_Fixer.fix((String) content);
                 if (contentType.startsWith("text/plain"))
                 {
                     bodyPart = textPlainToHtml(bodyPart);
                 }
                 boolean publishImmediately = settings.isPublishImmediately();
+                bodyPart = bodyPropertyHandler.replace(bodyPart);
                 Entity blog = updateBlog(messageId, message, bodyPart, publishImmediately, senderEmail);
                 if (blog != null)
                 {
@@ -430,6 +434,10 @@ public class MailHandlerServlet extends HttpServlet
                         alt = "";
                     }
                     replaceBlogRef(blog, cids[0], digestString, wWidth, wHeight, alt);
+                }
+                else
+                {
+                    log("cid not found with "+filename);
                 }
             }
             if (contentType.startsWith("application/vnd.google-earth.kml+xml") || filename.endsWith(".kml"))
@@ -572,13 +580,13 @@ public class MailHandlerServlet extends HttpServlet
         }
     }
 
-    private List<BodyPart> findParts(Multipart multipart) throws MessagingException, IOException
+    static List<BodyPart> findParts(Multipart multipart) throws MessagingException, IOException
     {
         List<BodyPart> list = new ArrayList<BodyPart>();
         findParts(list, multipart);
         return list;
     }
-    private void findParts(List<BodyPart> list, Multipart multipart) throws MessagingException, IOException
+    static void findParts(List<BodyPart> list, Multipart multipart) throws MessagingException, IOException
     {
         for (int ii=0;ii<multipart.getCount();ii++)
         {
@@ -724,6 +732,10 @@ public class MailHandlerServlet extends HttpServlet
                             blog.setUnindexedProperty(HtmlProperty, new Text(sb.toString()));
                         }
                     }
+                    else
+                    {
+                        log("cid:"+cid+" not found in "+body);
+                    }
                     ds.put(blog);
                     return null;
                 }
@@ -732,7 +744,7 @@ public class MailHandlerServlet extends HttpServlet
         }
     }
 
-    private String getHtmlBody(List<BodyPart> bodyPartList) throws MessagingException, IOException
+    static String getHtmlBody(List<BodyPart> bodyPartList) throws MessagingException, IOException
     {
         String htmlBody = null;
         for (BodyPart bodyPart : bodyPartList)
@@ -760,8 +772,6 @@ public class MailHandlerServlet extends HttpServlet
 
     private Entity updateBlog(final String messageId, final MimeMessage message, final String htmlBody, final boolean publishImmediately, final Email senderEmail) throws IOException
     {
-        BodyPropertyHandler bodyPropertyHandler = new BodyPropertyHandler();
-        final String body = bodyPropertyHandler.replace(htmlBody);
         Updater<Entity> updater = new Updater<Entity>()
         {
             @Override
@@ -781,8 +791,8 @@ public class MailHandlerServlet extends HttpServlet
                     if (
                             subject == null || 
                             subject.length() < 2 ||
-                            body == null ||
-                            ContentCounter.countChars(body) < 5
+                            htmlBody == null ||
+                            ContentCounter.countChars(htmlBody) < 5
                             )
                     {
                         ds.deleteWithChilds(blog.getKey());
@@ -803,7 +813,7 @@ public class MailHandlerServlet extends HttpServlet
                     blog.setProperty(SubjectProperty, subject);
                     blog.setProperty(SenderProperty, senderEmail);
                     setProperty(message, DateProperty, blog, true);
-                    blog.setUnindexedProperty(HtmlProperty, new Text(body));
+                    blog.setUnindexedProperty(HtmlProperty, new Text(htmlBody));
                     blog.setProperty(TimestampProperty, new Date());
                     Entity placemark = ds.fetchLastPlacemark(settings);
                     if (placemark != null)
@@ -930,7 +940,7 @@ public class MailHandlerServlet extends HttpServlet
         return messageID;
     }
 
-    private String textPlainToHtml(String htmlBody)
+    static String textPlainToHtml(String htmlBody)
     {
         return "<p>"+htmlBody.replaceAll("[\r\n]+", "\n<p>");
     }

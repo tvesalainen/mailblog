@@ -16,10 +16,15 @@
  */
 package org.vesalainen.mailblog;
 
+import com.google.appengine.api.datastore.Email;
+import com.google.appengine.api.datastore.Entity;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
+import javax.mail.BodyPart;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import org.junit.Test;
@@ -29,7 +34,7 @@ import static org.junit.Assert.*;
  *
  * @author Timo Vesalainen <timo.vesalainen@iki.fi>
  */
-public class MailHandlerServletTest
+public class MailHandlerServletTest extends DSHelper
 {
     
     public MailHandlerServletTest()
@@ -39,13 +44,57 @@ public class MailHandlerServletTest
     @Test
     public void testTextPlain() throws MessagingException, IOException
     {
-        InputStream is = MailHandlerServletTest.class.getResourceAsStream("/NWLVXNVCVEFT.mime");
-        Properties props = new Properties();
-        Session session = Session.getDefaultInstance(props, null);
-        MimeMessage message = new MimeMessage(session, is);
-        String contentType = message.getContentType();
-        String content = (String) message.getContent();
-        String utf8 = UTF_8_Fixer.fix(content);
+        try (InputStream is = MailHandlerServletTest.class.getResourceAsStream("/NWLVXNVCVEFT.mime"))
+        {
+            Properties props = new Properties();
+            Session session = Session.getDefaultInstance(props, null);
+            MimeMessage message = new MimeMessage(session, is);
+            String contentType = message.getContentType();
+            String content = (String) message.getContent();
+            String utf8 = UTF_8_Fixer.fix(content);
+        }
+    }
+    @Test
+    public void testWinlink() throws MessagingException, IOException
+    {
+        String html = read("/WL2K.mime");
+        assertTrue(html.contains("<img src=\"cid:DSCN0979pienempi.jpg\" alt=\"DSCN0979pienempi.jpg\">"));
+    }
+    @Test
+    public void testTablet() throws MessagingException, IOException
+    {
+        String html = read("/Tabletista.mime");
+        assertTrue(html.contains("<img src=\"cid:16ba5fbf1458cfc9b62\" alt=\"DSCN0933.JPG\">"));
+    }
+    private String read(String mime) throws MessagingException, IOException
+    {
+        try (InputStream is = MailHandlerServletTest.class.getResourceAsStream(mime))
+        {
+            Properties props = new Properties();
+            Session session = Session.getDefaultInstance(props, null);
+            MimeMessage message = new MimeMessage(session, is);
+            Object content = message.getContent();
+            if (content instanceof Multipart)
+            {
+                Multipart multipart = (Multipart) message.getContent();
+                List<BodyPart> bodyPartList = MailHandlerServlet.findParts(multipart);
+                ImagePropertyHandler bodyPropertyHandler = new ImagePropertyHandler(bodyPartList);
+                String htmlBody = MailHandlerServlet.getHtmlBody(bodyPartList);
+                for (BodyPart bodyPart : bodyPartList)
+                {
+                    String cid=null;
+                    String[] cids = bodyPart.getHeader("Content-ID");
+                    if (cids != null)
+                    {
+                        cid = cids[0];
+                    }
+                    System.err.println(bodyPart.getFileName()+" "+cid);
+                }
+                htmlBody = bodyPropertyHandler.replace(htmlBody);
+                return htmlBody;
+            }
+        }
+        return "";
     }
     
 }

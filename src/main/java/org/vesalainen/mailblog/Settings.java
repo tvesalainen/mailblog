@@ -71,7 +71,7 @@ public class Settings extends BaseProperty
 
     public Locale getLocale()
     {
-        return LocaleHelp.toLocale((String) map.get(LocaleProperty));
+        return LocaleHelp.toLocale((String) map.getOrDefault(LocaleProperty, "US"));
     }
 
     public TimeZone getTimeZone()
