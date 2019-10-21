@@ -1,0 +1,5 @@
+cron:
+- url: '/cron?connectPics'
+  schedule: 'every day 04:00'
+  timezone: 'Europe/Helsinki'
+  description: 'Connect pictures to locations'

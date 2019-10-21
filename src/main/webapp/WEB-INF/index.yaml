@@ -1,0 +1,65 @@
+indexes:
+- kind: Blog
+  properties:
+  - direction: asc
+    name: Publish
+  - direction: desc
+    name: Date
+- kind: Blog
+  properties:
+  - direction: asc
+    name: Publish
+  - direction: asc
+    name: Location
+- kind: Blog
+  properties:
+  - direction: asc
+    name: Publish
+  - direction: asc
+    name: Timestamp
+- kind: Blog
+  properties:
+  - direction: asc
+    name: Publish
+  - direction: asc
+    name: Field
+- kind: Blog
+  properties:
+  - direction: asc
+    name: Publish
+  - direction: asc
+    name: Square
+- kind: Blog
+  properties:
+  - direction: asc
+    name: Publish
+  - direction: asc
+    name: Subsquare
+- ancestor: true
+  kind: Comments
+  properties:
+  - direction: asc
+    name: Timestamp
+- kind: Placemarks
+  properties:
+  - direction: asc
+    name: Field
+  - direction: asc
+    name: Timestamp
+- kind: Metadata
+  properties:
+  - direction: asc
+    name: DateTimeOriginal
+  - direction: asc
+    name: Location
+- kind: Metadata
+  properties:
+  - direction: asc
+    name: Location
+  - direction: asc
+    name: DateTimeOriginal
+- ancestor: true
+  kind: TrackSeq
+  properties:
+  - direction: asc
+    name: Begin

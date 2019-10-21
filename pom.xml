@@ -120,14 +120,13 @@
                     </webResources>
                 </configuration>
             </plugin>
-
             <plugin>
-                <groupId>com.google.appengine</groupId>
+                <groupId>com.google.cloud.tools</groupId>
                 <artifactId>appengine-maven-plugin</artifactId>
-                <version>${appengine.target.version}</version>
+                <version>2.0.0</version>
                 <configuration>
-                    <fullScanSeconds>1</fullScanSeconds>
-                    <server>preview.appengine.google.com</server>
+                    <projectId>${appengine-web-app.application}</projectId>
+                    <version>${appengine-web-app.version}</version>
                 </configuration>
             </plugin>
             <plugin>
