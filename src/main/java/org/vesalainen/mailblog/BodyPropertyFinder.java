@@ -16,8 +16,6 @@
  */
 package org.vesalainen.mailblog;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.vesalainen.bean.ExpressionParser;
 import org.vesalainen.util.logging.JavaLogging;
 
@@ -41,7 +39,7 @@ public abstract class BodyPropertyFinder extends JavaLogging
     }
     protected String handle(String text)
     {
-        String[] split = text.split("=");
+        String[] split = text.split("=", 2);
         if (split.length != 2)
         {
             warning("illegal property %s", text);

@@ -20,7 +20,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.GeoPt;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.repackaged.com.google.datastore.v1.Key;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import org.junit.Test;

@@ -72,33 +72,44 @@ public class ImagePropertyHandler extends BodyPropertyHandler
     }
 
     @Override
-    protected String handle(String key, String filename)
+    protected String handle(String key, String value)
     {
-        if ("img".equalsIgnoreCase(key))
+        switch (key)
         {
-            String cid = cidMap.get(filename);
-            if (cid != null)
+            case "img":
+                return img(value);
+            case "youtube":
+                return youtube(value);
+            default:
+                return super.handle(key, value);
+        }
+    }
+
+    private String img(String filename)
+    {
+        String cid = cidMap.get(filename);
+        if (cid != null)
+        {
+            BodyPart bodyPart = bodyParts.get(cid);
+            if (bodyPart != null)
             {
-                BodyPart bodyPart = bodyParts.get(cid);
-                if (bodyPart != null)
-                {
-                    return "<img src=\"cid:"+cid+"\" alt=\""+filename+"\">";
-                }
-                else
-                {
-                    info("body missing filename=%s cid=%s", filename, cid);
-                }
+                return "<img src=\"cid:"+cid+"\" alt=\""+filename+"\">";
             }
             else
             {
-                info("cid missing filename=%s", filename);
+                info("body missing filename=%s cid=%s", filename, cid);
             }
-            return "";
         }
         else
         {
-            return super.handle(key, filename);
+            info("cid missing filename=%s", filename);
         }
+        return "";
+    }
+
+    private String youtube(String code)
+    {
+        return "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/"+code+"\" frameborder=\"0\" allow=\"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>";
     }
     
 }
