@@ -127,6 +127,7 @@
                 <configuration>
                     <projectId>${appengine-web-app.application}</projectId>
                     <version>${appengine-web-app.version}</version>
+                    <stage.enableJarClasses>true</stage.enableJarClasses>
                 </configuration>
             </plugin>
             <plugin>
