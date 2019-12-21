@@ -109,6 +109,7 @@ public interface BlogConstants
     static final String NameProperty = "Name";
     static final String GPSTimeProperty = "GPSTime";
     static final String ImgDirectionProperty = "ImgDirection";
+    static final String gcBucketName = "gcBucketName";
     // Maidenhead properties
     static final String FieldProperty = "Field";
     static final String SquareProperty = "Square";
@@ -260,4 +261,7 @@ public interface BlogConstants
     static final String BaseKey = "base";
 
     static final String BlogIndex = "BlogIndex";
+
+    static final String IMG_ORIG = "img/orig/";  // original size image folder in bucket
+    static final String IMG_WEB = "img/web/";    // web size image folder in bucket
 }

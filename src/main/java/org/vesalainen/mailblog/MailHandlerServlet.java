@@ -43,6 +43,10 @@ import com.google.appengine.api.urlfetch.HTTPResponse;
 import com.google.appengine.api.urlfetch.URLFetchService;
 import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 import com.google.apphosting.api.ApiProxy;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -262,32 +266,9 @@ public class MailHandlerServlet extends HttpServlet
                 {
                     log("no html body");
                 }
-                List<Future<HTTPResponse>> futureList = new ArrayList<Future<HTTPResponse>>();
                 for (BodyPart bodyPart : bodyPartList)
                 {
-                    Collection<Future<HTTPResponse>> futures = handleBodyPart(request, blog, bodyPart, settings);
-                    if (futures != null)
-                    {
-                        futureList.addAll(futures);
-                    }
-                }
-                long remainingMillis = ApiProxy.getCurrentEnvironment().getRemainingMillis();
-                log("remainingMillis="+remainingMillis);
-                for (Future<HTTPResponse> res : futureList)
-                {
-                    try
-                    {
-                        HTTPResponse hr = res.get();
-                        log("code="+hr.getResponseCode());
-                        if (hr.getResponseCode() != HttpServletResponse.SC_OK)
-                        {
-                            throw new ServletException("blob upload failed code="+hr.getResponseCode());
-                        }
-                    }
-                    catch (InterruptedException | ExecutionException ex)
-                    {
-                        throw new IOException(ex);
-                    }
+                    handleBodyPart(request, blog, bodyPart, settings);
                 }
             }
             catch (MessagingException ex)
@@ -375,13 +356,12 @@ public class MailHandlerServlet extends HttpServlet
         }
         return MimeUtility.decodeText(header[0]);
     }
-    private Collection<Future<HTTPResponse>> handleBodyPart(HttpServletRequest request, Entity blog, BodyPart bodyPart, final Settings settings) throws MessagingException, IOException
+    private void handleBodyPart(HttpServletRequest request, Entity blog, BodyPart bodyPart, final Settings settings) throws MessagingException, IOException
     {
         ImagesService imagesService = ImagesServiceFactory.getImagesService();
         DS ds = DS.get();
-        Collection<Future<HTTPResponse>> futures = new ArrayList<>();
         String contentType = bodyPart.getContentType();
-        log(contentType);
+        log("body "+contentType);
         Object content = bodyPart.getContent();
         if (content instanceof InputStream)
         {
@@ -395,6 +375,13 @@ public class MailHandlerServlet extends HttpServlet
                 int oHeight;
                 int wWidth;
                 int wHeight;
+                String bucketName = settings.getGCBucketName();
+                Storage storage = StorageOptions.getDefaultInstance().getService();
+                Bucket bucket = storage.get(bucketName);
+                if (bucket == null)
+                {
+                    throw new IOException(bucketName + " bucket not found");
+                }
                 Image image = ImagesServiceFactory.makeImage(bytes);
                 if (settings.isFixPic())
                 {
@@ -413,18 +400,15 @@ public class MailHandlerServlet extends HttpServlet
                     Image shrinken = imagesService.applyTransform(makeResize, image);
                     wWidth = shrinken.getWidth();
                     wHeight = shrinken.getHeight();
-                    Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, shrinken.getImageData(), WebSizeProperty, request, wWidth, wHeight);
-                    futures.add(res);
+                    Blob blob = bucket.create(IMG_WEB+digestString+filename, shrinken.getImageData(), contentType);
                 }
                 else
                 {
                     wWidth = image.getWidth();
                     wHeight = image.getHeight();
-                    Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, WebSizeProperty, request, wWidth, wHeight);
-                    futures.add(res);
+                    Blob blob = bucket.create(IMG_WEB+digestString+filename, bytes, contentType);
                 }
-                Future<HTTPResponse> res = postBlobs(filename, contentType, digestString, bytes, OriginalSizeProperty, request, oWidth, oHeight);
-                futures.add(res);
+                Blob blob = bucket.create(IMG_ORIG+digestString+filename, bytes, contentType);
                 String[] cids = bodyPart.getHeader("Content-ID");
                 if (cids != null && cids.length > 0)
                 {
@@ -523,60 +507,6 @@ public class MailHandlerServlet extends HttpServlet
             {
                 log("NMEA not yet supported");
             }        
-        }
-        return futures;
-    }
-
-    private Future<HTTPResponse> postBlobs(
-            String filename, 
-            String contentType, 
-            String sha1, 
-            byte[] data, 
-            String metadataSize, 
-            HttpServletRequest request,
-            int width,
-            int height
-    ) throws MessagingException, IOException
-    {
-        try
-        {
-            URLFetchService fetchService = URLFetchServiceFactory.getURLFetchService();
-            BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
-            URI reqUri = new URI(request.getScheme(), request.getServerName(), "", "");
-            URI uri = reqUri.resolve(
-                    "/blob?"+NamespaceParameter+"="+NamespaceManager.get()+
-                    "&"+SizeParameter+"="+metadataSize+
-                    "&"+WidthParameter+"="+width+
-                    "&"+HeightParameter+"="+height
-            );
-            URL uploadUrl = new URL(blobstore.createUploadUrl(uri.toASCIIString()));
-            log("post blob to "+uploadUrl);
-            HTTPRequest httpRequest = new HTTPRequest(uploadUrl, HTTPMethod.POST, FetchOptions.Builder.withDeadline(60));
-            String uid = UUID.randomUUID().toString();
-            httpRequest.addHeader(new HTTPHeader("Content-Type", "multipart/form-data; boundary="+uid));
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            PrintStream ps = new PrintStream(baos);
-            ps.append("--"+uid);
-            ps.append(CRLF);
-            ps.append("Content-Disposition: form-data; name=\""+sha1+"\"; filename=\""+filename+"\"");
-            ps.append(CRLF);
-            ps.append("Content-Type: "+contentType);
-            ps.append(CRLF);
-            ps.append("Content-Transfer-Encoding: binary");
-            ps.append(CRLF);
-            ps.append(CRLF);
-            ps.write(data);
-            ps.append(CRLF);
-            ps.append("--"+uid+"--");
-            ps.append(CRLF);
-            ps.close();
-            log("sending blob size="+baos.size());
-            httpRequest.setPayload(baos.toByteArray());
-            return fetchService.fetchAsync(httpRequest);
-        }
-        catch (URISyntaxException ex)
-        {
-            throw new IOException(ex);
         }
     }
 
@@ -859,41 +789,33 @@ public class MailHandlerServlet extends HttpServlet
     
     private Entity createMetadata(final String digestString, final String filename, final String contentType, final byte[] bytes) throws IOException
     {
-        Updater<Entity> updater = new Updater<Entity>()
+        DS ds = DS.get();
+        Entity metadata = ds.getMetadata(digestString);
+        log(metadata.toString());
+        if (metadata.getProperties().isEmpty())
         {
-            @Override
-            protected Entity update() throws IOException
+            metadata.setProperty(LocationProperty, null);
+            metadata.setUnindexedProperty(FilenameProperty, filename);
+            metadata.setUnindexedProperty(ContentTypeProperty, contentType);
+            metadata.setUnindexedProperty(TimestampProperty, new Date());
+            try
             {
-                DS ds = DS.get();
-                Entity metadata = ds.getMetadata(digestString);
-                log(metadata.toString());
-                if (metadata.getProperties().isEmpty())
+                if (contentType.startsWith("image/jpeg"))
                 {
-                    metadata.setProperty(LocationProperty, null);
-                    metadata.setUnindexedProperty(FilenameProperty, filename);
-                    metadata.setUnindexedProperty(ContentTypeProperty, contentType);
-                    metadata.setUnindexedProperty(TimestampProperty, new Date());
-                    try
+                    ExifParser exif = new ExifParser(bytes);
+                    Date timestamp = exif.getTimestamp();
+                    if (timestamp != null)
                     {
-                        if (contentType.startsWith("image/jpeg"))
-                        {
-                            ExifParser exif = new ExifParser(bytes);
-                            Date timestamp = exif.getTimestamp();
-                            if (timestamp != null)
-                            {
-                                exif.populate(metadata);
-                            }
-                        }
+                        exif.populate(metadata);
                     }
-                    catch (Exception ex)
-                    {
-                    }
-                    ds.put(metadata);
                 }
-                return metadata;
             }
-        };
-        return updater.start();
+            catch (Exception ex)
+            {
+            }
+            ds.put(metadata);
+        }
+        return metadata;
     }
 
     private boolean handleSpot(MimeMessage message) throws IOException, MessagingException
@@ -943,6 +865,16 @@ public class MailHandlerServlet extends HttpServlet
     static String textPlainToHtml(String htmlBody)
     {
         return "<p>"+htmlBody.replaceAll("[\r\n]+", "\n<p>");
+    }
+
+    private String dump(List<HTTPHeader> headers)
+    {
+        StringBuilder sb = new StringBuilder();
+        for (HTTPHeader h : headers)
+        {
+            sb.append(h.getName()).append("=").append(h.getValue()).append(" ");
+        }
+        return sb.toString();
     }
     private class BlogAuthor
     {

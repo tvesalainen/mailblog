@@ -33,7 +33,7 @@ public class ImagePropertyHandlerTest
     {
     }
 
-    @Test
+    //@Test
     public void testYouTube() throws MessagingException
     {
         ImagePropertyHandler iph = new ImagePropertyHandler(Collections.EMPTY_LIST);

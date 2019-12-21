@@ -17,6 +17,7 @@
 package org.vesalainen.mailblog;
 
 import com.google.appengine.api.NamespaceManager;
+import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.Email;
 import com.google.appengine.api.datastore.Entities;
 import com.google.appengine.api.datastore.Entity;
@@ -1952,6 +1953,24 @@ public class DS extends CachingDatastoreService
             }
         }
         return null;
+    }
+
+    public String getMigratedGCSFilename(BlobKey webBlobKey) throws EntityNotFoundException
+    {
+        String safeNamespace = NamespaceManager.get();
+        try
+        {
+            NamespaceManager.set("");
+            Key key = KeyFactory.createKey("_blobmigrator_BlobKeyMapping", webBlobKey.getKeyString());
+            Entity result = datastore.get(key);
+            String name = (String) result.getProperty("gcs_filename");
+            int idx = name.indexOf("_blobmigrator");
+            return name.substring(idx);
+        }
+        finally
+        {
+            NamespaceManager.set(safeNamespace);
+        }
     }
 
     public interface Caching

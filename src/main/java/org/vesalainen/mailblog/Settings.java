@@ -24,7 +24,6 @@ import com.google.appengine.api.datastore.Text;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 import static org.vesalainen.mailblog.BlogConstants.*;
 import org.vesalainen.mailblog.types.LocaleHelp;
@@ -362,6 +361,10 @@ public class Settings extends BaseProperty
         return l.intValue();
     }
 
+    public String getGCBucketName()
+    {
+        return (String) map.get(gcBucketName);
+    }
     @Override
     public String toString()
     {

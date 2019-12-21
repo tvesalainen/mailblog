@@ -16,16 +16,17 @@
  */
 package org.vesalainen.mailblog;
 
-import com.google.appengine.api.NamespaceManager;
 import com.google.appengine.api.blobstore.BlobKey;
-import com.google.appengine.api.blobstore.BlobstoreService;
-import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,8 +40,7 @@ public class BlobServlet extends HttpServlet
 {
 
     /**
-     * Handles the HTTP
-     * <code>GET</code> method.
+     * Handles the HTTP <code>GET</code> method.
      *
      * @param request servlet request
      * @param response servlet response
@@ -57,7 +57,7 @@ public class BlobServlet extends HttpServlet
         String pathInfo = request.getPathInfo();
         if (pathInfo != null && pathInfo.toLowerCase().endsWith(".jpg"))
         {
-            sha1 = pathInfo.substring(1, pathInfo.length()-4);
+            sha1 = pathInfo.substring(1, pathInfo.length() - 4);
             original = "true";
         }
         else
@@ -65,7 +65,7 @@ public class BlobServlet extends HttpServlet
             sha1 = request.getParameter(Sha1Parameter);
             original = request.getParameter(OriginalParameter);
         }
-        log("sha1="+sha1);
+        log("sha1=" + sha1);
         if (sha1 != null)
         {
             String ifNoneMatch = request.getHeader("If-None-Match");
@@ -79,6 +79,7 @@ public class BlobServlet extends HttpServlet
             Entity metadata = ds.getMetadata(sha1);
             if (metadata != null)
             {
+                String filename = (String) metadata.getProperty(FilenameProperty);
                 Date timestamp = (Date) metadata.getProperty(TimestampProperty);
                 if (timestamp == null)
                 {
@@ -86,20 +87,29 @@ public class BlobServlet extends HttpServlet
                 }
                 String eTag = String.valueOf(timestamp.getTime());
                 response.setHeader("ETag", eTag);
-                BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
                 if (original != null)
                 {
                     BlobKey originalBlobKey = (BlobKey) metadata.getProperty(OriginalSizeProperty);
                     if (originalBlobKey != null)
                     {
-                        blobstore.serve(originalBlobKey, response);
+                        serve(originalBlobKey, response);
+                        return;
+                    }
+                    else
+                    {
+                        serve(IMG_ORIG+sha1+filename, response);
                         return;
                     }
                 }
                 BlobKey webBlobKey = (BlobKey) metadata.getProperty(WebSizeProperty);
                 if (webBlobKey != null)
                 {
-                    blobstore.serve(webBlobKey, response);
+                    serve(webBlobKey, response);
+                    return;
+                }
+                else
+                {
+                    serve(IMG_WEB+sha1+filename, response);
                     return;
                 }
             }
@@ -107,58 +117,40 @@ public class BlobServlet extends HttpServlet
         response.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
 
-    /**
-     * Handles the HTTP
-     * <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException
+    private void serve(BlobKey webBlobKey, HttpServletResponse response) throws IOException
     {
-        String namespace = request.getParameter(NamespaceParameter);
-        NamespaceManager.set(namespace);
-        String sizeString = request.getParameter(SizeParameter);
-        if (sizeString != null)
+        try
         {
-            String width = request.getParameter(WidthParameter);
-            String height = request.getParameter(HeightParameter);
-            addBlobs(request, sizeString, width, height);
+            DS ds = DS.get();
+            String filename = ds.getMigratedGCSFilename(webBlobKey);
+            serve(filename, response);
         }
-        else
+        catch (EntityNotFoundException ex)
         {
-            
+            throw new IOException(ex);
         }
     }
 
-    private void addBlobs(final HttpServletRequest request, final String sizeString, final String width, final String height) throws ServletException, IOException
+    private void serve(String filename, HttpServletResponse response) throws IOException
     {
-        Updater<Object> updater = new Updater<Object>() 
+        DS ds = DS.get();
+        Settings settings = ds.getSettings();
+        String bucketName = settings.getGCBucketName();
+        Storage storage = StorageOptions.getDefaultInstance().getService();
+        Bucket bucket = storage.get(bucketName);
+        if (bucket == null)
         {
-            @Override
-            public Object update() throws IOException
-            {
-                BlobstoreService blobstore = BlobstoreServiceFactory.getBlobstoreService();
-                DS ds = DS.get();
-                Map<String, List<BlobKey>> blobs = blobstore.getUploads(request);
-                for (Map.Entry<String, List<BlobKey>> entry : blobs.entrySet())
-                {
-                    String sha1 = entry.getKey();
-                    Entity metadata = ds.getMetadata(sha1);
-                    BlobKey blobKey = entry.getValue().get(0);
-                    metadata.setUnindexedProperty(sizeString, blobKey);
-                    metadata.setUnindexedProperty(sizeString+"Width", width);
-                    metadata.setUnindexedProperty(sizeString+"Height", height);
-                    ds.put(metadata);
-                }
-                return null;
-            }
-        };
-        updater.start();
+            throw new IOException(bucketName + " bucket not found");
+        }
+        Blob blob = bucket.get(filename);
+        if (blob == null)
+        {
+            throw new IOException(filename + " file not found");
+        }
+        response.setContentType(blob.getContentType());
+        ServletOutputStream outputStream = response.getOutputStream();
+        blob.downloadTo(outputStream);
+        response.flushBuffer();
     }
 
 }

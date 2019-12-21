@@ -12,7 +12,7 @@
     <packaging>war</packaging>
     <groupId>org.vesalainen.mailblog</groupId>
     <artifactId>mailblog</artifactId>
-    <version>1.8.8</version><!-- REMEMBER appengine-web-app.version !!!!!-->
+    <version>1.8.9</version><!-- REMEMBER appengine-web-app.version !!!!!-->
 
     <name>Mail Blog</name>
     <description>
@@ -22,11 +22,15 @@
     </description>
     <properties>
         <appengine-web-app.application>adventurersblog</appengine-web-app.application>
-        <appengine-web-app.version>1-8-8</appengine-web-app.version> <!-- this is the same as project.version with dots changed to dashes-->
+        <appengine-web-app.version>1-8-9</appengine-web-app.version> <!-- this is the same as project.version with dots changed to dashes-->
     </properties>
 
     <dependencies>
         <!-- Compile/runtime dependencies -->
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-storage</artifactId>
+        </dependency>        
         <dependency>
             <groupId>com.google.appengine</groupId>
             <artifactId>appengine-api-1.0-sdk</artifactId>
@@ -123,7 +127,7 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>appengine-maven-plugin</artifactId>
-                <version>2.0.0</version>
+                <version>2.1.0</version>
                 <configuration>
                     <projectId>${appengine-web-app.application}</projectId>
                     <version>${appengine-web-app.version}</version>
