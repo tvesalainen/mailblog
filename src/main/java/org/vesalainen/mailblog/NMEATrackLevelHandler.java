@@ -2,6 +2,7 @@ package org.vesalainen.mailblog;
 
 
 import java.io.FileInputStream;
+import org.vesalainen.navi.Navis;
 import org.vesalainen.parsers.nmea.AbstractNMEAObserver;
 import org.vesalainen.parsers.nmea.NMEAParser;
 import org.vesalainen.parsers.nmea.ais.AbstractAISObserver;
@@ -45,10 +46,10 @@ public abstract class NMEATrackLevelHandler
         }
         else
         {
-            double distance = NMEATrackHandler.distance(lastLatitude, lastLongitude, latitude, longitude);
+            double distance = Navis.distance(lastLatitude, lastLongitude, latitude, longitude);
             if (distance > distanceLimit)
             {
-                double bearing = NMEATrackHandler.bearing(lastLatitude, lastLongitude, latitude, longitude);
+                double bearing = Navis.bearing(lastLatitude, lastLongitude, latitude, longitude);
                 if (Double.isNaN(lastBearing))
                 {
                     lastBearing = bearing;
