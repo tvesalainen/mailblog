@@ -10,4 +10,11 @@
                 <activatedProfile>vanhat</activatedProfile>
             </activatedProfiles>
         </action>
+        <action>
+            <actionName>CUSTOM-Deploy to Appengine</actionName>
+            <displayName>Deploy to Appengine</displayName>
+            <goals>
+                <goal>appengine:deploy</goal>
+            </goals>
+        </action>
     </actions>
